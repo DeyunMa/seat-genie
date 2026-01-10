@@ -7,11 +7,15 @@ import './Statistics.css'
 const COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#10b981', '#f59e0b', '#3b82f6']
 
 function BookStatistics() {
-    const { books, bookBorrowings, loadAllData } = useDataStore()
+    const { books, bookBorrowings, loadAllData, getMonthlyBorrowingTrend, getPopularBooks } = useDataStore()
     const [dateRange, setDateRange] = useState('month')
+    const [monthlyTrend, setMonthlyTrend] = useState([])
+    const [popularBooks, setPopularBooks] = useState([])
 
     useEffect(() => {
         loadAllData()
+        setMonthlyTrend(getMonthlyBorrowingTrend())
+        setPopularBooks(getPopularBooks())
     }, [])
 
     const activeBooks = books.filter(b => b.activeStatus === 'Y')
@@ -35,22 +39,6 @@ function BookStatistics() {
     const activeBorrowings = bookBorrowings.filter(b => b.status === 'borrowed')
     const overdueBorrowings = activeBorrowings.filter(b => b.dueDate < today)
     const returnedBorrowings = bookBorrowings.filter(b => b.status === 'returned')
-
-    // Monthly trend (mock)
-    const monthlyTrend = [
-        { name: '1月', borrowings: 120, returns: 115 },
-        { name: '2月', borrowings: 98, returns: 102 },
-        { name: '3月', borrowings: 145, returns: 140 },
-        { name: '4月', borrowings: 160, returns: 155 },
-        { name: '5月', borrowings: 135, returns: 138 },
-        { name: '6月', borrowings: 110, returns: 112 }
-    ]
-
-    // Popular books (mock based on actual data)
-    const popularBooks = activeBooks.slice(0, 5).map((book, index) => ({
-        name: book.title.length > 15 ? book.title.substring(0, 15) + '...' : book.title,
-        borrowCount: Math.floor(Math.random() * 20) + 10
-    }))
 
     const totalBooks = activeBooks.length
     const borrowRate = totalBooks > 0

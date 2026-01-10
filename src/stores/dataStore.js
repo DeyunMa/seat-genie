@@ -328,6 +328,166 @@ export const useDataStore = create((set, get) => ({
         )
     },
 
+    // NOTIFICATION COUNT - 与 NotificationCenter 保持一致的逻辑
+    getNotificationCount: (currentUser) => {
+        if (!currentUser) return 0
+
+        const today = new Date().toISOString().split('T')[0]
+        const users = getAll('users') || []
+        const books = getAll('books') || []
+        const seatReservations = getAll('seat_reservations') || []
+        const bookBorrowings = getAll('book_borrowings') || []
+
+        let count = 0
+        const isStaffOrAdmin = currentUser.role === 'staff' || currentUser.role === 'admin'
+
+        if (isStaffOrAdmin) {
+            // Overdue book notifications for staff
+            const overdueBorrowings = bookBorrowings.filter(b =>
+                b.status === 'borrowed' && b.dueDate < today
+            )
+            count += overdueBorrowings.length
+
+            // Violated reservations
+            const violatedReservations = seatReservations.filter(r => r.status === 'violated')
+            count += violatedReservations.length
+        } else {
+            // Student notifications
+            const myBorrowings = bookBorrowings.filter(b => b.userId === currentUser.id)
+
+            // Due soon notifications (within 3 days)
+            const dueSoon = myBorrowings.filter(b => {
+                if (b.status !== 'borrowed') return false
+                const dueDate = new Date(b.dueDate)
+                const todayDate = new Date(today)
+                const diff = Math.ceil((dueDate - todayDate) / (1000 * 60 * 60 * 24))
+                return diff >= 0 && diff <= 3
+            })
+            count += dueSoon.length
+
+            // Overdue notifications for student
+            const myOverdue = myBorrowings.filter(b => b.status === 'borrowed' && b.dueDate < today)
+            count += myOverdue.length
+
+            // Today's reservations reminder
+            const todayReservations = seatReservations.filter(r =>
+                r.userId === currentUser.id && r.date === today && r.status === 'active'
+            )
+            count += todayReservations.length
+        }
+
+        // System notifications always add 1
+        count += 1
+
+        return count
+    },
+
+    // 获取过去7天的预约和借阅趋势数据
+    getWeeklyTrendData: () => {
+        const reservations = getAll('seat_reservations') || []
+        const borrowings = getAll('book_borrowings') || []
+
+        const days = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
+        const result = []
+
+        for (let i = 6; i >= 0; i--) {
+            const date = new Date()
+            date.setDate(date.getDate() - i)
+            const dateStr = date.toISOString().split('T')[0]
+            const dayName = days[date.getDay()]
+
+            const dayReservations = reservations.filter(r => r.date === dateStr).length
+            const dayBorrowings = borrowings.filter(b => b.borrowDate === dateStr).length
+
+            result.push({
+                name: dayName,
+                date: dateStr,
+                reservations: dayReservations,
+                borrowings: dayBorrowings,
+                peak: Math.max(dayReservations, dayBorrowings) + Math.floor(dayReservations * 0.15)
+            })
+        }
+
+        return result
+    },
+
+    // 获取各时段的预约分布
+    getTimeSlotDistribution: () => {
+        const reservations = getAll('seat_reservations') || []
+        const slots = []
+
+        for (let hour = 8; hour <= 20; hour++) {
+            const timeStr = `${String(hour).padStart(2, '0')}:00`
+            const count = reservations.filter(r => {
+                if (r.status !== 'active') return false
+                const startHour = parseInt(r.startTime.split(':')[0])
+                const endHour = parseInt(r.endTime.split(':')[0])
+                return hour >= startHour && hour < endHour
+            }).length
+
+            slots.push({ time: timeStr, count })
+        }
+
+        return slots
+    },
+
+    // 获取最近6个月的借还趋势
+    getMonthlyBorrowingTrend: () => {
+        const borrowings = getAll('book_borrowings') || []
+        const months = []
+        const monthNames = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月']
+
+        for (let i = 5; i >= 0; i--) {
+            const date = new Date()
+            date.setMonth(date.getMonth() - i)
+            const year = date.getFullYear()
+            const month = date.getMonth()
+
+            const monthStart = `${year}-${String(month + 1).padStart(2, '0')}-01`
+            const nextMonth = new Date(year, month + 1, 1)
+            const monthEnd = nextMonth.toISOString().split('T')[0]
+
+            const monthBorrowings = borrowings.filter(b =>
+                b.borrowDate >= monthStart && b.borrowDate < monthEnd
+            ).length
+
+            const monthReturns = borrowings.filter(b =>
+                b.returnDate && b.returnDate >= monthStart && b.returnDate < monthEnd
+            ).length
+
+            months.push({
+                name: monthNames[month],
+                borrowings: monthBorrowings,
+                returns: monthReturns
+            })
+        }
+
+        return months
+    },
+
+    // 获取热门图书（基于实际借阅记录）
+    getPopularBooks: () => {
+        const books = getAll('books') || []
+        const borrowings = getAll('book_borrowings') || []
+
+        const bookBorrowCounts = {}
+        borrowings.forEach(b => {
+            bookBorrowCounts[b.bookId] = (bookBorrowCounts[b.bookId] || 0) + 1
+        })
+
+        const activeBooks = books.filter(b => b.activeStatus === 'Y')
+        const booksWithCounts = activeBooks.map(book => ({
+            id: book.id,
+            name: book.title.length > 15 ? book.title.substring(0, 15) + '...' : book.title,
+            fullTitle: book.title,
+            borrowCount: bookBorrowCounts[book.id] || 0
+        }))
+
+        return booksWithCounts
+            .sort((a, b) => b.borrowCount - a.borrowCount)
+            .slice(0, 5)
+    },
+
     // STATISTICS
     getStats: () => {
         const today = new Date().toISOString().split('T')[0]

@@ -1,10 +1,20 @@
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../stores/authStore'
+import { useDataStore } from '../../stores/dataStore'
 import './Header.css'
 
 function Header() {
     const { user, logout } = useAuthStore()
+    const { getNotificationCount, loadAllData } = useDataStore()
     const navigate = useNavigate()
+    const [notificationCount, setNotificationCount] = useState(0)
+
+    useEffect(() => {
+        loadAllData()
+        setNotificationCount(getNotificationCount(user))
+    }, [user])
+
 
     const handleLogout = () => {
         logout()
@@ -31,7 +41,9 @@ function Header() {
             <div className="header-right">
                 <button className="header-btn notification-btn" onClick={() => navigate('/notifications')}>
                     <span className="btn-icon">🔔</span>
-                    <span className="notification-badge">3</span>
+                    {notificationCount > 0 && (
+                        <span className="notification-badge">{notificationCount}</span>
+                    )}
                 </button>
 
                 <div className="header-divider"></div>

@@ -7,11 +7,15 @@ import './Statistics.css'
 const COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#10b981', '#f59e0b', '#3b82f6']
 
 function SeatStatistics() {
-    const { rooms, seats, seatReservations, loadAllData } = useDataStore()
+    const { rooms, seats, seatReservations, loadAllData, getWeeklyTrendData, getTimeSlotDistribution } = useDataStore()
     const [dateRange, setDateRange] = useState('week')
+    const [weeklyTrend, setWeeklyTrend] = useState([])
+    const [timeSlotData, setTimeSlotData] = useState([])
 
     useEffect(() => {
         loadAllData()
+        setWeeklyTrend(getWeeklyTrendData())
+        setTimeSlotData(getTimeSlotDistribution())
     }, [])
 
     const activeRooms = rooms.filter(r => r.activeStatus === 'Y')
@@ -40,34 +44,6 @@ function SeatStatistics() {
         { name: '可用', value: activeSeats.filter(s => s.status === 'available').length },
         { name: '使用中', value: activeSeats.filter(s => s.status === 'occupied').length },
         { name: '维护中', value: activeSeats.filter(s => s.status === 'maintenance').length }
-    ]
-
-    // Weekly trend data (mock)
-    const weeklyTrend = [
-        { name: '周一', reservations: 45, peak: 52 },
-        { name: '周二', reservations: 52, peak: 61 },
-        { name: '周三', reservations: 48, peak: 55 },
-        { name: '周四', reservations: 61, peak: 70 },
-        { name: '周五', reservations: 55, peak: 63 },
-        { name: '周六', reservations: 38, peak: 45 },
-        { name: '周日', reservations: 42, peak: 48 }
-    ]
-
-    // Time slot distribution (mock)
-    const timeSlotData = [
-        { time: '08:00', count: 15 },
-        { time: '09:00', count: 35 },
-        { time: '10:00', count: 45 },
-        { time: '11:00', count: 40 },
-        { time: '12:00', count: 20 },
-        { time: '13:00', count: 25 },
-        { time: '14:00', count: 50 },
-        { time: '15:00', count: 55 },
-        { time: '16:00', count: 48 },
-        { time: '17:00', count: 35 },
-        { time: '18:00', count: 30 },
-        { time: '19:00', count: 38 },
-        { time: '20:00', count: 25 }
     ]
 
     const totalSeats = activeSeats.length

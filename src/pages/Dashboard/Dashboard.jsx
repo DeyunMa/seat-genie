@@ -8,12 +8,14 @@ const COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#10b981', '#f59e0b']
 
 function Dashboard() {
     const { user } = useAuthStore()
-    const { loadAllData, getStats } = useDataStore()
+    const { loadAllData, getStats, getWeeklyTrendData } = useDataStore()
     const [stats, setStats] = useState(null)
+    const [weeklyData, setWeeklyData] = useState([])
 
     useEffect(() => {
         loadAllData()
         setStats(getStats())
+        setWeeklyData(getWeeklyTrendData())
     }, [])
 
     if (!stats) {
@@ -47,16 +49,6 @@ function Dashboard() {
         { name: '可借阅', value: stats.availableBooks },
         { name: '已借出', value: stats.borrowedBooks },
         { name: '逾期未还', value: stats.overdueBorrowings }
-    ]
-
-    const weeklyData = [
-        { name: '周一', reservations: 45, borrowings: 12 },
-        { name: '周二', reservations: 52, borrowings: 18 },
-        { name: '周三', reservations: 48, borrowings: 15 },
-        { name: '周四', reservations: 61, borrowings: 22 },
-        { name: '周五', reservations: 55, borrowings: 19 },
-        { name: '周六', reservations: 38, borrowings: 8 },
-        { name: '周日', reservations: 42, borrowings: 10 }
     ]
 
     return (
