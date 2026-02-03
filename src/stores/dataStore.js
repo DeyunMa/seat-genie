@@ -18,6 +18,8 @@ export const useDataStore = create((set, get) => ({
     books: [],
     seatReservations: [],
     bookBorrowings: [],
+    notifications: [],
+    notificationReads: [],
 
     // Loading states
     loading: false,
@@ -30,7 +32,9 @@ export const useDataStore = create((set, get) => ({
             seats: getAll('seats') || [],
             books: getAll('books') || [],
             seatReservations: getAll('seat_reservations') || [],
-            bookBorrowings: getAll('book_borrowings') || []
+            bookBorrowings: getAll('book_borrowings') || [],
+            notifications: getAll('notifications') || [],
+            notificationReads: getAll('notification_reads') || []
         })
     },
 
@@ -328,58 +332,111 @@ export const useDataStore = create((set, get) => ({
         )
     },
 
-    // NOTIFICATION COUNT - 与 NotificationCenter 保持一致的逻辑
+    // NOTIFICATION OPERATIONS
+    getActiveNotifications: () => getActive('notifications'),
+
+    addNotification: (notificationData, createdById) => {
+        const now = new Date().toISOString()
+        const newNotification = {
+            id: uuidv4(),
+            ...notificationData,
+            createdBy: createdById,
+            activeStatus: 'Y',
+            createdAt: now,
+            updatedAt: now
+        }
+        insertRow('notifications', newNotification)
+        const notifications = getAll('notifications')
+        set({ notifications })
+        return newNotification
+    },
+
+    updateNotification: (id, updates) => {
+        const updatedData = { ...updates, updatedAt: new Date().toISOString() }
+        updateRow('notifications', id, updatedData)
+        const notifications = getAll('notifications')
+        set({ notifications })
+        return notifications.find(n => n.id === id)
+    },
+
+    deleteNotification: (id) => {
+        updateRow('notifications', id, {
+            activeStatus: 'N',
+            updatedAt: new Date().toISOString()
+        })
+        const notifications = getAll('notifications')
+        set({ notifications })
+        return true
+    },
+
+    // NOTIFICATION READ STATUS OPERATIONS
+    markNotificationAsRead: (notificationId, userId) => {
+        const notificationReads = getAll('notification_reads') || []
+        const existingRead = notificationReads.find(
+            r => r.notificationId === notificationId && r.userId === userId
+        )
+        if (existingRead) return existingRead
+
+        const newRead = {
+            id: uuidv4(),
+            notificationId,
+            userId,
+            readAt: new Date().toISOString()
+        }
+        insertRow('notification_reads', newRead)
+        set({ notificationReads: getAll('notification_reads') })
+        return newRead
+    },
+
+    markAllNotificationsAsRead: (userId) => {
+        const notifications = getAll('notifications') || []
+        const notificationReads = getAll('notification_reads') || []
+        const activeNotifications = notifications.filter(n => n.activeStatus === 'Y')
+
+        activeNotifications.forEach(notification => {
+            const existingRead = notificationReads.find(
+                r => r.notificationId === notification.id && r.userId === userId
+            )
+            if (!existingRead) {
+                const newRead = {
+                    id: uuidv4(),
+                    notificationId: notification.id,
+                    userId,
+                    readAt: new Date().toISOString()
+                }
+                insertRow('notification_reads', newRead)
+            }
+        })
+        set({ notificationReads: getAll('notification_reads') })
+        return true
+    },
+
+    isNotificationRead: (notificationId, userId) => {
+        const notificationReads = getAll('notification_reads') || []
+        return notificationReads.some(
+            r => r.notificationId === notificationId && r.userId === userId
+        )
+    },
+
+    getUnreadNotificationCount: (userId) => {
+        if (!userId) return 0
+        const notifications = getAll('notifications') || []
+        const notificationReads = getAll('notification_reads') || []
+        const activeNotifications = notifications.filter(n => n.activeStatus === 'Y')
+
+        const unreadCount = activeNotifications.filter(notification => {
+            return !notificationReads.some(
+                r => r.notificationId === notification.id && r.userId === userId
+            )
+        }).length
+
+        return unreadCount
+    },
+
+    // NOTIFICATION COUNT - 只统计未读公告数量
     getNotificationCount: (currentUser) => {
         if (!currentUser) return 0
-
-        const today = new Date().toISOString().split('T')[0]
-        const users = getAll('users') || []
-        const books = getAll('books') || []
-        const seatReservations = getAll('seat_reservations') || []
-        const bookBorrowings = getAll('book_borrowings') || []
-
-        let count = 0
-        const isStaffOrAdmin = currentUser.role === 'staff' || currentUser.role === 'admin'
-
-        if (isStaffOrAdmin) {
-            // Overdue book notifications for staff
-            const overdueBorrowings = bookBorrowings.filter(b =>
-                b.status === 'borrowed' && b.dueDate < today
-            )
-            count += overdueBorrowings.length
-
-            // Violated reservations
-            const violatedReservations = seatReservations.filter(r => r.status === 'violated')
-            count += violatedReservations.length
-        } else {
-            // Student notifications
-            const myBorrowings = bookBorrowings.filter(b => b.userId === currentUser.id)
-
-            // Due soon notifications (within 3 days)
-            const dueSoon = myBorrowings.filter(b => {
-                if (b.status !== 'borrowed') return false
-                const dueDate = new Date(b.dueDate)
-                const todayDate = new Date(today)
-                const diff = Math.ceil((dueDate - todayDate) / (1000 * 60 * 60 * 24))
-                return diff >= 0 && diff <= 3
-            })
-            count += dueSoon.length
-
-            // Overdue notifications for student
-            const myOverdue = myBorrowings.filter(b => b.status === 'borrowed' && b.dueDate < today)
-            count += myOverdue.length
-
-            // Today's reservations reminder
-            const todayReservations = seatReservations.filter(r =>
-                r.userId === currentUser.id && r.date === today && r.status === 'active'
-            )
-            count += todayReservations.length
-        }
-
-        // System notifications always add 1
-        count += 1
-
-        return count
+        return get().getUnreadNotificationCount(currentUser.id)
     },
 
     // 获取过去7天的预约和借阅趋势数据

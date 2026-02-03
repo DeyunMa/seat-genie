@@ -33,7 +33,7 @@ const saveTable = (table) => {
 
 // Initialize database (load all tables into cache)
 export const initDatabase = async () => {
-    const tables = ['users', 'rooms', 'seats', 'books', 'seat_reservations', 'book_borrowings']
+    const tables = ['users', 'rooms', 'seats', 'books', 'seat_reservations', 'book_borrowings', 'notifications', 'notification_reads']
     tables.forEach(table => loadTable(table))
     console.log('Database initialized from localStorage')
     return true

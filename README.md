@@ -1,16 +1,246 @@
-# React + Vite
+# Seat Genie
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Seat Genie 是一个面向图书馆/自习室场景的前端单页应用（SPA），用于演示“座位预约 + 图书借阅 + 通知公告 + 统计分析”的一体化管理流程。项目内置多角色权限、演示数据与本地持久化，适合用于快速原型、课程作业、内部演示或二次开发。
 
-Currently, two official plugins are available:
+该项目完全在浏览器端运行，依赖 localStorage 作为持久化存储，并通过一个“类 SQL”的接口封装数据访问逻辑，因此无需真实后端即可体验完整流程。
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+**特性概览**
+1. 多角色权限：管理员、馆员、学生不同权限与可见页面。
+2. 座位预约：按时间段预约、冲突检测、取消预约。
+3. 自习室管理：维护自习室与座位信息、状态管理。
+4. 图书借还：借阅/归还记录、到期检测、馆员管理流程。
+5. 统计看板：座位利用率、借阅趋势、热门图书等可视化统计。
+6. 通知公告：公告发布与已读状态统计。
+7. 本地持久化：localStorage 保存数据，刷新页面不丢失。
+8. 内置演示数据：首次启动自动初始化示例用户、座位、图书与记录。
 
-## React Compiler
+---
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 项目定位
 
-## Expanding the ESLint configuration
+Seat Genie 强调“前端业务完整度”，目标是让没有后端的人也能演示一个完整的图书馆座位预约与借阅管理系统。它适合用于：
+1. UI/UX 原型演示。
+2. 前端课程作业或项目展示。
+3. 状态管理与数据建模的学习范例。
+4. 需要离线演示的场景（无需后端服务）。
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+---
+
+## 技术栈
+
+**核心依赖**
+1. Vite 7（构建与开发服务器）
+2. React 19（UI 组件）
+3. React Router（路由管理）
+4. Zustand（全局状态管理）
+5. Recharts（统计图表）
+6. uuid（数据主键生成）
+
+**工程化与开发**
+1. ESLint（代码规范）
+2. Vite 插件：`@vitejs/plugin-react`
+
+---
+
+## 主要模块
+
+**1. 登录与权限**
+- 登录逻辑基于本地用户表与角色字段。
+- 路由级保护，按角色限制访问。
+
+**2. 用户管理（管理员）**
+- 用户增删改、禁用用户。
+- 管理员可重置密码。
+
+**3. 自习室/座位管理（馆员/管理员）**
+- 维护自习室信息、开放时间、容量等。
+- 维护座位状态（可用/维护等）。
+
+**4. 座位预约（学生）**
+- 按日期 + 起止时间预约。
+- 自动检测时间冲突。
+- 可取消预约。
+
+**5. 图书管理与借还（馆员/管理员/学生）**
+- 图书录入、状态维护。
+- 学生借书记录、归还流程。
+- 逾期检测。
+
+**6. 统计看板**
+- 预约与借阅趋势。
+- 时段分布。
+- 热门图书排行。
+
+**7. 通知公告**
+- 公告发布与读取状态追踪。
+- 未读数量提醒。
+
+---
+
+## 本地运行
+
+**1. 安装依赖**
+```bash
+npm install
+```
+
+**2. 启动开发环境**
+```bash
+npm run dev
+```
+
+**3. 构建生产包**
+```bash
+npm run build
+```
+
+**4. 本地预览构建结果**
+```bash
+npm run preview
+```
+
+---
+
+## 演示账号
+
+项目首次启动会初始化演示用户：
+
+- 管理员：`admin / admin123`
+- 馆员：`staff1 / staff123`
+- 学生：`student1 / student123`
+- 学生：`student2 / student123`
+- 学生：`student3 / student123`
+
+---
+
+## 数据持久化与初始化
+
+**数据存储方式**
+- 使用 `localStorage` 作为持久化层。
+- 数据 key 以 `seat_genie_` 作为统一前缀。
+
+**初始化策略**
+- 首次启动会自动检测 `users` 表是否存在数据。
+- 若无数据，自动写入演示用户、房间、座位、图书、预约、借阅与公告。
+
+**重置方式**
+1. 打开浏览器开发者工具。
+2. 清空 `localStorage` 中 `seat_genie_*` 相关项。
+3. 刷新页面后重新生成演示数据。
+
+---
+
+## 目录结构概览
+
+```
+seat-genie/
+├─ public/
+├─ src/
+│  ├─ assets/                 静态资源
+│  ├─ components/             公共组件与布局
+│  ├─ pages/                  业务页面
+│  ├─ services/               数据访问与初始化
+│  ├─ stores/                 Zustand 状态管理
+│  ├─ App.jsx                 路由与权限入口
+│  └─ main.jsx                应用启动与初始化
+├─ index.html
+├─ package.json
+└─ vite.config.js
+```
+
+---
+
+## 关键文件说明
+
+1. `src/main.jsx`
+   - 应用入口与初始化逻辑。
+   - 执行 `initDatabase()` 与 `initializeData()`。
+
+2. `src/App.jsx`
+   - 路由与权限控制中心。
+   - 按角色控制页面访问。
+
+3. `src/services/sqliteService.js`
+   - localStorage 封装成类 SQL API。
+   - 支持简单 `SELECT/INSERT/UPDATE/DELETE` 逻辑。
+
+4. `src/services/initData.js`
+   - 内置演示数据。
+   - 初始化用户、房间、座位、图书、借阅、预约、公告。
+
+5. `src/stores/authStore.js`
+   - 登录、退出、权限判断。
+
+6. `src/stores/dataStore.js`
+   - 核心业务数据与 CRUD。
+   - 预约冲突检测、统计数据生成。
+
+---
+
+## 运行流程（高层）
+
+1. 应用启动后先初始化“数据库”。
+2. 若数据库为空，则写入演示数据。
+3. 进入登录页，使用演示账号登录。
+4. 根据用户角色显示不同菜单与路由。
+5. 所有操作写入 localStorage，刷新页面仍保留。
+
+---
+
+## 权限矩阵（简表）
+
+- 管理员：
+  - 用户管理
+  - 所有统计
+  - 公告管理
+  - 房间/座位/图书管理
+
+- 馆员：
+  - 房间/座位管理
+  - 图书管理/借还管理
+  - 统计看板
+
+- 学生：
+  - 座位预约
+  - 我的预约
+  - 我的借阅
+  - 公告查看
+
+---
+
+## 设计取舍
+
+1. 不依赖真实后端，便于快速部署与演示。
+2. 使用 localStorage 代替数据库，避免环境复杂度。
+3. 类 SQL API 简化了前端复杂度，但仅支持简单查询。
+4. 为演示可视化效果，内置统计与趋势生成逻辑。
+
+---
+
+## 常见问题
+
+**Q1：为什么没有后端？**
+这是一个前端演示型项目，目标是降低部署成本与演示门槛。
+
+**Q2：数据安全吗？**
+数据完全保存在浏览器本地，仅用于演示或学习，不适用于生产环境。
+
+**Q3：能接入后端吗？**
+可以。你可以替换 `sqliteService` 与 `stores` 中的数据层逻辑。
+
+---
+
+## 适合的二次开发方向
+
+1. 接入真实后端与数据库。
+2. 加入 JWT/Session 认证。
+3. 支持座位地图可视化与选座。
+4. 新增审批流程（例如学生预约需审核）。
+5. 加入多馆区、多校区支持。
+6. 引入消息推送（邮件/短信）。
+
+---
+
+## License
+
+本项目仅用于学习与演示用途，如需商用请自行完善与审查相关合规要求。

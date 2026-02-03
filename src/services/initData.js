@@ -8,6 +8,8 @@ const STORAGE_KEYS = {
     BOOKS: 'books',
     SEAT_RESERVATIONS: 'seat_reservations',
     BOOK_BORROWINGS: 'book_borrowings',
+    NOTIFICATIONS: 'notifications',
+    NOTIFICATION_READS: 'notification_reads',
     INITIALIZED: 'initialized'
 }
 
@@ -314,6 +316,41 @@ export const initializeData = () => {
         }
     ]
     borrowings.forEach(b => insertRow('book_borrowings', b))
+
+    // Initialize some sample notifications (system announcements)
+    const notifications = [
+        {
+            id: uuidv4(),
+            title: '图书馆系统升级公告',
+            content: '尊敬的读者，图书馆座位预约系统已于本周完成全面升级，新增了预约提醒、借阅到期通知等功能。如有任何问题，请联系管理员。',
+            type: 'system',
+            createdBy: users[0].id, // admin
+            activeStatus: 'Y',
+            createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+            updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
+        },
+        {
+            id: uuidv4(),
+            title: '春节放假通知',
+            content: '图书馆将于1月25日至2月2日期间闭馆，期间暂停座位预约和图书借还服务。请各位读者提前做好安排，祝大家新春快乐！',
+            type: 'announcement',
+            createdBy: users[0].id, // admin
+            activeStatus: 'Y',
+            createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+            updatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
+        },
+        {
+            id: uuidv4(),
+            title: '新书到馆通知',
+            content: '本月新到图书200余册，涵盖计算机科学、经济管理、文学艺术等多个领域，欢迎各位读者前来借阅！',
+            type: 'announcement',
+            createdBy: users[1].id, // staff
+            activeStatus: 'Y',
+            createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+            updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
+        }
+    ]
+    notifications.forEach(n => insertRow('notifications', n))
 
     console.log('Demo data initialized successfully!')
 }
