@@ -7,8 +7,10 @@ Initial backend foundation created for the library management system.
 - Express server skeleton under `backend/` with logging, security middleware, and error handling.
 - Health check route: `GET /health`.
 - Books API routes: CRUD under `GET/POST/PUT/DELETE /api/books`.
+- Authors API routes: CRUD under `GET/POST/PUT/DELETE /api/authors`.
 - Members API routes: CRUD under `GET/POST/PUT/DELETE /api/members` with active-loan guard on delete.
 - Loans API routes: CRUD under `GET/POST/PUT/DELETE /api/loans` with book availability checks.
+- Reports API route: `GET /api/reports/overdue-loans` with optional `asOf` query.
 - SQLite access layer using `better-sqlite3` (expects a local DB file).
 - Initial database schema defined in `backend/sql/schema.sql`.
 - Backend API usage documented in `backend/README.md`.
@@ -23,4 +25,4 @@ Initial backend foundation created for the library management system.
 - Migrations will be executed manually after automation completes.
 
 ## Next Recommended Step
-Add authors endpoints (CRUD) and include a small report endpoint (e.g., overdue loans) for ops visibility.
+Add lightweight analytics endpoints (e.g., most active members) and consider pagination for list endpoints.

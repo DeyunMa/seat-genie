@@ -5,8 +5,10 @@ const pinoHttp = require("pino-http");
 const { logger } = require("./logger");
 const healthRoutes = require("./routes/health");
 const bookRoutes = require("./routes/books");
+const authorRoutes = require("./routes/authors");
 const memberRoutes = require("./routes/members");
 const loanRoutes = require("./routes/loans");
+const reportRoutes = require("./routes/reports");
 const { errorHandler } = require("./middleware/errorHandler");
 
 const createApp = () => {
@@ -19,8 +21,10 @@ const createApp = () => {
 
   app.use("/health", healthRoutes);
   app.use("/api/books", bookRoutes);
+  app.use("/api/authors", authorRoutes);
   app.use("/api/members", memberRoutes);
   app.use("/api/loans", loanRoutes);
+  app.use("/api/reports", reportRoutes);
 
   app.use(errorHandler);
 

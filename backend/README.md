@@ -80,6 +80,22 @@ Example body:
 Notes:
 - Deleting a member with active loans returns `409`.
 
+### Authors
+- `GET /api/authors`
+- `GET /api/authors/:id`
+- `POST /api/authors`
+- `PUT /api/authors/:id`
+- `DELETE /api/authors/:id`
+
+Example body:
+
+```json
+{
+  "name": "Andy Hunt",
+  "bio": "Co-author of The Pragmatic Programmer."
+}
+```
+
 ### Loans
 - `GET /api/loans`
 - `GET /api/loans/:id`
@@ -108,3 +124,9 @@ Example body (update):
 Notes:
 - Loan creation checks that the book is available and the member exists.
 - Returning a loan updates the book status back to `available`.
+
+### Reports
+- `GET /api/reports/overdue-loans`
+
+Optional query params:
+- `asOf` (ISO datetime) → Defaults to now.
