@@ -2,6 +2,7 @@ const express = require("express");
 const { z } = require("zod");
 const booksService = require("../services/booksService");
 const { parseListQuery } = require("../utils/queryValidation");
+const { parseId } = require("../utils/params");
 
 const router = express.Router();
 
@@ -12,14 +13,6 @@ const bookSchema = z.object({
   publishedYear: z.number().int().min(0).max(3000).nullable().optional(),
   status: z.enum(["available", "checked_out", "lost"]).default("available"),
 });
-
-const parseId = (value) => {
-  const id = Number(value);
-  if (!Number.isInteger(id) || id <= 0) {
-    return null;
-  }
-  return id;
-};
 
 router.get("/", (req, res, next) => {
   try {

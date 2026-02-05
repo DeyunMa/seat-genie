@@ -2,6 +2,7 @@ const express = require("express");
 const { z } = require("zod");
 const membersService = require("../services/membersService");
 const { parseListQuery } = require("../utils/queryValidation");
+const { parseId } = require("../utils/params");
 
 const router = express.Router();
 
@@ -24,14 +25,6 @@ const listQuerySchema = z.object({
   sortBy: z.enum(["id", "name", "email", "created_at"]).optional(),
   sortOrder: z.enum(["asc", "desc"]).optional(),
 });
-
-const parseId = (value) => {
-  const id = Number(value);
-  if (!Number.isInteger(id) || id <= 0) {
-    return null;
-  }
-  return id;
-};
 
 router.get("/", (req, res, next) => {
   try {

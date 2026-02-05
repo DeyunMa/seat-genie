@@ -5,6 +5,7 @@ Initial backend foundation created for the library management system.
 
 ## Latest Update (2026-02-05)
 - Added shared query validation helpers for list/report limit/offset parsing and updated routes to use them.
+- Added shared path parameter ID parsing helper and updated routes to use it.
 
 ## What Exists
 - Express server skeleton under `backend/` with logging, security middleware, and error handling.
@@ -33,4 +34,4 @@ Initial backend foundation created for the library management system.
 - Migrations will be executed manually after automation completes.
 
 ## Next Recommended Step
-Create shared helpers for path parameter ID parsing/validation to remove duplicated `parseId` logic.
+Introduce shared helpers for standardized error responses to reduce repeated route-level error strings.

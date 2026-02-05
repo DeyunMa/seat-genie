@@ -2,6 +2,7 @@ const express = require("express");
 const { z } = require("zod");
 const loansService = require("../services/loansService");
 const { parseListQuery } = require("../utils/queryValidation");
+const { parseId } = require("../utils/params");
 
 const router = express.Router();
 
@@ -23,14 +24,6 @@ const loanUpdateSchema = z
 const loanListQuerySchema = z.object({
   status: z.enum(["open", "returned"]).optional(),
 });
-
-const parseId = (value) => {
-  const id = Number(value);
-  if (!Number.isInteger(id) || id <= 0) {
-    return null;
-  }
-  return id;
-};
 
 router.get("/", (req, res, next) => {
   try {

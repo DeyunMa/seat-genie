@@ -5,6 +5,7 @@ const {
   parseReportLimitQuery,
   parseReportPaginationQuery,
 } = require("../utils/queryValidation");
+const { parseId } = require("../utils/params");
 
 const router = express.Router();
 
@@ -47,14 +48,6 @@ const loanHistoryQuerySchema = z
 
 const memberLoanHistoryQuerySchema = loanHistoryQuerySchema;
 const bookLoanHistoryQuerySchema = loanHistoryQuerySchema;
-
-const parseId = (value) => {
-  const id = Number(value);
-  if (!Number.isInteger(id) || id <= 0) {
-    return null;
-  }
-  return id;
-};
 
 router.get("/overdue-loans", (req, res, next) => {
   try {
