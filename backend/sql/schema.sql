@@ -50,3 +50,11 @@ CREATE TABLE IF NOT EXISTS loans (
 
 CREATE INDEX IF NOT EXISTS idx_loans_book ON loans(book_id);
 CREATE INDEX IF NOT EXISTS idx_loans_member ON loans(member_id);
+-- Supports overdue and inventory health reporting.
+CREATE INDEX IF NOT EXISTS idx_loans_due_at ON loans(due_at);
+-- Supports most-active members and most-borrowed books reporting.
+CREATE INDEX IF NOT EXISTS idx_loans_loaned_at ON loans(loaned_at);
+CREATE INDEX IF NOT EXISTS idx_loans_member_loaned_at ON loans(member_id, loaned_at);
+CREATE INDEX IF NOT EXISTS idx_loans_book_loaned_at ON loans(book_id, loaned_at);
+-- Supports history/report filters on returned loans.
+CREATE INDEX IF NOT EXISTS idx_loans_returned_at ON loans(returned_at);
