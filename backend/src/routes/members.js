@@ -11,6 +11,20 @@ const memberSchema = z.object({
   phone: z.string().min(4).max(20).nullable().optional(),
 });
 
+const emptyToUndefined = (value) => {
+  if (typeof value !== "string") {
+    return value;
+  }
+  const trimmed = value.trim();
+  return trimmed === "" ? undefined : trimmed;
+};
+
+const listQuerySchema = z.object({
+  q: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
+  sortBy: z.enum(["id", "name", "email", "created_at"]).optional(),
+  sortOrder: z.enum(["asc", "desc"]).optional(),
+});
+
 const parseId = (value) => {
   const id = Number(value);
   if (!Number.isInteger(id) || id <= 0) {
@@ -22,9 +36,25 @@ const parseId = (value) => {
 router.get("/", (req, res, next) => {
   try {
     const { limit, offset } = parsePagination(req.query);
-    const members = membersService.listMembers({ limit, offset });
-    const total = membersService.countMembers();
-    res.json({ data: members, meta: { total, limit, offset } });
+    const { q, sortBy, sortOrder } = listQuerySchema.parse(req.query);
+    const members = membersService.listMembers({
+      limit,
+      offset,
+      filters: { q },
+      sort: { by: sortBy, order: sortOrder },
+    });
+    const total = membersService.countMembers({ q });
+    res.json({
+      data: members,
+      meta: {
+        total,
+        limit,
+        offset,
+        q: q ?? null,
+        sortBy: sortBy ?? null,
+        sortOrder: sortOrder ?? null,
+      },
+    });
   } catch (error) {
     next(error);
   }

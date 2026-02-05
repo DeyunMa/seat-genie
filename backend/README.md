@@ -83,6 +83,12 @@ Example body:
 - `PUT /api/members/:id`
 - `DELETE /api/members/:id`
 
+Query params for `GET /api/members`:
+- `q`: partial match against name/email/phone
+- `sortBy`: `id`, `name`, `email`, `created_at`
+- `sortOrder`: `asc`, `desc`
+- `limit`, `offset` for pagination
+
 Example body:
 
 ```json
@@ -102,6 +108,12 @@ Notes:
 - `POST /api/authors`
 - `PUT /api/authors/:id`
 - `DELETE /api/authors/:id`
+
+Query params for `GET /api/authors`:
+- `q`: partial match against name/bio
+- `sortBy`: `id`, `name`, `created_at`
+- `sortOrder`: `asc`, `desc`
+- `limit`, `offset` for pagination
 
 Example body:
 

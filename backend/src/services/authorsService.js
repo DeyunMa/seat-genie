@@ -1,20 +1,47 @@
 const { getDb } = require("../db");
 
-const listAuthors = ({ limit, offset }) => {
+const SORT_COLUMNS = {
+  id: "id",
+  name: "name",
+  created_at: "created_at",
+};
+
+const buildFilters = ({ q }) => {
+  const clauses = [];
+  const params = [];
+
+  if (q) {
+    clauses.push("(name LIKE ? OR bio LIKE ?)");
+    params.push(`%${q}%`, `%${q}%`);
+  }
+
+  const where = clauses.length > 0 ? `WHERE ${clauses.join(" AND ")}` : "";
+  return { where, params };
+};
+
+const listAuthors = ({ limit, offset, filters, sort }) => {
   const db = getDb();
+  const { where, params } = buildFilters(filters);
+  const sortColumn = SORT_COLUMNS[sort.by] || SORT_COLUMNS.id;
+  const sortOrder = sort.order === "asc" ? "ASC" : "DESC";
+
   return db
     .prepare(
       `SELECT id, name, bio, created_at
        FROM authors
-       ORDER BY id DESC
+       ${where}
+       ORDER BY ${sortColumn} ${sortOrder}
        LIMIT ? OFFSET ?`
     )
-    .all(limit, offset);
+    .all(...params, limit, offset);
 };
 
-const countAuthors = () => {
+const countAuthors = (filters) => {
   const db = getDb();
-  const row = db.prepare(`SELECT COUNT(1) AS total FROM authors`).get();
+  const { where, params } = buildFilters(filters);
+  const row = db
+    .prepare(`SELECT COUNT(1) AS total FROM authors ${where}`)
+    .get(...params);
   return row?.total ?? 0;
 };
 

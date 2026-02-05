@@ -10,6 +10,20 @@ const authorSchema = z.object({
   bio: z.string().nullable().optional(),
 });
 
+const emptyToUndefined = (value) => {
+  if (typeof value !== "string") {
+    return value;
+  }
+  const trimmed = value.trim();
+  return trimmed === "" ? undefined : trimmed;
+};
+
+const listQuerySchema = z.object({
+  q: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
+  sortBy: z.enum(["id", "name", "created_at"]).optional(),
+  sortOrder: z.enum(["asc", "desc"]).optional(),
+});
+
 const parseId = (value) => {
   const id = Number(value);
   if (!Number.isInteger(id) || id <= 0) {
@@ -21,9 +35,25 @@ const parseId = (value) => {
 router.get("/", (req, res, next) => {
   try {
     const { limit, offset } = parsePagination(req.query);
-    const authors = authorsService.listAuthors({ limit, offset });
-    const total = authorsService.countAuthors();
-    res.json({ data: authors, meta: { total, limit, offset } });
+    const { q, sortBy, sortOrder } = listQuerySchema.parse(req.query);
+    const authors = authorsService.listAuthors({
+      limit,
+      offset,
+      filters: { q },
+      sort: { by: sortBy, order: sortOrder },
+    });
+    const total = authorsService.countAuthors({ q });
+    res.json({
+      data: authors,
+      meta: {
+        total,
+        limit,
+        offset,
+        q: q ?? null,
+        sortBy: sortBy ?? null,
+        sortOrder: sortOrder ?? null,
+      },
+    });
   } catch (error) {
     next(error);
   }

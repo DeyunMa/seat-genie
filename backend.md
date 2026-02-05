@@ -7,8 +7,8 @@ Initial backend foundation created for the library management system.
 - Express server skeleton under `backend/` with logging, security middleware, and error handling.
 - Health check route: `GET /health`.
 - Books API routes: CRUD under `GET/POST/PUT/DELETE /api/books` with pagination metadata on list, plus filtering/sorting for list.
-- Authors API routes: CRUD under `GET/POST/PUT/DELETE /api/authors` with pagination metadata on list.
-- Members API routes: CRUD under `GET/POST/PUT/DELETE /api/members` with active-loan guard on delete and pagination metadata on list.
+- Authors API routes: CRUD under `GET/POST/PUT/DELETE /api/authors` with pagination metadata plus filtering/sorting on list.
+- Members API routes: CRUD under `GET/POST/PUT/DELETE /api/members` with active-loan guard on delete and pagination metadata plus filtering/sorting on list.
 - Loans API routes: CRUD under `GET/POST/PUT/DELETE /api/loans` with book availability checks and pagination metadata on list.
 - Reports API route: `GET /api/reports/overdue-loans` with optional `asOf` query.
 - Reports API route: `GET /api/reports/most-active-members` with optional `since` and `limit` query params.
@@ -26,4 +26,4 @@ Initial backend foundation created for the library management system.
 - Migrations will be executed manually after automation completes.
 
 ## Next Recommended Step
-Add filtering/sorting to members/authors list endpoints or add a report for inventory health (counts by status).
+Add a report for inventory health (counts by book status and overdue totals).

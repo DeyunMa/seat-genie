@@ -1,20 +1,48 @@
 const { getDb } = require("../db");
 
-const listMembers = ({ limit, offset }) => {
+const SORT_COLUMNS = {
+  id: "id",
+  name: "name",
+  email: "email",
+  created_at: "created_at",
+};
+
+const buildFilters = ({ q }) => {
+  const clauses = [];
+  const params = [];
+
+  if (q) {
+    clauses.push("(name LIKE ? OR email LIKE ? OR phone LIKE ?)");
+    params.push(`%${q}%`, `%${q}%`, `%${q}%`);
+  }
+
+  const where = clauses.length > 0 ? `WHERE ${clauses.join(" AND ")}` : "";
+  return { where, params };
+};
+
+const listMembers = ({ limit, offset, filters, sort }) => {
   const db = getDb();
+  const { where, params } = buildFilters(filters);
+  const sortColumn = SORT_COLUMNS[sort.by] || SORT_COLUMNS.id;
+  const sortOrder = sort.order === "asc" ? "ASC" : "DESC";
+
   return db
     .prepare(
       `SELECT id, name, email, phone, created_at
        FROM members
-       ORDER BY id DESC
+       ${where}
+       ORDER BY ${sortColumn} ${sortOrder}
        LIMIT ? OFFSET ?`
     )
-    .all(limit, offset);
+    .all(...params, limit, offset);
 };
 
-const countMembers = () => {
+const countMembers = (filters) => {
   const db = getDb();
-  const row = db.prepare(`SELECT COUNT(1) AS total FROM members`).get();
+  const { where, params } = buildFilters(filters);
+  const row = db
+    .prepare(`SELECT COUNT(1) AS total FROM members ${where}`)
+    .get(...params);
   return row?.total ?? 0;
 };
 
