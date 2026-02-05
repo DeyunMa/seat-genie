@@ -158,8 +158,10 @@ Notes:
 - `GET /api/reports/most-active-members`
 - `GET /api/reports/most-borrowed-books`
 - `GET /api/reports/inventory-health`
+- `GET /api/reports/member-loan-history/:memberId`
 
 Optional query params:
 - `asOf` (ISO datetime) → Defaults to now.
 - `since` (ISO datetime) → Filters loans for activity reports.
 - `limit` → Limits the number of records returned (defaults to `25`).
+- `offset` → Offsets report results (defaults to `0`).

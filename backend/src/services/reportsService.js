@@ -101,9 +101,48 @@ const getInventoryHealth = (asOf) => {
   };
 };
 
+const getMemberLoanHistory = ({ memberId, since, limit, offset }) => {
+  const db = getDb();
+  const member = db
+    .prepare("SELECT id, name, email, joined_at FROM members WHERE id = ?")
+    .get(memberId);
+  if (!member) {
+    return { error: "member_not_found" };
+  }
+
+  const conditions = ["l.member_id = ?"];
+  const params = [memberId];
+  if (since) {
+    conditions.push("l.loaned_at >= ?");
+    params.push(since);
+  }
+  const whereClause = `WHERE ${conditions.join(" AND ")}`;
+
+  const loans = db
+    .prepare(
+      `SELECT l.id, l.book_id, l.loaned_at, l.due_at, l.returned_at,
+              b.title AS book_title, b.isbn AS book_isbn,
+              a.name AS author_name
+       FROM loans l
+       JOIN books b ON b.id = l.book_id
+       LEFT JOIN authors a ON a.id = b.author_id
+       ${whereClause}
+       ORDER BY l.loaned_at DESC
+       LIMIT ? OFFSET ?`
+    )
+    .all(...params, limit, offset);
+
+  const total = db
+    .prepare(`SELECT COUNT(*) AS total FROM loans l ${whereClause}`)
+    .get(...params).total;
+
+  return { member, loans, total };
+};
+
 module.exports = {
   listOverdueLoans,
   listMostActiveMembers,
   listMostBorrowedBooks,
   getInventoryHealth,
+  getMemberLoanHistory,
 };
