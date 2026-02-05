@@ -36,13 +36,28 @@ npm run dev
 ```
 
 ## API
-All responses are JSON. Successful responses are wrapped as `{ "data": ... }`. Errors return `{ "error": "message" }`.
+All responses are JSON. Successful responses are wrapped as `{ "data": ... }`. Errors return `{ "error": "message", "code": "ERROR_CODE" }` with optional `details`.
 
 List endpoints support optional pagination query params:
 - `limit` (default `25`, max `100`)
 - `offset` (default `0`)
 
 Paginated responses include `meta` with `total`, `limit`, and `offset`.
+
+### Error Responses
+Error payloads share the same shape across endpoints:
+
+```json
+{
+  "error": "Human-friendly message",
+  "code": "ERROR_CODE",
+  "details": {}
+}
+```
+
+Notes:
+- `code` is a stable, machine-friendly identifier (examples: `INVALID_ID`, `NOT_FOUND`, `VALIDATION_ERROR`, `CONFLICT`, `INTERNAL_SERVER_ERROR`).
+- `details` is optional and only present when additional context is available (for example, validation failures).
 
 ### Health
 - `GET /health` → `{ status: "ok" }`

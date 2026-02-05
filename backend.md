@@ -4,8 +4,7 @@
 Initial backend foundation created for the library management system.
 
 ## Latest Update (2026-02-05)
-- Added shared error response helpers for standardized error payloads and codes.
-- Updated routes and error middleware to use the shared error response helpers.
+- Documented the standardized error response format in `backend/README.md`.
 
 ## What Exists
 - Express server skeleton under `backend/` with logging, security middleware, and error handling.
@@ -34,4 +33,4 @@ Initial backend foundation created for the library management system.
 - Migrations will be executed manually after automation completes.
 
 ## Next Recommended Step
-Document standardized error response format (error + code + optional details) in `backend/README.md`.
+Add request validation with Zod or Joi for create/update endpoints (books, authors, members, loans) and return `VALIDATION_ERROR` details.
