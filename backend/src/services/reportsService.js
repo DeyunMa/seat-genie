@@ -44,7 +44,38 @@ const listMostActiveMembers = ({ limit, since }) => {
     .all(...params, limit);
 };
 
+const getInventoryHealth = (asOf) => {
+  const db = getDb();
+  const effectiveAsOf = asOf ?? new Date().toISOString();
+  const row = db
+    .prepare(
+      `SELECT
+         (SELECT COUNT(*) FROM books) AS total_books,
+         (SELECT COUNT(*) FROM books WHERE status = 'available') AS available_count,
+         (SELECT COUNT(*) FROM books WHERE status = 'checked_out') AS checked_out_count,
+         (SELECT COUNT(*) FROM books WHERE status = 'lost') AS lost_count,
+         (SELECT COUNT(*) FROM loans WHERE returned_at IS NULL AND due_at < ?) AS overdue_loans,
+         (SELECT COUNT(DISTINCT book_id) FROM loans WHERE returned_at IS NULL AND due_at < ?) AS overdue_books`
+    )
+    .get(effectiveAsOf, effectiveAsOf);
+
+  return {
+    asOf: effectiveAsOf,
+    totalBooks: row.total_books,
+    statusCounts: {
+      available: row.available_count,
+      checkedOut: row.checked_out_count,
+      lost: row.lost_count,
+    },
+    overdue: {
+      loans: row.overdue_loans,
+      books: row.overdue_books,
+    },
+  };
+};
+
 module.exports = {
   listOverdueLoans,
   listMostActiveMembers,
+  getInventoryHealth,
 };

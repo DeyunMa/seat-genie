@@ -156,6 +156,7 @@ Notes:
 ### Reports
 - `GET /api/reports/overdue-loans`
 - `GET /api/reports/most-active-members`
+- `GET /api/reports/inventory-health`
 
 Optional query params:
 - `asOf` (ISO datetime) → Defaults to now.

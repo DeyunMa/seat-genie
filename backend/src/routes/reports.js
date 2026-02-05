@@ -13,6 +13,10 @@ const activeMembersQuerySchema = z.object({
   since: z.string().datetime().optional(),
 });
 
+const inventoryHealthQuerySchema = z.object({
+  asOf: z.string().datetime().optional(),
+});
+
 router.get("/overdue-loans", (req, res, next) => {
   try {
     const { asOf } = overdueQuerySchema.parse(req.query);
@@ -31,6 +35,23 @@ router.get("/most-active-members", (req, res, next) => {
     return res.json({
       data: members,
       meta: { limit, since: since ?? null },
+    });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+router.get("/inventory-health", (req, res, next) => {
+  try {
+    const { asOf } = inventoryHealthQuerySchema.parse(req.query);
+    const health = reportsService.getInventoryHealth(asOf);
+    return res.json({
+      data: {
+        totalBooks: health.totalBooks,
+        statusCounts: health.statusCounts,
+        overdue: health.overdue,
+      },
+      meta: { asOf: health.asOf },
     });
   } catch (error) {
     return next(error);

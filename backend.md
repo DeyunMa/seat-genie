@@ -12,6 +12,7 @@ Initial backend foundation created for the library management system.
 - Loans API routes: CRUD under `GET/POST/PUT/DELETE /api/loans` with book availability checks and pagination metadata on list.
 - Reports API route: `GET /api/reports/overdue-loans` with optional `asOf` query.
 - Reports API route: `GET /api/reports/most-active-members` with optional `since` and `limit` query params.
+- Reports API route: `GET /api/reports/inventory-health` with optional `asOf` query.
 - SQLite access layer using `better-sqlite3` (expects a local DB file).
 - Initial database schema defined in `backend/sql/schema.sql`.
 - Backend API usage documented in `backend/README.md`.
@@ -26,4 +27,4 @@ Initial backend foundation created for the library management system.
 - Migrations will be executed manually after automation completes.
 
 ## Next Recommended Step
-Add a report for inventory health (counts by book status and overdue totals).
+Add a report for most-borrowed books (top titles by loan count).
