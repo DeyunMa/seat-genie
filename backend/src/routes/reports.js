@@ -25,6 +25,10 @@ const memberLoanHistoryQuerySchema = z.object({
   since: z.string().datetime().optional(),
 });
 
+const bookLoanHistoryQuerySchema = z.object({
+  since: z.string().datetime().optional(),
+});
+
 const parseId = (value) => {
   const id = Number(value);
   if (!Number.isInteger(id) || id <= 0) {
@@ -108,6 +112,40 @@ router.get("/member-loan-history/:memberId", (req, res, next) => {
     return res.json({
       data: {
         member: history.member,
+        loans: history.loans,
+      },
+      meta: {
+        total: history.total,
+        limit,
+        offset,
+        since: since ?? null,
+      },
+    });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+router.get("/book-loan-history/:bookId", (req, res, next) => {
+  try {
+    const bookId = parseId(req.params.bookId);
+    if (!bookId) {
+      return res.status(400).json({ error: "Invalid book id" });
+    }
+    const { limit, offset } = parsePagination(req.query);
+    const { since } = bookLoanHistoryQuerySchema.parse(req.query);
+    const history = reportsService.getBookLoanHistory({
+      bookId,
+      since,
+      limit,
+      offset,
+    });
+    if (history.error === "book_not_found") {
+      return res.status(404).json({ error: "Book not found" });
+    }
+    return res.json({
+      data: {
+        book: history.book,
         loans: history.loans,
       },
       meta: {

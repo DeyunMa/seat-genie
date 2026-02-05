@@ -139,10 +139,53 @@ const getMemberLoanHistory = ({ memberId, since, limit, offset }) => {
   return { member, loans, total };
 };
 
+const getBookLoanHistory = ({ bookId, since, limit, offset }) => {
+  const db = getDb();
+  const book = db
+    .prepare(
+      `SELECT b.id, b.title, b.isbn, b.status, b.published_year, b.author_id,
+              a.name AS author_name
+       FROM books b
+       LEFT JOIN authors a ON a.id = b.author_id
+       WHERE b.id = ?`
+    )
+    .get(bookId);
+  if (!book) {
+    return { error: "book_not_found" };
+  }
+
+  const conditions = ["l.book_id = ?"];
+  const params = [bookId];
+  if (since) {
+    conditions.push("l.loaned_at >= ?");
+    params.push(since);
+  }
+  const whereClause = `WHERE ${conditions.join(" AND ")}`;
+
+  const loans = db
+    .prepare(
+      `SELECT l.id, l.member_id, l.loaned_at, l.due_at, l.returned_at,
+              m.name AS member_name, m.email AS member_email
+       FROM loans l
+       JOIN members m ON m.id = l.member_id
+       ${whereClause}
+       ORDER BY l.loaned_at DESC
+       LIMIT ? OFFSET ?`
+    )
+    .all(...params, limit, offset);
+
+  const total = db
+    .prepare(`SELECT COUNT(*) AS total FROM loans l ${whereClause}`)
+    .get(...params).total;
+
+  return { book, loans, total };
+};
+
 module.exports = {
   listOverdueLoans,
   listMostActiveMembers,
   listMostBorrowedBooks,
   getInventoryHealth,
   getMemberLoanHistory,
+  getBookLoanHistory,
 };

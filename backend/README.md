@@ -159,6 +159,7 @@ Notes:
 - `GET /api/reports/most-borrowed-books`
 - `GET /api/reports/inventory-health`
 - `GET /api/reports/member-loan-history/:memberId`
+- `GET /api/reports/book-loan-history/:bookId`
 
 Optional query params:
 - `asOf` (ISO datetime) → Defaults to now.
