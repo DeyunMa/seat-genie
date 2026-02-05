@@ -4,7 +4,7 @@
 Initial backend foundation created for the library management system.
 
 ## Latest Update (2026-02-05)
-- Added report-friendly indexes for `loans` (due, loaned, returned timestamps plus composite indexes).
+- Added shared query validation helpers for list/report limit/offset parsing and updated routes to use them.
 
 ## What Exists
 - Express server skeleton under `backend/` with logging, security middleware, and error handling.
@@ -33,4 +33,4 @@ Initial backend foundation created for the library management system.
 - Migrations will be executed manually after automation completes.
 
 ## Next Recommended Step
-Add shared validation helpers for report/list query parameters to centralize limit/offset handling.
+Create shared helpers for path parameter ID parsing/validation to remove duplicated `parseId` logic.

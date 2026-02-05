@@ -1,7 +1,7 @@
 const express = require("express");
 const { z } = require("zod");
 const loansService = require("../services/loansService");
-const { parsePagination } = require("../utils/pagination");
+const { parseListQuery } = require("../utils/queryValidation");
 
 const router = express.Router();
 
@@ -34,8 +34,10 @@ const parseId = (value) => {
 
 router.get("/", (req, res, next) => {
   try {
-    const { limit, offset } = parsePagination(req.query);
-    const { status } = loanListQuerySchema.parse(req.query);
+    const { limit, offset, status } = parseListQuery(
+      req.query,
+      loanListQuerySchema
+    );
     const loans = loansService.listLoans({ limit, offset, status });
     const total = loansService.countLoans(status);
     res.json({

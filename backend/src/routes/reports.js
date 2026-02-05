@@ -2,9 +2,9 @@ const express = require("express");
 const { z } = require("zod");
 const reportsService = require("../services/reportsService");
 const {
-  parseReportLimit,
-  parseReportPagination,
-} = require("../utils/pagination");
+  parseReportLimitQuery,
+  parseReportPaginationQuery,
+} = require("../utils/queryValidation");
 
 const router = express.Router();
 
@@ -68,8 +68,10 @@ router.get("/overdue-loans", (req, res, next) => {
 
 router.get("/most-active-members", (req, res, next) => {
   try {
-    const { limit } = parseReportLimit(req.query);
-    const { since, status } = activeMembersQuerySchema.parse(req.query);
+    const { limit, since, status } = parseReportLimitQuery(
+      req.query,
+      activeMembersQuerySchema
+    );
     const members = reportsService.listMostActiveMembers({
       limit,
       since,
@@ -86,8 +88,10 @@ router.get("/most-active-members", (req, res, next) => {
 
 router.get("/most-borrowed-books", (req, res, next) => {
   try {
-    const { limit } = parseReportLimit(req.query);
-    const { since, status } = mostBorrowedBooksQuerySchema.parse(req.query);
+    const { limit, since, status } = parseReportLimitQuery(
+      req.query,
+      mostBorrowedBooksQuerySchema
+    );
     const books = reportsService.listMostBorrowedBooks({
       limit,
       since,
@@ -125,9 +129,9 @@ router.get("/member-loan-history/:memberId", (req, res, next) => {
     if (!memberId) {
       return res.status(400).json({ error: "Invalid member id" });
     }
-    const { limit, offset } = parseReportPagination(req.query);
-    const { since, until, status } = memberLoanHistoryQuerySchema.parse(
-      req.query
+    const { limit, offset, since, until, status } = parseReportPaginationQuery(
+      req.query,
+      memberLoanHistoryQuerySchema
     );
     const history = reportsService.getMemberLoanHistory({
       memberId,
@@ -165,8 +169,10 @@ router.get("/book-loan-history/:bookId", (req, res, next) => {
     if (!bookId) {
       return res.status(400).json({ error: "Invalid book id" });
     }
-    const { limit, offset } = parseReportPagination(req.query);
-    const { since, until, status } = bookLoanHistoryQuerySchema.parse(req.query);
+    const { limit, offset, since, until, status } = parseReportPaginationQuery(
+      req.query,
+      bookLoanHistoryQuerySchema
+    );
     const history = reportsService.getBookLoanHistory({
       bookId,
       since,

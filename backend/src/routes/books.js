@@ -1,7 +1,7 @@
 const express = require("express");
 const { z } = require("zod");
 const booksService = require("../services/booksService");
-const { parsePagination } = require("../utils/pagination");
+const { parseListQuery } = require("../utils/queryValidation");
 
 const router = express.Router();
 
@@ -23,7 +23,6 @@ const parseId = (value) => {
 
 router.get("/", (req, res, next) => {
   try {
-    const { limit, offset } = parsePagination(req.query);
     const querySchema = z.object({
       status: z.enum(["available", "checked_out", "lost"]).optional(),
       authorId: z.string().optional(),
@@ -36,7 +35,7 @@ router.get("/", (req, res, next) => {
       sortOrder: z.enum(["asc", "desc"]).optional(),
     });
 
-    const parsedQuery = querySchema.parse(req.query);
+    const parsedQuery = parseListQuery(req.query, querySchema);
     const authorId = parsedQuery.authorId ? parseId(parsedQuery.authorId) : null;
     const publishedYear = parsedQuery.publishedYear
       ? Number(parsedQuery.publishedYear)

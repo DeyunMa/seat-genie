@@ -1,7 +1,7 @@
 const express = require("express");
 const { z } = require("zod");
 const authorsService = require("../services/authorsService");
-const { parsePagination } = require("../utils/pagination");
+const { parseListQuery } = require("../utils/queryValidation");
 
 const router = express.Router();
 
@@ -34,8 +34,10 @@ const parseId = (value) => {
 
 router.get("/", (req, res, next) => {
   try {
-    const { limit, offset } = parsePagination(req.query);
-    const { q, sortBy, sortOrder } = listQuerySchema.parse(req.query);
+    const { limit, offset, q, sortBy, sortOrder } = parseListQuery(
+      req.query,
+      listQuerySchema
+    );
     const authors = authorsService.listAuthors({
       limit,
       offset,
