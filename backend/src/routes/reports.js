@@ -6,6 +6,7 @@ const {
   parseReportPaginationQuery,
 } = require("../utils/queryValidation");
 const { parseId } = require("../utils/params");
+const { sendInvalidId, sendNotFound } = require("../utils/errors");
 
 const router = express.Router();
 
@@ -120,7 +121,7 @@ router.get("/member-loan-history/:memberId", (req, res, next) => {
   try {
     const memberId = parseId(req.params.memberId);
     if (!memberId) {
-      return res.status(400).json({ error: "Invalid member id" });
+      return sendInvalidId(res, "member");
     }
     const { limit, offset, since, until, status } = parseReportPaginationQuery(
       req.query,
@@ -135,7 +136,7 @@ router.get("/member-loan-history/:memberId", (req, res, next) => {
       offset,
     });
     if (history.error === "member_not_found") {
-      return res.status(404).json({ error: "Member not found" });
+      return sendNotFound(res, "Member");
     }
     return res.json({
       data: {
@@ -160,7 +161,7 @@ router.get("/book-loan-history/:bookId", (req, res, next) => {
   try {
     const bookId = parseId(req.params.bookId);
     if (!bookId) {
-      return res.status(400).json({ error: "Invalid book id" });
+      return sendInvalidId(res, "book");
     }
     const { limit, offset, since, until, status } = parseReportPaginationQuery(
       req.query,
@@ -175,7 +176,7 @@ router.get("/book-loan-history/:bookId", (req, res, next) => {
       offset,
     });
     if (history.error === "book_not_found") {
-      return res.status(404).json({ error: "Book not found" });
+      return sendNotFound(res, "Book");
     }
     return res.json({
       data: {

@@ -3,6 +3,11 @@ const { z } = require("zod");
 const loansService = require("../services/loansService");
 const { parseListQuery } = require("../utils/queryValidation");
 const { parseId } = require("../utils/params");
+const {
+  sendConflict,
+  sendInvalidId,
+  sendNotFound,
+} = require("../utils/errors");
 
 const router = express.Router();
 
@@ -46,11 +51,11 @@ router.get("/:id", (req, res, next) => {
   try {
     const id = parseId(req.params.id);
     if (!id) {
-      return res.status(400).json({ error: "Invalid loan id" });
+      return sendInvalidId(res, "loan");
     }
     const loan = loansService.getLoan(id);
     if (!loan) {
-      return res.status(404).json({ error: "Loan not found" });
+      return sendNotFound(res, "Loan");
     }
     return res.json({ data: loan });
   } catch (error) {
@@ -63,13 +68,13 @@ router.post("/", (req, res, next) => {
     const payload = loanCreateSchema.parse(req.body);
     const outcome = loansService.createLoan(payload);
     if (outcome.error === "book_not_found") {
-      return res.status(404).json({ error: "Book not found" });
+      return sendNotFound(res, "Book");
     }
     if (outcome.error === "member_not_found") {
-      return res.status(404).json({ error: "Member not found" });
+      return sendNotFound(res, "Member");
     }
     if (outcome.error === "book_unavailable") {
-      return res.status(409).json({ error: "Book not available" });
+      return sendConflict(res, "Book not available");
     }
     return res.status(201).json({ data: outcome.data });
   } catch (error) {
@@ -81,12 +86,12 @@ router.put("/:id", (req, res, next) => {
   try {
     const id = parseId(req.params.id);
     if (!id) {
-      return res.status(400).json({ error: "Invalid loan id" });
+      return sendInvalidId(res, "loan");
     }
     const payload = loanUpdateSchema.parse(req.body);
     const outcome = loansService.updateLoan(id, payload);
     if (outcome.error === "loan_not_found") {
-      return res.status(404).json({ error: "Loan not found" });
+      return sendNotFound(res, "Loan");
     }
     return res.json({ data: outcome.data });
   } catch (error) {
@@ -98,11 +103,11 @@ router.delete("/:id", (req, res, next) => {
   try {
     const id = parseId(req.params.id);
     if (!id) {
-      return res.status(400).json({ error: "Invalid loan id" });
+      return sendInvalidId(res, "loan");
     }
     const outcome = loansService.deleteLoan(id);
     if (!outcome.deleted) {
-      return res.status(404).json({ error: "Loan not found" });
+      return sendNotFound(res, "Loan");
     }
     return res.status(204).send();
   } catch (error) {
