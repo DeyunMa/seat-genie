@@ -25,11 +25,13 @@ const inventoryHealthQuerySchema = z.object({
 
 const memberLoanHistoryQuerySchema = z.object({
   since: z.string().datetime().optional(),
+  until: z.string().datetime().optional(),
   status: z.enum(["open", "returned"]).optional(),
 });
 
 const bookLoanHistoryQuerySchema = z.object({
   since: z.string().datetime().optional(),
+  until: z.string().datetime().optional(),
   status: z.enum(["open", "returned"]).optional(),
 });
 
@@ -111,10 +113,13 @@ router.get("/member-loan-history/:memberId", (req, res, next) => {
       return res.status(400).json({ error: "Invalid member id" });
     }
     const { limit, offset } = parsePagination(req.query);
-    const { since, status } = memberLoanHistoryQuerySchema.parse(req.query);
+    const { since, until, status } = memberLoanHistoryQuerySchema.parse(
+      req.query
+    );
     const history = reportsService.getMemberLoanHistory({
       memberId,
       since,
+      until,
       status,
       limit,
       offset,
@@ -132,6 +137,7 @@ router.get("/member-loan-history/:memberId", (req, res, next) => {
         limit,
         offset,
         since: since ?? null,
+        until: until ?? null,
         status: status ?? null,
       },
     });
@@ -147,10 +153,11 @@ router.get("/book-loan-history/:bookId", (req, res, next) => {
       return res.status(400).json({ error: "Invalid book id" });
     }
     const { limit, offset } = parsePagination(req.query);
-    const { since, status } = bookLoanHistoryQuerySchema.parse(req.query);
+    const { since, until, status } = bookLoanHistoryQuerySchema.parse(req.query);
     const history = reportsService.getBookLoanHistory({
       bookId,
       since,
+      until,
       status,
       limit,
       offset,
@@ -168,6 +175,7 @@ router.get("/book-loan-history/:bookId", (req, res, next) => {
         limit,
         offset,
         since: since ?? null,
+        until: until ?? null,
         status: status ?? null,
       },
     });

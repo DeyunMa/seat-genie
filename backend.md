@@ -4,7 +4,7 @@
 Initial backend foundation created for the library management system.
 
 ## Latest Update (2026-02-05)
-- Added loan status filters (`open` vs `returned`) to loan list and loan-related reports.
+- Added optional `until` date filters for member and book loan history reports.
 
 ## What Exists
 - Express server skeleton under `backend/` with logging, security middleware, and error handling.
@@ -33,4 +33,4 @@ Initial backend foundation created for the library management system.
 - Migrations will be executed manually after automation completes.
 
 ## Next Recommended Step
-Add optional date range filters (e.g. `until`) for loan history reports.
+Add date range validation (e.g. ensure `since` is not after `until`) for loan history reports.

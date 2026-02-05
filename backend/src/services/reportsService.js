@@ -111,7 +111,14 @@ const getInventoryHealth = (asOf) => {
   };
 };
 
-const getMemberLoanHistory = ({ memberId, since, limit, offset, status }) => {
+const getMemberLoanHistory = ({
+  memberId,
+  since,
+  until,
+  limit,
+  offset,
+  status,
+}) => {
   const db = getDb();
   const member = db
     .prepare("SELECT id, name, email, joined_at FROM members WHERE id = ?")
@@ -125,6 +132,10 @@ const getMemberLoanHistory = ({ memberId, since, limit, offset, status }) => {
   if (since) {
     conditions.push("l.loaned_at >= ?");
     params.push(since);
+  }
+  if (until) {
+    conditions.push("l.loaned_at <= ?");
+    params.push(until);
   }
   if (status === "open") {
     conditions.push("l.returned_at IS NULL");
@@ -154,7 +165,14 @@ const getMemberLoanHistory = ({ memberId, since, limit, offset, status }) => {
   return { member, loans, total };
 };
 
-const getBookLoanHistory = ({ bookId, since, limit, offset, status }) => {
+const getBookLoanHistory = ({
+  bookId,
+  since,
+  until,
+  limit,
+  offset,
+  status,
+}) => {
   const db = getDb();
   const book = db
     .prepare(
@@ -174,6 +192,10 @@ const getBookLoanHistory = ({ bookId, since, limit, offset, status }) => {
   if (since) {
     conditions.push("l.loaned_at >= ?");
     params.push(since);
+  }
+  if (until) {
+    conditions.push("l.loaned_at <= ?");
+    params.push(until);
   }
   if (status === "open") {
     conditions.push("l.returned_at IS NULL");
