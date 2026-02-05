@@ -54,6 +54,16 @@ Paginated responses include `meta` with `total`, `limit`, and `offset`.
 - `PUT /api/books/:id`
 - `DELETE /api/books/:id`
 
+Query params for `GET /api/books`:
+- `status`: `available`, `checked_out`, `lost`
+- `authorId`: numeric
+- `title`: partial title match
+- `isbn`: partial ISBN match
+- `publishedYear`: numeric
+- `sortBy`: `id`, `title`, `published_year`, `status`, `author_name`
+- `sortOrder`: `asc`, `desc`
+- `limit`, `offset` for pagination
+
 Example body:
 
 ```json
