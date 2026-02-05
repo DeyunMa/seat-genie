@@ -4,7 +4,7 @@
 Initial backend foundation created for the library management system.
 
 ## Latest Update (2026-02-05)
-- Added optional `until` date filters for member and book loan history reports.
+- Added date range validation to loan history reports (`since` cannot be after `until`).
 
 ## What Exists
 - Express server skeleton under `backend/` with logging, security middleware, and error handling.
@@ -33,4 +33,4 @@ Initial backend foundation created for the library management system.
 - Migrations will be executed manually after automation completes.
 
 ## Next Recommended Step
-Add date range validation (e.g. ensure `since` is not after `until`) for loan history reports.
+Add validation to report queries to cap `limit` for activity reports (e.g. enforce a max).

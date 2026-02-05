@@ -23,17 +23,27 @@ const inventoryHealthQuerySchema = z.object({
   asOf: z.string().datetime().optional(),
 });
 
-const memberLoanHistoryQuerySchema = z.object({
-  since: z.string().datetime().optional(),
-  until: z.string().datetime().optional(),
-  status: z.enum(["open", "returned"]).optional(),
-});
+const loanHistoryQuerySchema = z
+  .object({
+    since: z.string().datetime().optional(),
+    until: z.string().datetime().optional(),
+    status: z.enum(["open", "returned"]).optional(),
+  })
+  .refine(
+    (value) => {
+      if (!value.since || !value.until) {
+        return true;
+      }
+      return new Date(value.since) <= new Date(value.until);
+    },
+    {
+      message: "since must be on or before until",
+      path: ["since"],
+    }
+  );
 
-const bookLoanHistoryQuerySchema = z.object({
-  since: z.string().datetime().optional(),
-  until: z.string().datetime().optional(),
-  status: z.enum(["open", "returned"]).optional(),
-});
+const memberLoanHistoryQuerySchema = loanHistoryQuerySchema;
+const bookLoanHistoryQuerySchema = loanHistoryQuerySchema;
 
 const parseId = (value) => {
   const id = Number(value);
