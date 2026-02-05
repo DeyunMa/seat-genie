@@ -169,6 +169,6 @@ Optional query params:
 - `asOf` (ISO datetime) → Defaults to now.
 - `since` (ISO datetime) → Filters loans for activity reports.
 - `until` (ISO datetime) → Upper bound for loan history reports.
-- `limit` → Limits the number of records returned (defaults to `25`).
+- `limit` → Limits the number of records returned (defaults to `25`, max `50`).
 - `offset` → Offsets report results (defaults to `0`).
 - `status` → `open` or `returned` (available on loan-related reports).

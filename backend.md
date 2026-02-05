@@ -4,7 +4,7 @@
 Initial backend foundation created for the library management system.
 
 ## Latest Update (2026-02-05)
-- Added date range validation to loan history reports (`since` cannot be after `until`).
+- Capped report `limit` values to a maximum of 50 for activity and history reports.
 
 ## What Exists
 - Express server skeleton under `backend/` with logging, security middleware, and error handling.
@@ -33,4 +33,4 @@ Initial backend foundation created for the library management system.
 - Migrations will be executed manually after automation completes.
 
 ## Next Recommended Step
-Add validation to report queries to cap `limit` for activity reports (e.g. enforce a max).
+Add supporting indexes for report-heavy queries (e.g., `loans.due_at`, `loans.returned_at`) in `backend/sql/schema.sql`.

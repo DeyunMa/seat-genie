@@ -16,8 +16,23 @@ const paginationSchema = z.object({
   offset: z.preprocess(toNumber, z.number().int().min(0).default(0)),
 });
 
+const reportLimitSchema = z.object({
+  limit: z.preprocess(
+    toNumber,
+    z.number().int().min(1).max(50).default(25)
+  ),
+});
+
+const reportPaginationSchema = reportLimitSchema.extend({
+  offset: z.preprocess(toNumber, z.number().int().min(0).default(0)),
+});
+
 const parsePagination = (query) => paginationSchema.parse(query);
+const parseReportLimit = (query) => reportLimitSchema.parse(query);
+const parseReportPagination = (query) => reportPaginationSchema.parse(query);
 
 module.exports = {
   parsePagination,
+  parseReportLimit,
+  parseReportPagination,
 };
