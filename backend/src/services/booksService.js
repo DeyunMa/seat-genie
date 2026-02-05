@@ -1,6 +1,6 @@
 const { getDb } = require("../db");
 
-const listBooks = () => {
+const listBooks = ({ limit, offset }) => {
   const db = getDb();
   const rows = db
     .prepare(
@@ -8,10 +8,17 @@ const listBooks = () => {
               a.id AS author_id, a.name AS author_name
        FROM books b
        LEFT JOIN authors a ON a.id = b.author_id
-       ORDER BY b.id DESC`
+       ORDER BY b.id DESC
+       LIMIT ? OFFSET ?`
     )
-    .all();
+    .all(limit, offset);
   return rows;
+};
+
+const countBooks = () => {
+  const db = getDb();
+  const row = db.prepare(`SELECT COUNT(1) AS total FROM books`).get();
+  return row?.total ?? 0;
 };
 
 const getBook = (id) => {
@@ -62,6 +69,7 @@ const deleteBook = (id) => {
 
 module.exports = {
   listBooks,
+  countBooks,
   getBook,
   createBook,
   updateBook,

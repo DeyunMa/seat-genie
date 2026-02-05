@@ -1,14 +1,21 @@
 const { getDb } = require("../db");
 
-const listMembers = () => {
+const listMembers = ({ limit, offset }) => {
   const db = getDb();
   return db
     .prepare(
       `SELECT id, name, email, phone, created_at
        FROM members
-       ORDER BY id DESC`
+       ORDER BY id DESC
+       LIMIT ? OFFSET ?`
     )
-    .all();
+    .all(limit, offset);
+};
+
+const countMembers = () => {
+  const db = getDb();
+  const row = db.prepare(`SELECT COUNT(1) AS total FROM members`).get();
+  return row?.total ?? 0;
 };
 
 const getMember = (id) => {
@@ -67,6 +74,7 @@ const deleteMember = (id) => {
 
 module.exports = {
   listMembers,
+  countMembers,
   getMember,
   createMember,
   updateMember,

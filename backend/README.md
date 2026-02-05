@@ -38,6 +38,12 @@ npm run dev
 ## API
 All responses are JSON. Successful responses are wrapped as `{ "data": ... }`. Errors return `{ "error": "message" }`.
 
+List endpoints support optional pagination query params:
+- `limit` (default `25`, max `100`)
+- `offset` (default `0`)
+
+Paginated responses include `meta` with `total`, `limit`, and `offset`.
+
 ### Health
 - `GET /health` → `{ status: "ok" }`
 
@@ -127,6 +133,9 @@ Notes:
 
 ### Reports
 - `GET /api/reports/overdue-loans`
+- `GET /api/reports/most-active-members`
 
 Optional query params:
 - `asOf` (ISO datetime) → Defaults to now.
+- `since` (ISO datetime) → Filters loans for activity reports.
+- `limit` → Limits the number of members returned (defaults to `25`).

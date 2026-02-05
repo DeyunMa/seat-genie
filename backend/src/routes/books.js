@@ -1,6 +1,7 @@
 const express = require("express");
 const { z } = require("zod");
 const booksService = require("../services/booksService");
+const { parsePagination } = require("../utils/pagination");
 
 const router = express.Router();
 
@@ -22,8 +23,10 @@ const parseId = (value) => {
 
 router.get("/", (req, res, next) => {
   try {
-    const books = booksService.listBooks();
-    res.json({ data: books });
+    const { limit, offset } = parsePagination(req.query);
+    const books = booksService.listBooks({ limit, offset });
+    const total = booksService.countBooks();
+    res.json({ data: books, meta: { total, limit, offset } });
   } catch (error) {
     next(error);
   }

@@ -1,6 +1,7 @@
 const express = require("express");
 const { z } = require("zod");
 const membersService = require("../services/membersService");
+const { parsePagination } = require("../utils/pagination");
 
 const router = express.Router();
 
@@ -20,8 +21,10 @@ const parseId = (value) => {
 
 router.get("/", (req, res, next) => {
   try {
-    const members = membersService.listMembers();
-    res.json({ data: members });
+    const { limit, offset } = parsePagination(req.query);
+    const members = membersService.listMembers({ limit, offset });
+    const total = membersService.countMembers();
+    res.json({ data: members, meta: { total, limit, offset } });
   } catch (error) {
     next(error);
   }

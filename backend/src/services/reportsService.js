@@ -19,6 +19,32 @@ const listOverdueLoans = (asOf) => {
     .all(effectiveAsOf, effectiveAsOf);
 };
 
+const listMostActiveMembers = ({ limit, since }) => {
+  const db = getDb();
+  const conditions = [];
+  const params = [];
+  if (since) {
+    conditions.push("l.loaned_at >= ?");
+    params.push(since);
+  }
+  const whereClause =
+    conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+  return db
+    .prepare(
+      `SELECT m.id, m.name, m.email,
+              COUNT(l.id) AS loan_count,
+              MAX(l.loaned_at) AS last_loaned_at
+       FROM loans l
+       JOIN members m ON m.id = l.member_id
+       ${whereClause}
+       GROUP BY m.id, m.name, m.email
+       ORDER BY loan_count DESC, last_loaned_at DESC
+       LIMIT ?`
+    )
+    .all(...params, limit);
+};
+
 module.exports = {
   listOverdueLoans,
+  listMostActiveMembers,
 };

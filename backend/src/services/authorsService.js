@@ -1,14 +1,21 @@
 const { getDb } = require("../db");
 
-const listAuthors = () => {
+const listAuthors = ({ limit, offset }) => {
   const db = getDb();
   return db
     .prepare(
       `SELECT id, name, bio, created_at
        FROM authors
-       ORDER BY id DESC`
+       ORDER BY id DESC
+       LIMIT ? OFFSET ?`
     )
-    .all();
+    .all(limit, offset);
+};
+
+const countAuthors = () => {
+  const db = getDb();
+  const row = db.prepare(`SELECT COUNT(1) AS total FROM authors`).get();
+  return row?.total ?? 0;
 };
 
 const getAuthor = (id) => {
@@ -57,6 +64,7 @@ const deleteAuthor = (id) => {
 
 module.exports = {
   listAuthors,
+  countAuthors,
   getAuthor,
   createAuthor,
   updateAuthor,
