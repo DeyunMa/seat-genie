@@ -44,6 +44,33 @@ const listMostActiveMembers = ({ limit, since }) => {
     .all(...params, limit);
 };
 
+const listMostBorrowedBooks = ({ limit, since }) => {
+  const db = getDb();
+  const conditions = [];
+  const params = [];
+  if (since) {
+    conditions.push("l.loaned_at >= ?");
+    params.push(since);
+  }
+  const whereClause =
+    conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+  return db
+    .prepare(
+      `SELECT b.id, b.title, b.isbn,
+              a.name AS author_name,
+              COUNT(l.id) AS loan_count,
+              MAX(l.loaned_at) AS last_loaned_at
+       FROM loans l
+       JOIN books b ON b.id = l.book_id
+       LEFT JOIN authors a ON a.id = b.author_id
+       ${whereClause}
+       GROUP BY b.id, b.title, b.isbn, a.name
+       ORDER BY loan_count DESC, last_loaned_at DESC
+       LIMIT ?`
+    )
+    .all(...params, limit);
+};
+
 const getInventoryHealth = (asOf) => {
   const db = getDb();
   const effectiveAsOf = asOf ?? new Date().toISOString();
@@ -77,5 +104,6 @@ const getInventoryHealth = (asOf) => {
 module.exports = {
   listOverdueLoans,
   listMostActiveMembers,
+  listMostBorrowedBooks,
   getInventoryHealth,
 };

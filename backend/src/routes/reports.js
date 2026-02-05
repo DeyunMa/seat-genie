@@ -13,6 +13,10 @@ const activeMembersQuerySchema = z.object({
   since: z.string().datetime().optional(),
 });
 
+const mostBorrowedBooksQuerySchema = z.object({
+  since: z.string().datetime().optional(),
+});
+
 const inventoryHealthQuerySchema = z.object({
   asOf: z.string().datetime().optional(),
 });
@@ -34,6 +38,20 @@ router.get("/most-active-members", (req, res, next) => {
     const members = reportsService.listMostActiveMembers({ limit, since });
     return res.json({
       data: members,
+      meta: { limit, since: since ?? null },
+    });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+router.get("/most-borrowed-books", (req, res, next) => {
+  try {
+    const { limit } = parsePagination(req.query);
+    const { since } = mostBorrowedBooksQuerySchema.parse(req.query);
+    const books = reportsService.listMostBorrowedBooks({ limit, since });
+    return res.json({
+      data: books,
       meta: { limit, since: since ?? null },
     });
   } catch (error) {
