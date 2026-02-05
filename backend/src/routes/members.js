@@ -3,6 +3,7 @@ const { z } = require("zod");
 const membersService = require("../services/membersService");
 const { parseListQuery } = require("../utils/queryValidation");
 const { parseId } = require("../utils/params");
+const { sendConflict, sendInvalidId, sendNotFound } = require("../utils/errors");
 
 const router = express.Router();
 
@@ -59,11 +60,11 @@ router.get("/:id", (req, res, next) => {
   try {
     const id = parseId(req.params.id);
     if (!id) {
-      return res.status(400).json({ error: "Invalid member id" });
+      return sendInvalidId(res, "member");
     }
     const member = membersService.getMember(id);
     if (!member) {
-      return res.status(404).json({ error: "Member not found" });
+      return sendNotFound(res, "Member");
     }
     return res.json({ data: member });
   } catch (error) {
@@ -85,12 +86,12 @@ router.put("/:id", (req, res, next) => {
   try {
     const id = parseId(req.params.id);
     if (!id) {
-      return res.status(400).json({ error: "Invalid member id" });
+      return sendInvalidId(res, "member");
     }
     const payload = memberSchema.parse(req.body);
     const member = membersService.updateMember(id, payload);
     if (!member) {
-      return res.status(404).json({ error: "Member not found" });
+      return sendNotFound(res, "Member");
     }
     return res.json({ data: member });
   } catch (error) {
@@ -102,16 +103,14 @@ router.delete("/:id", (req, res, next) => {
   try {
     const id = parseId(req.params.id);
     if (!id) {
-      return res.status(400).json({ error: "Invalid member id" });
+      return sendInvalidId(res, "member");
     }
     const outcome = membersService.deleteMember(id);
     if (!outcome.deleted) {
       if (outcome.reason === "active_loans") {
-        return res
-          .status(409)
-          .json({ error: "Member has active loans" });
+        return sendConflict(res, "Member has active loans");
       }
-      return res.status(404).json({ error: "Member not found" });
+      return sendNotFound(res, "Member");
     }
     return res.status(204).send();
   } catch (error) {

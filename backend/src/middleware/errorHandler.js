@@ -1,5 +1,9 @@
 const { ZodError } = require("zod");
 const { logger } = require("../logger");
+const {
+  sendInternalServerError,
+  sendValidationError,
+} = require("../utils/errors");
 
 const errorHandler = (err, req, res, next) => {
   if (res.headersSent) {
@@ -7,14 +11,11 @@ const errorHandler = (err, req, res, next) => {
   }
 
   if (err instanceof ZodError) {
-    return res.status(400).json({
-      error: "Validation failed",
-      details: err.flatten(),
-    });
+    return sendValidationError(res, "Validation failed", err.flatten());
   }
 
   logger.error({ err }, "Unhandled error");
-  return res.status(500).json({ error: "Internal server error" });
+  return sendInternalServerError(res);
 };
 
 module.exports = { errorHandler };

@@ -3,6 +3,7 @@ const { z } = require("zod");
 const authorsService = require("../services/authorsService");
 const { parseListQuery } = require("../utils/queryValidation");
 const { parseId } = require("../utils/params");
+const { sendInvalidId, sendNotFound } = require("../utils/errors");
 
 const router = express.Router();
 
@@ -58,11 +59,11 @@ router.get("/:id", (req, res, next) => {
   try {
     const id = parseId(req.params.id);
     if (!id) {
-      return res.status(400).json({ error: "Invalid author id" });
+      return sendInvalidId(res, "author");
     }
     const author = authorsService.getAuthor(id);
     if (!author) {
-      return res.status(404).json({ error: "Author not found" });
+      return sendNotFound(res, "Author");
     }
     return res.json({ data: author });
   } catch (error) {
@@ -84,12 +85,12 @@ router.put("/:id", (req, res, next) => {
   try {
     const id = parseId(req.params.id);
     if (!id) {
-      return res.status(400).json({ error: "Invalid author id" });
+      return sendInvalidId(res, "author");
     }
     const payload = authorSchema.parse(req.body);
     const author = authorsService.updateAuthor(id, payload);
     if (!author) {
-      return res.status(404).json({ error: "Author not found" });
+      return sendNotFound(res, "Author");
     }
     return res.json({ data: author });
   } catch (error) {
@@ -101,11 +102,11 @@ router.delete("/:id", (req, res, next) => {
   try {
     const id = parseId(req.params.id);
     if (!id) {
-      return res.status(400).json({ error: "Invalid author id" });
+      return sendInvalidId(res, "author");
     }
     const deleted = authorsService.deleteAuthor(id);
     if (!deleted) {
-      return res.status(404).json({ error: "Author not found" });
+      return sendNotFound(res, "Author");
     }
     return res.status(204).send();
   } catch (error) {

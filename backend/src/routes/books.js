@@ -3,6 +3,11 @@ const { z } = require("zod");
 const booksService = require("../services/booksService");
 const { parseListQuery } = require("../utils/queryValidation");
 const { parseId } = require("../utils/params");
+const {
+  sendInvalidId,
+  sendNotFound,
+  sendValidationError,
+} = require("../utils/errors");
 
 const router = express.Router();
 
@@ -35,13 +40,13 @@ router.get("/", (req, res, next) => {
       : null;
 
     if (parsedQuery.authorId && !authorId) {
-      return res.status(400).json({ error: "Invalid author id" });
+      return sendInvalidId(res, "author");
     }
     if (
       parsedQuery.publishedYear &&
       (!Number.isInteger(publishedYear) || publishedYear < 0)
     ) {
-      return res.status(400).json({ error: "Invalid published year" });
+      return sendValidationError(res, "Invalid published year");
     }
 
     const filters = {
@@ -69,11 +74,11 @@ router.get("/:id", (req, res, next) => {
   try {
     const id = parseId(req.params.id);
     if (!id) {
-      return res.status(400).json({ error: "Invalid book id" });
+      return sendInvalidId(res, "book");
     }
     const book = booksService.getBook(id);
     if (!book) {
-      return res.status(404).json({ error: "Book not found" });
+      return sendNotFound(res, "Book");
     }
     return res.json({ data: book });
   } catch (error) {
@@ -95,12 +100,12 @@ router.put("/:id", (req, res, next) => {
   try {
     const id = parseId(req.params.id);
     if (!id) {
-      return res.status(400).json({ error: "Invalid book id" });
+      return sendInvalidId(res, "book");
     }
     const payload = bookSchema.parse(req.body);
     const book = booksService.updateBook(id, payload);
     if (!book) {
-      return res.status(404).json({ error: "Book not found" });
+      return sendNotFound(res, "Book");
     }
     return res.json({ data: book });
   } catch (error) {
@@ -112,11 +117,11 @@ router.delete("/:id", (req, res, next) => {
   try {
     const id = parseId(req.params.id);
     if (!id) {
-      return res.status(400).json({ error: "Invalid book id" });
+      return sendInvalidId(res, "book");
     }
     const deleted = booksService.deleteBook(id);
     if (!deleted) {
-      return res.status(404).json({ error: "Book not found" });
+      return sendNotFound(res, "Book");
     }
     return res.status(204).send();
   } catch (error) {
