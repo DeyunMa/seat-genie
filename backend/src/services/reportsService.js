@@ -19,13 +19,18 @@ const listOverdueLoans = (asOf) => {
     .all(effectiveAsOf, effectiveAsOf);
 };
 
-const listMostActiveMembers = ({ limit, since }) => {
+const listMostActiveMembers = ({ limit, since, status }) => {
   const db = getDb();
   const conditions = [];
   const params = [];
   if (since) {
     conditions.push("l.loaned_at >= ?");
     params.push(since);
+  }
+  if (status === "open") {
+    conditions.push("l.returned_at IS NULL");
+  } else if (status === "returned") {
+    conditions.push("l.returned_at IS NOT NULL");
   }
   const whereClause =
     conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
@@ -44,13 +49,18 @@ const listMostActiveMembers = ({ limit, since }) => {
     .all(...params, limit);
 };
 
-const listMostBorrowedBooks = ({ limit, since }) => {
+const listMostBorrowedBooks = ({ limit, since, status }) => {
   const db = getDb();
   const conditions = [];
   const params = [];
   if (since) {
     conditions.push("l.loaned_at >= ?");
     params.push(since);
+  }
+  if (status === "open") {
+    conditions.push("l.returned_at IS NULL");
+  } else if (status === "returned") {
+    conditions.push("l.returned_at IS NOT NULL");
   }
   const whereClause =
     conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
@@ -101,7 +111,7 @@ const getInventoryHealth = (asOf) => {
   };
 };
 
-const getMemberLoanHistory = ({ memberId, since, limit, offset }) => {
+const getMemberLoanHistory = ({ memberId, since, limit, offset, status }) => {
   const db = getDb();
   const member = db
     .prepare("SELECT id, name, email, joined_at FROM members WHERE id = ?")
@@ -115,6 +125,11 @@ const getMemberLoanHistory = ({ memberId, since, limit, offset }) => {
   if (since) {
     conditions.push("l.loaned_at >= ?");
     params.push(since);
+  }
+  if (status === "open") {
+    conditions.push("l.returned_at IS NULL");
+  } else if (status === "returned") {
+    conditions.push("l.returned_at IS NOT NULL");
   }
   const whereClause = `WHERE ${conditions.join(" AND ")}`;
 
@@ -139,7 +154,7 @@ const getMemberLoanHistory = ({ memberId, since, limit, offset }) => {
   return { member, loans, total };
 };
 
-const getBookLoanHistory = ({ bookId, since, limit, offset }) => {
+const getBookLoanHistory = ({ bookId, since, limit, offset, status }) => {
   const db = getDb();
   const book = db
     .prepare(
@@ -159,6 +174,11 @@ const getBookLoanHistory = ({ bookId, since, limit, offset }) => {
   if (since) {
     conditions.push("l.loaned_at >= ?");
     params.push(since);
+  }
+  if (status === "open") {
+    conditions.push("l.returned_at IS NULL");
+  } else if (status === "returned") {
+    conditions.push("l.returned_at IS NOT NULL");
   }
   const whereClause = `WHERE ${conditions.join(" AND ")}`;
 

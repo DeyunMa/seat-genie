@@ -131,6 +131,10 @@ Example body:
 - `PUT /api/loans/:id`
 - `DELETE /api/loans/:id`
 
+Query params for `GET /api/loans`:
+- `status`: `open`, `returned`
+- `limit`, `offset` for pagination
+
 Example body (create):
 
 ```json
@@ -166,3 +170,4 @@ Optional query params:
 - `since` (ISO datetime) → Filters loans for activity reports.
 - `limit` → Limits the number of records returned (defaults to `25`).
 - `offset` → Offsets report results (defaults to `0`).
+- `status` → `open` or `returned` (available on loan-related reports).

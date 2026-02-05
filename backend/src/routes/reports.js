@@ -11,10 +11,12 @@ const overdueQuerySchema = z.object({
 
 const activeMembersQuerySchema = z.object({
   since: z.string().datetime().optional(),
+  status: z.enum(["open", "returned"]).optional(),
 });
 
 const mostBorrowedBooksQuerySchema = z.object({
   since: z.string().datetime().optional(),
+  status: z.enum(["open", "returned"]).optional(),
 });
 
 const inventoryHealthQuerySchema = z.object({
@@ -23,10 +25,12 @@ const inventoryHealthQuerySchema = z.object({
 
 const memberLoanHistoryQuerySchema = z.object({
   since: z.string().datetime().optional(),
+  status: z.enum(["open", "returned"]).optional(),
 });
 
 const bookLoanHistoryQuerySchema = z.object({
   since: z.string().datetime().optional(),
+  status: z.enum(["open", "returned"]).optional(),
 });
 
 const parseId = (value) => {
@@ -50,11 +54,15 @@ router.get("/overdue-loans", (req, res, next) => {
 router.get("/most-active-members", (req, res, next) => {
   try {
     const { limit } = parsePagination(req.query);
-    const { since } = activeMembersQuerySchema.parse(req.query);
-    const members = reportsService.listMostActiveMembers({ limit, since });
+    const { since, status } = activeMembersQuerySchema.parse(req.query);
+    const members = reportsService.listMostActiveMembers({
+      limit,
+      since,
+      status,
+    });
     return res.json({
       data: members,
-      meta: { limit, since: since ?? null },
+      meta: { limit, since: since ?? null, status: status ?? null },
     });
   } catch (error) {
     return next(error);
@@ -64,11 +72,15 @@ router.get("/most-active-members", (req, res, next) => {
 router.get("/most-borrowed-books", (req, res, next) => {
   try {
     const { limit } = parsePagination(req.query);
-    const { since } = mostBorrowedBooksQuerySchema.parse(req.query);
-    const books = reportsService.listMostBorrowedBooks({ limit, since });
+    const { since, status } = mostBorrowedBooksQuerySchema.parse(req.query);
+    const books = reportsService.listMostBorrowedBooks({
+      limit,
+      since,
+      status,
+    });
     return res.json({
       data: books,
-      meta: { limit, since: since ?? null },
+      meta: { limit, since: since ?? null, status: status ?? null },
     });
   } catch (error) {
     return next(error);
@@ -99,10 +111,11 @@ router.get("/member-loan-history/:memberId", (req, res, next) => {
       return res.status(400).json({ error: "Invalid member id" });
     }
     const { limit, offset } = parsePagination(req.query);
-    const { since } = memberLoanHistoryQuerySchema.parse(req.query);
+    const { since, status } = memberLoanHistoryQuerySchema.parse(req.query);
     const history = reportsService.getMemberLoanHistory({
       memberId,
       since,
+      status,
       limit,
       offset,
     });
@@ -119,6 +132,7 @@ router.get("/member-loan-history/:memberId", (req, res, next) => {
         limit,
         offset,
         since: since ?? null,
+        status: status ?? null,
       },
     });
   } catch (error) {
@@ -133,10 +147,11 @@ router.get("/book-loan-history/:bookId", (req, res, next) => {
       return res.status(400).json({ error: "Invalid book id" });
     }
     const { limit, offset } = parsePagination(req.query);
-    const { since } = bookLoanHistoryQuerySchema.parse(req.query);
+    const { since, status } = bookLoanHistoryQuerySchema.parse(req.query);
     const history = reportsService.getBookLoanHistory({
       bookId,
       since,
+      status,
       limit,
       offset,
     });
@@ -153,6 +168,7 @@ router.get("/book-loan-history/:bookId", (req, res, next) => {
         limit,
         offset,
         since: since ?? null,
+        status: status ?? null,
       },
     });
   } catch (error) {

@@ -1,7 +1,16 @@
 const { getDb } = require("../db");
 
-const listLoans = ({ limit, offset }) => {
+const listLoans = ({ limit, offset, status }) => {
   const db = getDb();
+  const conditions = [];
+  const params = [];
+  if (status === "open") {
+    conditions.push("l.returned_at IS NULL");
+  } else if (status === "returned") {
+    conditions.push("l.returned_at IS NOT NULL");
+  }
+  const whereClause =
+    conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
   return db
     .prepare(
       `SELECT l.id, l.book_id, l.member_id, l.loaned_at, l.due_at, l.returned_at,
@@ -10,15 +19,27 @@ const listLoans = ({ limit, offset }) => {
        FROM loans l
        JOIN books b ON b.id = l.book_id
        JOIN members m ON m.id = l.member_id
+       ${whereClause}
        ORDER BY l.id DESC
        LIMIT ? OFFSET ?`
     )
-    .all(limit, offset);
+    .all(...params, limit, offset);
 };
 
-const countLoans = () => {
+const countLoans = (status) => {
   const db = getDb();
-  const row = db.prepare(`SELECT COUNT(1) AS total FROM loans`).get();
+  const conditions = [];
+  const params = [];
+  if (status === "open") {
+    conditions.push("returned_at IS NULL");
+  } else if (status === "returned") {
+    conditions.push("returned_at IS NOT NULL");
+  }
+  const whereClause =
+    conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+  const row = db
+    .prepare(`SELECT COUNT(1) AS total FROM loans ${whereClause}`)
+    .get(...params);
   return row?.total ?? 0;
 };
 

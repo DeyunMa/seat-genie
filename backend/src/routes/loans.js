@@ -20,6 +20,10 @@ const loanUpdateSchema = z
     message: "Provide dueAt or returnedAt",
   });
 
+const loanListQuerySchema = z.object({
+  status: z.enum(["open", "returned"]).optional(),
+});
+
 const parseId = (value) => {
   const id = Number(value);
   if (!Number.isInteger(id) || id <= 0) {
@@ -31,9 +35,13 @@ const parseId = (value) => {
 router.get("/", (req, res, next) => {
   try {
     const { limit, offset } = parsePagination(req.query);
-    const loans = loansService.listLoans({ limit, offset });
-    const total = loansService.countLoans();
-    res.json({ data: loans, meta: { total, limit, offset } });
+    const { status } = loanListQuerySchema.parse(req.query);
+    const loans = loansService.listLoans({ limit, offset, status });
+    const total = loansService.countLoans(status);
+    res.json({
+      data: loans,
+      meta: { total, limit, offset, status: status ?? null },
+    });
   } catch (error) {
     next(error);
   }

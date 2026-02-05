@@ -4,7 +4,7 @@
 Initial backend foundation created for the library management system.
 
 ## Latest Update (2026-02-05)
-- Added per-book loan history report endpoint with pagination and service query.
+- Added loan status filters (`open` vs `returned`) to loan list and loan-related reports.
 
 ## What Exists
 - Express server skeleton under `backend/` with logging, security middleware, and error handling.
@@ -33,4 +33,4 @@ Initial backend foundation created for the library management system.
 - Migrations will be executed manually after automation completes.
 
 ## Next Recommended Step
-Add report filters for loan status (open vs returned) across loan-related endpoints.
+Add optional date range filters (e.g. `until`) for loan history reports.
