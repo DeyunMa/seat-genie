@@ -7,4 +7,15 @@ const validateBody = (schema) => (req, res, next) => {
   }
 };
 
-module.exports = { validateBody };
+const { parseListQuery } = require("../utils/queryValidation");
+
+const validateListQuery = (schema) => (req, res, next) => {
+  try {
+    req.listQuery = parseListQuery(req.query, schema);
+    return next();
+  } catch (error) {
+    return next(error);
+  }
+};
+
+module.exports = { validateBody, validateListQuery };

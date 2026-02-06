@@ -44,6 +44,12 @@ List endpoints support optional pagination query params:
 
 Paginated responses include `meta` with `total`, `limit`, and `offset`.
 
+List query examples (pagination + filters/sort):
+- `GET /api/books?status=available&authorId=1&sortBy=title&sortOrder=asc&limit=10&offset=0`
+- `GET /api/authors?q=pragmatic&sortBy=name&sortOrder=asc&limit=10&offset=0`
+- `GET /api/members?q=avery&sortBy=created_at&sortOrder=desc&limit=10&offset=0`
+- `GET /api/loans?status=open&limit=10&offset=0`
+
 ### Error Responses
 Error payloads share the same shape across endpoints:
 

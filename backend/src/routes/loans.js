@@ -1,9 +1,8 @@
 const express = require("express");
 const { z } = require("zod");
 const loansService = require("../services/loansService");
-const { parseListQuery } = require("../utils/queryValidation");
 const { parseId } = require("../utils/params");
-const { validateBody } = require("../middleware/validate");
+const { validateBody, validateListQuery } = require("../middleware/validate");
 const {
   sendConflict,
   sendInvalidId,
@@ -34,12 +33,9 @@ const loanListQuerySchema = z.object({
   status: z.enum(["open", "returned"]).optional(),
 });
 
-router.get("/", (req, res, next) => {
+router.get("/", validateListQuery(loanListQuerySchema), (req, res, next) => {
   try {
-    const { limit, offset, status } = parseListQuery(
-      req.query,
-      loanListQuerySchema
-    );
+    const { limit, offset, status } = req.listQuery;
     const loans = loansService.listLoans({ limit, offset, status });
     const total = loansService.countLoans(status);
     res.json({
