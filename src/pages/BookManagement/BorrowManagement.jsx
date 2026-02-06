@@ -25,24 +25,24 @@ function BorrowManagement() {
     const overdueBorrowings = activeBorrowings.filter(b => b.dueDate < today)
     const normalBorrowings = activeBorrowings.filter(b => b.dueDate >= today)
 
-    const getUserName = (userId) => {
-        const user = users.find(u => u.id === userId)
-        return user?.name || '未知用户'
+    const getUserName = (borrowing) => {
+        const user = users.find(u => u.id === borrowing.userId)
+        return user?.name || borrowing.memberName || '未知用户'
     }
 
-    const getBookTitle = (bookId) => {
-        const book = books.find(b => b.id === bookId)
-        return book?.title || '未知图书'
+    const getBookTitle = (borrowing) => {
+        const book = books.find(b => b.id === borrowing.bookId)
+        return book?.title || borrowing.bookTitle || '未知图书'
     }
 
-    const handleBorrow = () => {
+    const handleBorrow = async () => {
         if (!selectedUserId || !selectedBookId) {
             addToast('请选择用户和图书', 'warning')
             return
         }
 
         const staffUser = users.find(u => u.role === 'staff' || u.role === 'admin')
-        const result = borrowBook({
+        const result = await borrowBook({
             userId: selectedUserId,
             bookId: selectedBookId,
             handledBy: staffUser?.id
@@ -59,9 +59,9 @@ function BorrowManagement() {
         }
     }
 
-    const handleReturn = (borrowingId) => {
+    const handleReturn = async (borrowingId) => {
         const staffUser = users.find(u => u.role === 'staff' || u.role === 'admin')
-        const result = returnBook(borrowingId, staffUser?.id)
+        const result = await returnBook(borrowingId, staffUser?.id)
 
         if (result.success) {
             addToast('归还登记成功', 'success')
@@ -116,8 +116,8 @@ function BorrowManagement() {
                     <tbody>
                         {(activeTab === 'overdue' ? overdueBorrowings : normalBorrowings).map(borrowing => (
                             <tr key={borrowing.id} className={borrowing.dueDate < today ? 'row-overdue' : ''}>
-                                <td><strong>{getUserName(borrowing.userId)}</strong></td>
-                                <td>{getBookTitle(borrowing.bookId)}</td>
+                                <td><strong>{getUserName(borrowing)}</strong></td>
+                                <td>{getBookTitle(borrowing)}</td>
                                 <td>{borrowing.borrowDate}</td>
                                 <td>{borrowing.dueDate}</td>
                                 <td>

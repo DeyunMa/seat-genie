@@ -18,8 +18,12 @@ function MyBorrowings() {
 
     const today = new Date().toISOString().split('T')[0]
 
-    const getBookInfo = (bookId) => {
-        return books.find(b => b.id === bookId) || {}
+    const getBookInfo = (bookId, borrowing) => {
+        return books.find(b => b.id === bookId) || {
+            title: borrowing?.bookTitle || '未知图书',
+            author: '未知作者',
+            location: ''
+        }
     }
 
     const getDaysRemaining = (dueDate) => {
@@ -53,7 +57,7 @@ function MyBorrowings() {
             {activeTab === 'current' && (
                 <div className="borrowing-list">
                     {currentBorrowings.map(borrowing => {
-                        const book = getBookInfo(borrowing.bookId)
+                        const book = getBookInfo(borrowing.bookId, borrowing)
                         const daysRemaining = getDaysRemaining(borrowing.dueDate)
                         const isOverdue = daysRemaining < 0
 
@@ -115,7 +119,7 @@ function MyBorrowings() {
                         </thead>
                         <tbody>
                             {historyBorrowings.map(borrowing => {
-                                const book = getBookInfo(borrowing.bookId)
+                                const book = getBookInfo(borrowing.bookId, borrowing)
                                 return (
                                     <tr key={borrowing.id}>
                                         <td><strong>{book.title}</strong></td>
