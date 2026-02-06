@@ -9,6 +9,36 @@ import {
     runQuery
 } from '../services/sqliteService'
 import { STORAGE_KEYS } from '../services/initData'
+import { listBooks } from '../services/booksApi'
+import { listLoans, createLoan, updateLoan } from '../services/loansApi'
+import { listMembers, createMember } from '../services/membersApi'
+
+const toDateOnly = (value) => {
+    if (!value) return null
+    const normalized = typeof value === 'string' ? value.replace(' ', 'T') : value
+    const date = new Date(normalized)
+    if (Number.isNaN(date.getTime())) return null
+    return date.toISOString().split('T')[0]
+}
+
+const mapLoansToBorrowings = (loans, usersByEmail) => {
+    if (!Array.isArray(loans)) return []
+    return loans.map(loan => ({
+        id: String(loan.id),
+        userId: usersByEmail?.[loan.member_email] ?? null,
+        memberId: loan.member_id,
+        memberName: loan.member_name,
+        memberEmail: loan.member_email,
+        bookId: loan.book_id,
+        bookTitle: loan.book_title,
+        borrowDate: toDateOnly(loan.loaned_at),
+        dueDate: toDateOnly(loan.due_at),
+        returnDate: loan.returned_at ? toDateOnly(loan.returned_at) : null,
+        status: loan.returned_at ? 'returned' : 'borrowed',
+        createdAt: loan.loaned_at,
+        updatedAt: loan.returned_at ?? loan.loaned_at
+    }))
+}
 
 export const useDataStore = create((set, get) => ({
     // Data states
@@ -18,6 +48,7 @@ export const useDataStore = create((set, get) => ({
     books: [],
     seatReservations: [],
     bookBorrowings: [],
+    members: [],
     notifications: [],
     notificationReads: [],
 
@@ -25,17 +56,45 @@ export const useDataStore = create((set, get) => ({
     loading: false,
 
     // Load all data from SQLite
-    loadAllData: () => {
+    loadAllData: async () => {
+        const users = getAll('users') || []
+        const rooms = getAll('rooms') || []
+        const seats = getAll('seats') || []
+        const seatReservations = getAll('seat_reservations') || []
+        const notifications = getAll('notifications') || []
+        const notificationReads = getAll('notification_reads') || []
+
         set({
-            users: getAll('users') || [],
-            rooms: getAll('rooms') || [],
-            seats: getAll('seats') || [],
-            books: getAll('books') || [],
-            seatReservations: getAll('seat_reservations') || [],
-            bookBorrowings: getAll('book_borrowings') || [],
-            notifications: getAll('notifications') || [],
-            notificationReads: getAll('notification_reads') || []
+            users,
+            rooms,
+            seats,
+            seatReservations,
+            notifications,
+            notificationReads
         })
+
+        try {
+            const [remoteBooks, remoteMembers, remoteLoans] = await Promise.all([
+                listBooks(),
+                listMembers(),
+                listLoans({ limit: 200 })
+            ])
+            const usersByEmail = users.reduce((acc, user) => {
+                if (user.email) acc[user.email] = user.id
+                return acc
+            }, {})
+            const borrowings = mapLoansToBorrowings(remoteLoans, usersByEmail)
+            set({
+                books: remoteBooks,
+                members: remoteMembers,
+                bookBorrowings: borrowings
+            })
+        } catch (error) {
+            set({
+                books: getAll('books') || [],
+                bookBorrowings: getAll('book_borrowings') || []
+            })
+        }
     },
 
     // USER OPERATIONS
@@ -256,68 +315,97 @@ export const useDataStore = create((set, get) => ({
     },
 
     // BOOK BORROWING OPERATIONS
-    borrowBook: (borrowData) => {
-        const now = new Date().toISOString()
+    borrowBook: async (borrowData) => {
+        try {
+            const { users, members } = get()
+            const borrower = users.find(user => user.id === borrowData.userId)
+            if (!borrower) {
+                return { success: false, error: '借阅人不存在' }
+            }
 
-        // Check if book is available
-        const books = selectQuery('SELECT * FROM books WHERE id = ?', [borrowData.bookId])
-        const book = books[0]
-        if (!book || book.status !== 'available') {
-            return { success: false, error: '该图书不可借阅' }
+            let member = members.find(m => m.email === borrower.email)
+            if (!member) {
+                try {
+                    member = await createMember({
+                        name: borrower.name,
+                        email: borrower.email,
+                        phone: borrower.phone || null
+                    })
+                } catch (error) {
+                    const refreshedMembers = await listMembers()
+                    member = refreshedMembers.find(m => m.email === borrower.email)
+                    if (!member) {
+                        return { success: false, error: '无法创建借阅人档案' }
+                    }
+                    set({ members: refreshedMembers })
+                }
+            }
+
+            const dueDate = new Date()
+            dueDate.setDate(dueDate.getDate() + 14)
+            const dueAt = dueDate.toISOString()
+
+            const loan = await createLoan({
+                bookId: borrowData.bookId,
+                memberId: member.id,
+                dueAt
+            })
+
+            const [remoteBooks, remoteLoans] = await Promise.all([
+                listBooks(),
+                listLoans({ limit: 200 })
+            ])
+            const usersByEmail = users.reduce((acc, user) => {
+                if (user.email) acc[user.email] = user.id
+                return acc
+            }, {})
+            const borrowings = mapLoansToBorrowings(remoteLoans, usersByEmail)
+
+            set({
+                books: remoteBooks,
+                members: members.some(m => m.email === member.email)
+                    ? members
+                    : [...members, member],
+                bookBorrowings: borrowings
+            })
+
+            const mappedLoan = borrowings.find(b => b.id === String(loan.id)) || null
+            return { success: true, borrowing: mappedLoan }
+        } catch (error) {
+            return { success: false, error: error?.message || '借阅失败' }
         }
-
-        // Update book status
-        updateRow('books', borrowData.bookId, { status: 'borrowed', updatedAt: now })
-
-        // Create borrowing record
-        const dueDate = new Date()
-        dueDate.setDate(dueDate.getDate() + 14) // 14 days loan period
-
-        const newBorrowing = {
-            id: uuidv4(),
-            ...borrowData,
-            borrowDate: now.split('T')[0],
-            dueDate: dueDate.toISOString().split('T')[0],
-            returnDate: null,
-            status: 'borrowed',
-            createdAt: now,
-            updatedAt: now
-        }
-        insertRow('book_borrowings', newBorrowing)
-
-        set({
-            bookBorrowings: getAll('book_borrowings'),
-            books: getAll('books')
-        })
-
-        return { success: true, borrowing: newBorrowing }
     },
 
-    returnBook: (borrowingId, handledBy) => {
-        const now = new Date().toISOString()
+    returnBook: async (borrowingId, handledBy) => {
+        try {
+            const borrowing = get().bookBorrowings.find(b => b.id === String(borrowingId))
+            if (!borrowing) {
+                return { success: false, error: '借阅记录不存在' }
+            }
 
-        const borrowings = selectQuery('SELECT * FROM book_borrowings WHERE id = ?', [borrowingId])
-        const borrowing = borrowings[0]
-        if (!borrowing) {
-            return { success: false, error: '借阅记录不存在' }
+            const returnedAt = new Date().toISOString()
+            await updateLoan(borrowingId, { returnedAt })
+
+            const { users } = get()
+            const [remoteBooks, remoteLoans] = await Promise.all([
+                listBooks(),
+                listLoans({ limit: 200 })
+            ])
+            const usersByEmail = users.reduce((acc, user) => {
+                if (user.email) acc[user.email] = user.id
+                return acc
+            }, {})
+            const borrowings = mapLoansToBorrowings(remoteLoans, usersByEmail)
+
+            set({
+                books: remoteBooks,
+                bookBorrowings: borrowings
+            })
+
+            return { success: true }
+        } catch (error) {
+            return { success: false, error: error?.message || '归还失败' }
         }
-
-        // Update borrowing record
-        updateRow('book_borrowings', borrowingId, {
-            status: 'returned',
-            returnDate: now.split('T')[0],
-            updatedAt: now
-        })
-
-        // Update book status
-        updateRow('books', borrowing.bookId, { status: 'available', updatedAt: now })
-
-        set({
-            bookBorrowings: getAll('book_borrowings'),
-            books: getAll('books')
-        })
-
-        return { success: true }
     },
 
     getUserBorrowings: (userId) => {
