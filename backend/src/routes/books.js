@@ -3,6 +3,7 @@ const { z } = require("zod");
 const booksService = require("../services/booksService");
 const { parseListQuery } = require("../utils/queryValidation");
 const { parseId } = require("../utils/params");
+const { validateBody } = require("../middleware/validate");
 const {
   sendInvalidId,
   sendNotFound,
@@ -11,13 +12,15 @@ const {
 
 const router = express.Router();
 
-const bookSchema = z.object({
-  title: z.string().min(1),
-  isbn: z.string().min(10).max(17),
-  authorId: z.number().int().positive().nullable().optional(),
-  publishedYear: z.number().int().min(0).max(3000).nullable().optional(),
-  status: z.enum(["available", "checked_out", "lost"]).default("available"),
-});
+const bookSchema = z
+  .object({
+    title: z.string().min(1),
+    isbn: z.string().min(10).max(17),
+    authorId: z.coerce.number().int().positive().nullable().optional(),
+    publishedYear: z.coerce.number().int().min(0).max(3000).nullable().optional(),
+    status: z.enum(["available", "checked_out", "lost"]).default("available"),
+  })
+  .strict();
 
 router.get("/", (req, res, next) => {
   try {
@@ -86,24 +89,22 @@ router.get("/:id", (req, res, next) => {
   }
 });
 
-router.post("/", (req, res, next) => {
+router.post("/", validateBody(bookSchema), (req, res, next) => {
   try {
-    const payload = bookSchema.parse(req.body);
-    const book = booksService.createBook(payload);
+    const book = booksService.createBook(req.body);
     res.status(201).json({ data: book });
   } catch (error) {
     next(error);
   }
 });
 
-router.put("/:id", (req, res, next) => {
+router.put("/:id", validateBody(bookSchema), (req, res, next) => {
   try {
     const id = parseId(req.params.id);
     if (!id) {
       return sendInvalidId(res, "book");
     }
-    const payload = bookSchema.parse(req.body);
-    const book = booksService.updateBook(id, payload);
+    const book = booksService.updateBook(id, req.body);
     if (!book) {
       return sendNotFound(res, "Book");
     }

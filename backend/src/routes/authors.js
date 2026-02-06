@@ -3,14 +3,17 @@ const { z } = require("zod");
 const authorsService = require("../services/authorsService");
 const { parseListQuery } = require("../utils/queryValidation");
 const { parseId } = require("../utils/params");
+const { validateBody } = require("../middleware/validate");
 const { sendInvalidId, sendNotFound } = require("../utils/errors");
 
 const router = express.Router();
 
-const authorSchema = z.object({
-  name: z.string().min(1),
-  bio: z.string().nullable().optional(),
-});
+const authorSchema = z
+  .object({
+    name: z.string().min(1),
+    bio: z.string().nullable().optional(),
+  })
+  .strict();
 
 const emptyToUndefined = (value) => {
   if (typeof value !== "string") {
@@ -71,24 +74,22 @@ router.get("/:id", (req, res, next) => {
   }
 });
 
-router.post("/", (req, res, next) => {
+router.post("/", validateBody(authorSchema), (req, res, next) => {
   try {
-    const payload = authorSchema.parse(req.body);
-    const author = authorsService.createAuthor(payload);
+    const author = authorsService.createAuthor(req.body);
     res.status(201).json({ data: author });
   } catch (error) {
     next(error);
   }
 });
 
-router.put("/:id", (req, res, next) => {
+router.put("/:id", validateBody(authorSchema), (req, res, next) => {
   try {
     const id = parseId(req.params.id);
     if (!id) {
       return sendInvalidId(res, "author");
     }
-    const payload = authorSchema.parse(req.body);
-    const author = authorsService.updateAuthor(id, payload);
+    const author = authorsService.updateAuthor(id, req.body);
     if (!author) {
       return sendNotFound(res, "Author");
     }
