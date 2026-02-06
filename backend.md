@@ -7,7 +7,7 @@ Initial backend foundation created for the library management system.
 - Added shared list-query validation middleware so list endpoints parse and validate query params consistently with less route boilerplate.
 - Updated list routes (books/authors/members/loans) to use the new middleware.
 - Documented consistent list query examples in `backend/README.md`.
-- Merge note: `dev` is checked out in another worktree, so merge into `dev` could not be completed in this run; the `ai/list-query-middleware` branch is preserved for manual merge.
+- Merge note: changes are ready to merge from `ai/list-query-middleware` into `dev`.
 
 ## What Exists
 - Express server skeleton under `backend/` with logging, security middleware, and error handling.
