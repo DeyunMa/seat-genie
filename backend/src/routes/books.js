@@ -4,11 +4,7 @@ const booksService = require("../services/booksService");
 const { parseListQuery } = require("../utils/queryValidation");
 const { parseId } = require("../utils/params");
 const { validateBody } = require("../middleware/validate");
-const {
-  sendInvalidId,
-  sendNotFound,
-  sendValidationError,
-} = require("../utils/errors");
+const { sendInvalidId, sendNotFound } = require("../utils/errors");
 
 const router = express.Router();
 
@@ -22,47 +18,57 @@ const bookSchema = z
   })
   .strict();
 
+const toNumber = (value) => {
+  if (value === undefined || value === null || value === "") {
+    return undefined;
+  }
+  const parsed = Number(value);
+  return Number.isNaN(parsed) ? value : parsed;
+};
+
 router.get("/", (req, res, next) => {
   try {
     const querySchema = z.object({
       status: z.enum(["available", "checked_out", "lost"]).optional(),
-      authorId: z.string().optional(),
+      authorId: z.preprocess(
+        toNumber,
+        z.number().int().positive().optional()
+      ),
       title: z.string().min(1).optional(),
       isbn: z.string().min(1).optional(),
-      publishedYear: z.string().optional(),
+      publishedYear: z.preprocess(
+        toNumber,
+        z.number().int().min(0).max(3000).optional()
+      ),
       sortBy: z
         .enum(["id", "title", "published_year", "status", "author_name"])
         .optional(),
       sortOrder: z.enum(["asc", "desc"]).optional(),
     });
 
-    const parsedQuery = parseListQuery(req.query, querySchema);
-    const authorId = parsedQuery.authorId ? parseId(parsedQuery.authorId) : null;
-    const publishedYear = parsedQuery.publishedYear
-      ? Number(parsedQuery.publishedYear)
-      : null;
-
-    if (parsedQuery.authorId && !authorId) {
-      return sendInvalidId(res, "author");
-    }
-    if (
-      parsedQuery.publishedYear &&
-      (!Number.isInteger(publishedYear) || publishedYear < 0)
-    ) {
-      return sendValidationError(res, "Invalid published year");
-    }
+    const {
+      limit,
+      offset,
+      status,
+      authorId,
+      title,
+      isbn,
+      publishedYear,
+      sortBy,
+      sortOrder,
+    } = parseListQuery(req.query, querySchema);
 
     const filters = {
-      status: parsedQuery.status,
+      status,
       authorId,
-      title: parsedQuery.title,
-      isbn: parsedQuery.isbn,
+      title,
+      isbn,
       publishedYear,
     };
 
     const sort = {
-      by: parsedQuery.sortBy || "id",
-      order: parsedQuery.sortOrder || "desc",
+      by: sortBy || "id",
+      order: sortOrder || "desc",
     };
 
     const books = booksService.listBooks({ limit, offset, filters, sort });
