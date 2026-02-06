@@ -35,10 +35,9 @@ const parseReportLimitQuery = (query, schema) => {
 };
 
 const parseReportPaginationQuery = (query, schema) => {
-  const mergedSchema = schema
-    ? reportPaginationSchema.merge(schema)
-    : reportPaginationSchema;
-  return mergedSchema.parse(query);
+  const { limit, offset } = reportPaginationSchema.parse(query);
+  const parsed = parseWithSchema(schema, query);
+  return { limit, offset, ...parsed };
 };
 
 module.exports = {

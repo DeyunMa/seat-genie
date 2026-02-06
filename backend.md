@@ -5,7 +5,8 @@ Initial backend foundation created for the library management system.
 
 ## Latest Update (2026-02-06)
 
-- Added CRUD error scenario integration tests covering invalid IDs, missing records, loan conflicts, and member delete guards.
+- Fixed report history runtime errors by changing report pagination parsing to avoid merging refined schemas.
+- Fixed member history query to use `members.created_at` instead of non-existent `joined_at`.
 
 ## What Exists
 - Express server skeleton under `backend/` with logging, security middleware, and error handling.

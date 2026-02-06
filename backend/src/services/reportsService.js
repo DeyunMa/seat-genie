@@ -121,7 +121,7 @@ const getMemberLoanHistory = ({
 }) => {
   const db = getDb();
   const member = db
-    .prepare("SELECT id, name, email, joined_at FROM members WHERE id = ?")
+    .prepare("SELECT id, name, email, created_at FROM members WHERE id = ?")
     .get(memberId);
   if (!member) {
     return { error: "member_not_found" };
