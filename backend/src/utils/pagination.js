@@ -35,4 +35,7 @@ module.exports = {
   parsePagination,
   parseReportLimit,
   parseReportPagination,
+  paginationSchema,
+  reportLimitSchema,
+  reportPaginationSchema,
 };

@@ -4,7 +4,7 @@
 Initial backend foundation created for the library management system.
 
 ## Latest Update (2026-02-06)
-- Added request body validation middleware with Zod for create/update endpoints (books, authors, members, loans), enforcing strict schemas and consistent `VALIDATION_ERROR` responses.
+- Added report query validation helpers for ISO datetime params (with empty-string handling) and unified report limit/offset validation by merging report schemas, keeping `VALIDATION_ERROR` responses consistent.
 
 ## What Exists
 - Express server skeleton under `backend/` with logging, security middleware, and error handling.
@@ -33,4 +33,4 @@ Initial backend foundation created for the library management system.
 - Migrations will be executed manually after automation completes.
 
 ## Next Recommended Step
-Add request validation for report query parameters (dates, limits) to align with standardized `VALIDATION_ERROR` details.
+Add query validation for list endpoints (books, authors, members, loans) so invalid sort/pagination parameters return standardized `VALIDATION_ERROR` responses without ad-hoc checks.

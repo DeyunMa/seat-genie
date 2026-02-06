@@ -2,6 +2,7 @@ const express = require("express");
 const { z } = require("zod");
 const reportsService = require("../services/reportsService");
 const {
+  dateTimeQuery,
   parseReportLimitQuery,
   parseReportPaginationQuery,
 } = require("../utils/queryValidation");
@@ -11,27 +12,27 @@ const { sendInvalidId, sendNotFound } = require("../utils/errors");
 const router = express.Router();
 
 const overdueQuerySchema = z.object({
-  asOf: z.string().datetime().optional(),
+  asOf: dateTimeQuery.optional(),
 });
 
 const activeMembersQuerySchema = z.object({
-  since: z.string().datetime().optional(),
+  since: dateTimeQuery.optional(),
   status: z.enum(["open", "returned"]).optional(),
 });
 
 const mostBorrowedBooksQuerySchema = z.object({
-  since: z.string().datetime().optional(),
+  since: dateTimeQuery.optional(),
   status: z.enum(["open", "returned"]).optional(),
 });
 
 const inventoryHealthQuerySchema = z.object({
-  asOf: z.string().datetime().optional(),
+  asOf: dateTimeQuery.optional(),
 });
 
 const loanHistoryQuerySchema = z
   .object({
-    since: z.string().datetime().optional(),
-    until: z.string().datetime().optional(),
+    since: dateTimeQuery.optional(),
+    until: dateTimeQuery.optional(),
     status: z.enum(["open", "returned"]).optional(),
   })
   .refine(

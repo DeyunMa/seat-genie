@@ -1,8 +1,18 @@
+const { z } = require("zod");
 const {
   parsePagination,
-  parseReportLimit,
-  parseReportPagination,
+  reportLimitSchema,
+  reportPaginationSchema,
 } = require("./pagination");
+
+const emptyToUndefined = (value) => {
+  if (value === "" || value === null || value === undefined) {
+    return undefined;
+  }
+  return value;
+};
+
+const dateTimeQuery = z.preprocess(emptyToUndefined, z.string().datetime());
 
 const parseWithSchema = (schema, query) => {
   if (!schema) {
@@ -18,19 +28,22 @@ const parseListQuery = (query, schema) => {
 };
 
 const parseReportLimitQuery = (query, schema) => {
-  const { limit } = parseReportLimit(query);
-  const parsed = parseWithSchema(schema, query);
-  return { limit, ...parsed };
+  const mergedSchema = schema
+    ? reportLimitSchema.merge(schema)
+    : reportLimitSchema;
+  return mergedSchema.parse(query);
 };
 
 const parseReportPaginationQuery = (query, schema) => {
-  const { limit, offset } = parseReportPagination(query);
-  const parsed = parseWithSchema(schema, query);
-  return { limit, offset, ...parsed };
+  const mergedSchema = schema
+    ? reportPaginationSchema.merge(schema)
+    : reportPaginationSchema;
+  return mergedSchema.parse(query);
 };
 
 module.exports = {
   parseListQuery,
   parseReportLimitQuery,
   parseReportPaginationQuery,
+  dateTimeQuery,
 };
