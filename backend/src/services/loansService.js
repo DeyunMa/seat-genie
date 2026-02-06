@@ -83,7 +83,7 @@ const createLoan = ({ bookId, memberId, dueAt }) => {
          VALUES (?, ?, ?)`
       )
       .run(bookId, memberId, dueAt);
-    db.prepare(`UPDATE books SET status = 'checked_out' WHERE id = ?`).run(
+    db.prepare(`UPDATE books SET status = 'borrowed' WHERE id = ?`).run(
       bookId
     );
     return { loanId: result.lastInsertRowid };

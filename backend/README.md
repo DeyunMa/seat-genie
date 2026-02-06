@@ -13,6 +13,7 @@ Express + SQLite backend for the library management system. All backend code liv
 ```bash
 cd backend
 npm install
+mkdir -p backend/data
 ```
 
 2. Create the database schema locally (manual step):
@@ -76,12 +77,15 @@ Notes:
 - `DELETE /api/books/:id`
 
 Query params for `GET /api/books`:
-- `status`: `available`, `checked_out`, `lost`
+- `status`: `available`, `borrowed`, `maintenance`, `checked_out`, `lost`
 - `authorId`: numeric
+- `author`: partial author match
 - `title`: partial title match
 - `isbn`: partial ISBN match
 - `publishedYear`: numeric
-- `sortBy`: `id`, `title`, `published_year`, `status`, `author_name`
+- `category`: exact match
+- `activeStatus`: `Y` or `N`
+- `sortBy`: `id`, `title`, `author`, `category`, `published_year`, `status`, `active_status`, `author_name`
 - `sortOrder`: `asc`, `desc`
 - `limit`, `offset` for pagination
 
@@ -91,9 +95,13 @@ Example body:
 {
   "title": "The Pragmatic Programmer",
   "isbn": "978-0201616224",
-  "authorId": 1,
+  "author": "Andy Hunt",
+  "publisher": "Addison-Wesley",
+  "category": "Software",
+  "location": "A区-01-03",
   "publishedYear": 1999,
-  "status": "available"
+  "status": "available",
+  "activeStatus": "Y"
 }
 ```
 
