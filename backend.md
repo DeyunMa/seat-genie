@@ -4,9 +4,9 @@
 Initial backend foundation created for the library management system.
 
 ## Latest Update (2026-02-06)
-- Added report query validation helpers for ISO datetime params (with empty-string handling) and unified report limit/offset validation by merging report schemas, keeping `VALIDATION_ERROR` responses consistent.
-- Added Zod-based validation for book list query params (authorId/publishedYear) and removed ad-hoc checks so invalid list queries consistently return `VALIDATION_ERROR`. Fixed book list pagination to use parsed `limit`/`offset`.
-- Merge note: `dev` is checked out in another worktree, so merge into `dev` could not be completed in this run; the `ai/list-query-validation` branch is preserved for manual merge.
+- Added shared list-query validation middleware so list endpoints parse and validate query params consistently with less route boilerplate.
+- Updated list routes (books/authors/members/loans) to use the new middleware.
+- Documented consistent list query examples in `backend/README.md`.
 
 ## What Exists
 - Express server skeleton under `backend/` with logging, security middleware, and error handling.
@@ -35,4 +35,4 @@ Initial backend foundation created for the library management system.
 - Migrations will be executed manually after automation completes.
 
 ## Next Recommended Step
-Add a shared query-validation middleware for list endpoints to centralize schema parsing and reduce route-level boilerplate; then document consistent query examples in `backend/README.md`.
+Add basic integration tests (Supertest) for list endpoints and validation errors to guard the shared list-query middleware behavior.

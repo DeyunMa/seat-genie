@@ -1,9 +1,8 @@
 const express = require("express");
 const { z } = require("zod");
 const booksService = require("../services/booksService");
-const { parseListQuery } = require("../utils/queryValidation");
 const { parseId } = require("../utils/params");
-const { validateBody } = require("../middleware/validate");
+const { validateBody, validateListQuery } = require("../middleware/validate");
 const { sendInvalidId, sendNotFound } = require("../utils/errors");
 
 const router = express.Router();
@@ -26,26 +25,23 @@ const toNumber = (value) => {
   return Number.isNaN(parsed) ? value : parsed;
 };
 
-router.get("/", (req, res, next) => {
-  try {
-    const querySchema = z.object({
-      status: z.enum(["available", "checked_out", "lost"]).optional(),
-      authorId: z.preprocess(
-        toNumber,
-        z.number().int().positive().optional()
-      ),
-      title: z.string().min(1).optional(),
-      isbn: z.string().min(1).optional(),
-      publishedYear: z.preprocess(
-        toNumber,
-        z.number().int().min(0).max(3000).optional()
-      ),
-      sortBy: z
-        .enum(["id", "title", "published_year", "status", "author_name"])
-        .optional(),
-      sortOrder: z.enum(["asc", "desc"]).optional(),
-    });
+const listQuerySchema = z.object({
+  status: z.enum(["available", "checked_out", "lost"]).optional(),
+  authorId: z.preprocess(toNumber, z.number().int().positive().optional()),
+  title: z.string().min(1).optional(),
+  isbn: z.string().min(1).optional(),
+  publishedYear: z.preprocess(
+    toNumber,
+    z.number().int().min(0).max(3000).optional()
+  ),
+  sortBy: z
+    .enum(["id", "title", "published_year", "status", "author_name"])
+    .optional(),
+  sortOrder: z.enum(["asc", "desc"]).optional(),
+});
 
+router.get("/", validateListQuery(listQuerySchema), (req, res, next) => {
+  try {
     const {
       limit,
       offset,
@@ -56,7 +52,7 @@ router.get("/", (req, res, next) => {
       publishedYear,
       sortBy,
       sortOrder,
-    } = parseListQuery(req.query, querySchema);
+    } = req.listQuery;
 
     const filters = {
       status,

@@ -1,9 +1,8 @@
 const express = require("express");
 const { z } = require("zod");
 const authorsService = require("../services/authorsService");
-const { parseListQuery } = require("../utils/queryValidation");
 const { parseId } = require("../utils/params");
-const { validateBody } = require("../middleware/validate");
+const { validateBody, validateListQuery } = require("../middleware/validate");
 const { sendInvalidId, sendNotFound } = require("../utils/errors");
 
 const router = express.Router();
@@ -29,12 +28,9 @@ const listQuerySchema = z.object({
   sortOrder: z.enum(["asc", "desc"]).optional(),
 });
 
-router.get("/", (req, res, next) => {
+router.get("/", validateListQuery(listQuerySchema), (req, res, next) => {
   try {
-    const { limit, offset, q, sortBy, sortOrder } = parseListQuery(
-      req.query,
-      listQuerySchema
-    );
+    const { limit, offset, q, sortBy, sortOrder } = req.listQuery;
     const authors = authorsService.listAuthors({
       limit,
       offset,
