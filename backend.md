@@ -4,10 +4,9 @@
 Initial backend foundation created for the library management system.
 
 ## Latest Update (2026-02-06)
-- Added shared list-query validation middleware so list endpoints parse and validate query params consistently with less route boilerplate.
-- Updated list routes (books/authors/members/loans) to use the new middleware.
-- Documented consistent list query examples in `backend/README.md`.
-- Merge note: changes are ready to merge from `ai/list-query-middleware` into `dev`.
+- Added integration tests (Jest + Supertest) to validate list-query middleware behavior, pagination metadata, and validation failures.
+- Introduced a `closeDb` helper for clean test teardown.
+- Merge note: changes are ready to merge from `ai/list-query-tests` into `dev`.
 
 ## What Exists
 - Express server skeleton under `backend/` with logging, security middleware, and error handling.
@@ -36,4 +35,4 @@ Initial backend foundation created for the library management system.
 - Migrations will be executed manually after automation completes.
 
 ## Next Recommended Step
-Add basic integration tests (Supertest) for list endpoints and validation errors to guard the shared list-query middleware behavior.
+Add integration tests for report endpoints and edge-case validation (date parsing, limit bounds) to expand automated coverage.

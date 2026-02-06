@@ -21,4 +21,11 @@ const getDb = () => {
   return db;
 };
 
-module.exports = { getDb };
+const closeDb = () => {
+  if (db) {
+    db.close();
+    db = undefined;
+  }
+};
+
+module.exports = { getDb, closeDb };
