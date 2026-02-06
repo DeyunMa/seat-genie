@@ -3,15 +3,18 @@ const { z } = require("zod");
 const membersService = require("../services/membersService");
 const { parseListQuery } = require("../utils/queryValidation");
 const { parseId } = require("../utils/params");
+const { validateBody } = require("../middleware/validate");
 const { sendConflict, sendInvalidId, sendNotFound } = require("../utils/errors");
 
 const router = express.Router();
 
-const memberSchema = z.object({
-  name: z.string().min(1),
-  email: z.string().email(),
-  phone: z.string().min(4).max(20).nullable().optional(),
-});
+const memberSchema = z
+  .object({
+    name: z.string().min(1),
+    email: z.string().email(),
+    phone: z.string().min(4).max(20).nullable().optional(),
+  })
+  .strict();
 
 const emptyToUndefined = (value) => {
   if (typeof value !== "string") {
@@ -72,24 +75,22 @@ router.get("/:id", (req, res, next) => {
   }
 });
 
-router.post("/", (req, res, next) => {
+router.post("/", validateBody(memberSchema), (req, res, next) => {
   try {
-    const payload = memberSchema.parse(req.body);
-    const member = membersService.createMember(payload);
+    const member = membersService.createMember(req.body);
     res.status(201).json({ data: member });
   } catch (error) {
     next(error);
   }
 });
 
-router.put("/:id", (req, res, next) => {
+router.put("/:id", validateBody(memberSchema), (req, res, next) => {
   try {
     const id = parseId(req.params.id);
     if (!id) {
       return sendInvalidId(res, "member");
     }
-    const payload = memberSchema.parse(req.body);
-    const member = membersService.updateMember(id, payload);
+    const member = membersService.updateMember(id, req.body);
     if (!member) {
       return sendNotFound(res, "Member");
     }

@@ -3,6 +3,7 @@ const { z } = require("zod");
 const loansService = require("../services/loansService");
 const { parseListQuery } = require("../utils/queryValidation");
 const { parseId } = require("../utils/params");
+const { validateBody } = require("../middleware/validate");
 const {
   sendConflict,
   sendInvalidId,
@@ -11,17 +12,20 @@ const {
 
 const router = express.Router();
 
-const loanCreateSchema = z.object({
-  bookId: z.number().int().positive(),
-  memberId: z.number().int().positive(),
-  dueAt: z.string().datetime(),
-});
+const loanCreateSchema = z
+  .object({
+    bookId: z.coerce.number().int().positive(),
+    memberId: z.coerce.number().int().positive(),
+    dueAt: z.string().datetime(),
+  })
+  .strict();
 
 const loanUpdateSchema = z
   .object({
     dueAt: z.string().datetime().optional(),
     returnedAt: z.string().datetime().optional(),
   })
+  .strict()
   .refine((data) => data.dueAt || data.returnedAt, {
     message: "Provide dueAt or returnedAt",
   });
@@ -63,10 +67,9 @@ router.get("/:id", (req, res, next) => {
   }
 });
 
-router.post("/", (req, res, next) => {
+router.post("/", validateBody(loanCreateSchema), (req, res, next) => {
   try {
-    const payload = loanCreateSchema.parse(req.body);
-    const outcome = loansService.createLoan(payload);
+    const outcome = loansService.createLoan(req.body);
     if (outcome.error === "book_not_found") {
       return sendNotFound(res, "Book");
     }
@@ -82,14 +85,13 @@ router.post("/", (req, res, next) => {
   }
 });
 
-router.put("/:id", (req, res, next) => {
+router.put("/:id", validateBody(loanUpdateSchema), (req, res, next) => {
   try {
     const id = parseId(req.params.id);
     if (!id) {
       return sendInvalidId(res, "loan");
     }
-    const payload = loanUpdateSchema.parse(req.body);
-    const outcome = loansService.updateLoan(id, payload);
+    const outcome = loansService.updateLoan(id, req.body);
     if (outcome.error === "loan_not_found") {
       return sendNotFound(res, "Loan");
     }

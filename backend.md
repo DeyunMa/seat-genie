@@ -3,8 +3,8 @@
 ## Current Stage
 Initial backend foundation created for the library management system.
 
-## Latest Update (2026-02-05)
-- Documented the standardized error response format in `backend/README.md`.
+## Latest Update (2026-02-06)
+- Added request body validation middleware with Zod for create/update endpoints (books, authors, members, loans), enforcing strict schemas and consistent `VALIDATION_ERROR` responses.
 
 ## What Exists
 - Express server skeleton under `backend/` with logging, security middleware, and error handling.
@@ -33,4 +33,4 @@ Initial backend foundation created for the library management system.
 - Migrations will be executed manually after automation completes.
 
 ## Next Recommended Step
-Add request validation with Zod or Joi for create/update endpoints (books, authors, members, loans) and return `VALIDATION_ERROR` details.
+Add request validation for report query parameters (dates, limits) to align with standardized `VALIDATION_ERROR` details.
