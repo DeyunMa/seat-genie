@@ -10,20 +10,30 @@ CREATE TABLE IF NOT EXISTS authors (
 
 CREATE INDEX IF NOT EXISTS idx_authors_name ON authors(name);
 
--- Books available in the library catalog.
+-- Books available in the library catalog. Includes UI-friendly metadata for the frontend.
 CREATE TABLE IF NOT EXISTS books (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   title TEXT NOT NULL,
   isbn TEXT NOT NULL UNIQUE,
+  author TEXT NOT NULL,
+  publisher TEXT,
+  category TEXT,
+  location TEXT,
   author_id INTEGER,
   published_year INTEGER,
   status TEXT NOT NULL DEFAULT 'available',
+  active_status TEXT NOT NULL DEFAULT 'Y',
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT,
   FOREIGN KEY (author_id) REFERENCES authors(id) ON DELETE SET NULL
 );
 
 CREATE INDEX IF NOT EXISTS idx_books_title ON books(title);
-CREATE INDEX IF NOT EXISTS idx_books_author ON books(author_id);
+CREATE INDEX IF NOT EXISTS idx_books_author ON books(author);
+CREATE INDEX IF NOT EXISTS idx_books_category ON books(category);
+CREATE INDEX IF NOT EXISTS idx_books_status ON books(status);
+CREATE INDEX IF NOT EXISTS idx_books_active_status ON books(active_status);
+CREATE INDEX IF NOT EXISTS idx_books_author_id ON books(author_id);
 
 -- Library members who can borrow books.
 CREATE TABLE IF NOT EXISTS members (

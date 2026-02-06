@@ -3,12 +3,24 @@ const { getDb } = require("../db");
 const SORT_COLUMNS = {
   id: "b.id",
   title: "b.title",
+  author: "b.author",
+  category: "b.category",
   published_year: "b.published_year",
   status: "b.status",
-  author_name: "a.name",
+  active_status: "b.active_status",
+  author_name: "b.author",
 };
 
-const buildFilters = ({ status, authorId, title, isbn, publishedYear }) => {
+const buildFilters = ({
+  status,
+  authorId,
+  author,
+  title,
+  isbn,
+  publishedYear,
+  category,
+  activeStatus,
+}) => {
   const clauses = [];
   const params = [];
 
@@ -20,6 +32,11 @@ const buildFilters = ({ status, authorId, title, isbn, publishedYear }) => {
   if (authorId) {
     clauses.push("b.author_id = ?");
     params.push(authorId);
+  }
+
+  if (author) {
+    clauses.push("b.author LIKE ?");
+    params.push(`%${author}%`);
   }
 
   if (title) {
@@ -37,6 +54,16 @@ const buildFilters = ({ status, authorId, title, isbn, publishedYear }) => {
     params.push(publishedYear);
   }
 
+  if (category) {
+    clauses.push("b.category = ?");
+    params.push(category);
+  }
+
+  if (activeStatus) {
+    clauses.push("b.active_status = ?");
+    params.push(activeStatus);
+  }
+
   const where = clauses.length > 0 ? `WHERE ${clauses.join(" AND ")}` : "";
   return { where, params };
 };
@@ -49,10 +76,11 @@ const listBooks = ({ limit, offset, filters, sort }) => {
 
   const rows = db
     .prepare(
-      `SELECT b.id, b.title, b.isbn, b.published_year, b.status,
-              a.id AS author_id, a.name AS author_name
+      `SELECT b.id, b.title, b.isbn, b.author, b.publisher, b.category,
+              b.location, b.published_year, b.status,
+              b.active_status AS activeStatus,
+              b.author_id AS authorId
        FROM books b
-       LEFT JOIN authors a ON a.id = b.author_id
        ${where}
        ORDER BY ${sortColumn} ${sortOrder}
        LIMIT ? OFFSET ?`
@@ -74,36 +102,100 @@ const getBook = (id) => {
   const db = getDb();
   const row = db
     .prepare(
-      `SELECT b.id, b.title, b.isbn, b.published_year, b.status,
-              a.id AS author_id, a.name AS author_name
+      `SELECT b.id, b.title, b.isbn, b.author, b.publisher, b.category,
+              b.location, b.published_year, b.status,
+              b.active_status AS activeStatus,
+              b.author_id AS authorId
        FROM books b
-       LEFT JOIN authors a ON a.id = b.author_id
        WHERE b.id = ?`
     )
     .get(id);
   return row || null;
 };
 
-const createBook = ({ title, isbn, authorId, publishedYear, status }) => {
+const createBook = ({
+  title,
+  isbn,
+  author,
+  publisher,
+  category,
+  location,
+  authorId,
+  publishedYear,
+  status,
+  activeStatus,
+}) => {
   const db = getDb();
   const result = db
     .prepare(
-      `INSERT INTO books (title, isbn, author_id, published_year, status)
-       VALUES (?, ?, ?, ?, ?)`
+      `INSERT INTO books (
+          title, isbn, author, publisher, category, location,
+          author_id, published_year, status, active_status, updated_at
+        )
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     )
-    .run(title, isbn, authorId, publishedYear, status);
+    .run(
+      title,
+      isbn,
+      author,
+      publisher,
+      category,
+      location,
+      authorId ?? null,
+      publishedYear ?? null,
+      status,
+      activeStatus,
+      new Date().toISOString()
+    );
   return getBook(result.lastInsertRowid);
 };
 
-const updateBook = (id, { title, isbn, authorId, publishedYear, status }) => {
+const updateBook = (
+  id,
+  {
+    title,
+    isbn,
+    author,
+    publisher,
+    category,
+    location,
+    authorId,
+    publishedYear,
+    status,
+    activeStatus,
+  }
+) => {
   const db = getDb();
   const result = db
     .prepare(
       `UPDATE books
-       SET title = ?, isbn = ?, author_id = ?, published_year = ?, status = ?
+       SET title = ?,
+           isbn = ?,
+           author = ?,
+           publisher = ?,
+           category = ?,
+           location = ?,
+           author_id = ?,
+           published_year = ?,
+           status = ?,
+           active_status = ?,
+           updated_at = ?
        WHERE id = ?`
     )
-    .run(title, isbn, authorId, publishedYear, status, id);
+    .run(
+      title,
+      isbn,
+      author,
+      publisher,
+      category,
+      location,
+      authorId ?? null,
+      publishedYear ?? null,
+      status,
+      activeStatus,
+      new Date().toISOString(),
+      id
+    );
   if (result.changes === 0) {
     return null;
   }

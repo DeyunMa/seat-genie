@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react'
-import { useDataStore } from '../../stores/dataStore'
 import { useToast } from '../../components/common/Toast'
 import Modal, { ConfirmModal } from '../../components/common/Modal'
+import { listBooks, createBook, updateBook, deleteBook } from '../../services/booksApi'
 import '../UserManagement/UserManagement.css'
 
 function BookList() {
-    const { books, loadAllData, addBook, updateBook, deleteBook } = useDataStore()
     const { addToast } = useToast()
+    const [books, setBooks] = useState([])
+    const [loading, setLoading] = useState(false)
     const [search, setSearch] = useState('')
     const [categoryFilter, setCategoryFilter] = useState('all')
     const [statusFilter, setStatusFilter] = useState('all')
@@ -15,8 +16,20 @@ function BookList() {
     const [editingBook, setEditingBook] = useState(null)
     const [selectedBookId, setSelectedBookId] = useState(null)
 
+    const loadBooks = async () => {
+        setLoading(true)
+        try {
+            const data = await listBooks()
+            setBooks(data)
+        } catch (error) {
+            addToast(error.message || '获取图书失败', 'error')
+        } finally {
+            setLoading(false)
+        }
+    }
+
     useEffect(() => {
-        loadAllData()
+        loadBooks()
     }, [])
 
     const activeBooks = books.filter(b => b.activeStatus === 'Y')
@@ -24,10 +37,11 @@ function BookList() {
     const categories = [...new Set(activeBooks.map(b => b.category))]
 
     const filteredBooks = activeBooks.filter(book => {
+        const authorName = book.author || ''
         const matchesSearch =
             book.title.toLowerCase().includes(search.toLowerCase()) ||
             book.isbn.includes(search) ||
-            book.author.toLowerCase().includes(search.toLowerCase())
+            authorName.toLowerCase().includes(search.toLowerCase())
         const matchesCategory = categoryFilter === 'all' || book.category === categoryFilter
         const matchesStatus = statusFilter === 'all' || book.status === statusFilter
         return matchesSearch && matchesCategory && matchesStatus
@@ -55,7 +69,7 @@ function BookList() {
         setEditingBook(null)
     }
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault()
         const formData = new FormData(e.target)
         const bookData = {
@@ -65,28 +79,38 @@ function BookList() {
             publisher: formData.get('publisher'),
             category: formData.get('category'),
             location: formData.get('location'),
-            status: formData.get('status')
+            status: formData.get('status'),
+            activeStatus: 'Y'
         }
 
-        if (editingBook) {
-            updateBook(editingBook.id, bookData)
-            addToast('图书信息已更新', 'success')
-        } else {
-            addBook(bookData)
-            addToast('图书添加成功', 'success')
+        try {
+            if (editingBook) {
+                await updateBook(editingBook.id, bookData)
+                addToast('图书信息已更新', 'success')
+            } else {
+                await createBook(bookData)
+                addToast('图书添加成功', 'success')
+            }
+            await loadBooks()
+            handleCloseModal()
+        } catch (error) {
+            addToast(error.message || '保存图书失败', 'error')
         }
 
-        loadAllData()
-        handleCloseModal()
     }
 
-    const handleDelete = () => {
+    const handleDelete = async () => {
         if (selectedBookId) {
-            deleteBook(selectedBookId)
-            loadAllData()
-            addToast('图书已删除', 'success')
-            setIsDeleteModalOpen(false)
-            setSelectedBookId(null)
+            try {
+                await deleteBook(selectedBookId)
+                await loadBooks()
+                addToast('图书已删除', 'success')
+            } catch (error) {
+                addToast(error.message || '删除图书失败', 'error')
+            } finally {
+                setIsDeleteModalOpen(false)
+                setSelectedBookId(null)
+            }
         }
     }
 
@@ -179,7 +203,13 @@ function BookList() {
                         ))}
                     </tbody>
                 </table>
-                {filteredBooks.length === 0 && (
+                {loading && (
+                    <div className="empty-state">
+                        <div className="empty-state-icon">⏳</div>
+                        <p>正在加载图书...</p>
+                    </div>
+                )}
+                {!loading && filteredBooks.length === 0 && (
                     <div className="empty-state">
                         <div className="empty-state-icon">📚</div>
                         <p>没有找到图书</p>

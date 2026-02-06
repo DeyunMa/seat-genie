@@ -11,9 +11,16 @@ const bookSchema = z
   .object({
     title: z.string().min(1),
     isbn: z.string().min(10).max(17),
+    author: z.string().min(1),
+    publisher: z.string().min(1).optional().nullable(),
+    category: z.string().min(1).optional().nullable(),
+    location: z.string().min(1).optional().nullable(),
     authorId: z.coerce.number().int().positive().nullable().optional(),
     publishedYear: z.coerce.number().int().min(0).max(3000).nullable().optional(),
-    status: z.enum(["available", "checked_out", "lost"]).default("available"),
+    status: z
+      .enum(["available", "borrowed", "maintenance", "checked_out", "lost"])
+      .default("available"),
+    activeStatus: z.enum(["Y", "N"]).default("Y"),
   })
   .strict();
 
@@ -26,8 +33,11 @@ const toNumber = (value) => {
 };
 
 const listQuerySchema = z.object({
-  status: z.enum(["available", "checked_out", "lost"]).optional(),
+  status: z
+    .enum(["available", "borrowed", "maintenance", "checked_out", "lost"])
+    .optional(),
   authorId: z.preprocess(toNumber, z.number().int().positive().optional()),
+  author: z.string().min(1).optional(),
   title: z.string().min(1).optional(),
   isbn: z.string().min(1).optional(),
   publishedYear: z.preprocess(
@@ -35,9 +45,20 @@ const listQuerySchema = z.object({
     z.number().int().min(0).max(3000).optional()
   ),
   sortBy: z
-    .enum(["id", "title", "published_year", "status", "author_name"])
+    .enum([
+      "id",
+      "title",
+      "author",
+      "category",
+      "published_year",
+      "status",
+      "active_status",
+      "author_name",
+    ])
     .optional(),
   sortOrder: z.enum(["asc", "desc"]).optional(),
+  category: z.string().min(1).optional(),
+  activeStatus: z.enum(["Y", "N"]).optional(),
 });
 
 router.get("/", validateListQuery(listQuerySchema), (req, res, next) => {
@@ -47,19 +68,25 @@ router.get("/", validateListQuery(listQuerySchema), (req, res, next) => {
       offset,
       status,
       authorId,
+      author,
       title,
       isbn,
       publishedYear,
       sortBy,
       sortOrder,
+      category,
+      activeStatus,
     } = req.listQuery;
 
     const filters = {
       status,
       authorId,
+      author,
       title,
       isbn,
       publishedYear,
+      category,
+      activeStatus,
     };
 
     const sort = {
