@@ -7,7 +7,7 @@ Initial backend foundation created for the library management system.
 
 - Added integration tests (Jest + Supertest) for report endpoints, covering overdue loans, activity rankings, inventory health, and loan history responses.
 - Added validation tests for report query parameters (invalid dates, limits, status filters, and since/until ordering).
-- Merge note: unable to merge `ai/report-tests` into `dev` because `dev` is checked out in another worktree.
+- Merge note: `ai/report-tests` is ready to merge into `dev` now that `dev` is available.
 
 ## What Exists
 - Express server skeleton under `backend/` with logging, security middleware, and error handling.
