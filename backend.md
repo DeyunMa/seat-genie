@@ -5,9 +5,7 @@ Initial backend foundation created for the library management system.
 
 ## Latest Update (2026-02-06)
 
-- Added integration tests (Jest + Supertest) for report endpoints, covering overdue loans, activity rankings, inventory health, and loan history responses.
-- Added validation tests for report query parameters (invalid dates, limits, status filters, and since/until ordering).
-- Merge note: `ai/report-tests` is ready to merge into `dev` now that `dev` is available.
+- Added CRUD error scenario integration tests covering invalid IDs, missing records, loan conflicts, and member delete guards.
 
 ## What Exists
 - Express server skeleton under `backend/` with logging, security middleware, and error handling.
@@ -25,7 +23,7 @@ Initial backend foundation created for the library management system.
 - SQLite access layer using `better-sqlite3` (expects a local DB file).
 - Initial database schema defined in `backend/sql/schema.sql`.
 - Backend API usage documented in `backend/README.md`.
-- Integration tests for list-query middleware and report endpoints under `backend/tests/`.
+- Integration tests for list-query middleware, report endpoints, and CRUD error scenarios under `backend/tests/`.
 
 ## Schema Decisions
 - Core tables: `authors`, `books`, `members`, `loans`.
@@ -37,4 +35,4 @@ Initial backend foundation created for the library management system.
 - Migrations will be executed manually after automation completes.
 
 ## Next Recommended Step
-Add integration tests for core CRUD error scenarios (not found, conflict states, and delete guards) to broaden coverage.
+Add integration tests for successful CRUD flows (create/update/delete) across core resources to complement the error coverage.
