@@ -3,8 +3,6 @@ import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App'
 import './index.css'
-import { initDatabase } from './services/sqliteService'
-import { initializeData } from './services/initData'
 
 // Loading screen component
 function LoadingScreen() {
@@ -18,7 +16,7 @@ function LoadingScreen() {
         <div className="loading-spinner">
           <div className="spinner-ring"></div>
         </div>
-        <p className="loading-message">正在初始化...</p>
+        <p className="loading-message">正在加载...</p>
       </div>
     </div>
   )
@@ -32,10 +30,6 @@ function Root() {
   useEffect(() => {
     const init = async () => {
       try {
-        // Initialize database
-        await initDatabase()
-        // Initialize demo data if not exists
-        initializeData()
         // Small delay for smooth transition
         setTimeout(() => setIsReady(true), 300)
       } catch (err) {

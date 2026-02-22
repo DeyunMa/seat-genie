@@ -46,7 +46,7 @@ function UserList() {
         setEditingUser(null)
     }
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault()
         const formData = new FormData(e.target)
         const userData = {
@@ -58,33 +58,44 @@ function UserList() {
             studentId: formData.get('studentId') || null
         }
 
-        if (editingUser) {
-            updateUser(editingUser.id, userData)
-            addToast('用户信息已更新', 'success')
-        } else {
-            userData.password = '123456' // Default password
-            addUser(userData)
-            addToast('用户创建成功，默认密码为 123456', 'success')
+        try {
+            if (editingUser) {
+                await updateUser(editingUser.id, userData)
+                addToast('用户信息已更新', 'success')
+            } else {
+                userData.password = '123456' // Default password
+                await addUser(userData)
+                addToast('用户创建成功，默认密码为 123456', 'success')
+            }
+            await loadAllData()
+            handleCloseModal()
+        } catch (error) {
+            addToast(error.message || '操作失败', 'error')
         }
-
-        loadAllData()
-        handleCloseModal()
     }
 
-    const handleDelete = () => {
+    const handleDelete = async () => {
         if (selectedUserId) {
-            deleteUser(selectedUserId)
-            loadAllData()
-            addToast('用户已删除', 'success')
+            try {
+                await deleteUser(selectedUserId)
+                await loadAllData()
+                addToast('用户已删除', 'success')
+            } catch (error) {
+                addToast(error.message || '删除失败', 'error')
+            }
             setIsDeleteModalOpen(false)
             setSelectedUserId(null)
         }
     }
 
-    const handleResetPassword = () => {
+    const handleResetPassword = async () => {
         if (selectedUserId) {
-            resetUserPassword(selectedUserId)
-            addToast('密码已重置为 123456', 'success')
+            try {
+                await resetUserPassword(selectedUserId)
+                addToast('密码已重置为 123456', 'success')
+            } catch (error) {
+                addToast(error.message || '重置失败', 'error')
+            }
             setIsResetModalOpen(false)
             setSelectedUserId(null)
         }

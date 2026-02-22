@@ -55,41 +55,52 @@ function SeatList() {
         setEditingSeat(null)
     }
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault()
         const formData = new FormData(e.target)
         const seatData = {
-            roomId: formData.get('roomId'),
+            roomId: parseInt(formData.get('roomId')),
             seatNumber: formData.get('seatNumber'),
             status: formData.get('status')
         }
 
-        if (editingSeat) {
-            updateSeat(editingSeat.id, seatData)
-            addToast('座位信息已更新', 'success')
-        } else {
-            addSeat(seatData)
-            addToast('座位创建成功', 'success')
+        try {
+            if (editingSeat) {
+                await updateSeat(editingSeat.id, seatData)
+                addToast('座位信息已更新', 'success')
+            } else {
+                await addSeat(seatData)
+                addToast('座位创建成功', 'success')
+            }
+            await loadAllData()
+            handleCloseModal()
+        } catch (error) {
+            addToast(error.message || '操作失败', 'error')
         }
-
-        loadAllData()
-        handleCloseModal()
     }
 
-    const handleDelete = () => {
+    const handleDelete = async () => {
         if (selectedSeatId) {
-            deleteSeat(selectedSeatId)
-            loadAllData()
-            addToast('座位已删除', 'success')
+            try {
+                await deleteSeat(selectedSeatId)
+                await loadAllData()
+                addToast('座位已删除', 'success')
+            } catch (error) {
+                addToast(error.message || '删除失败', 'error')
+            }
             setIsDeleteModalOpen(false)
             setSelectedSeatId(null)
         }
     }
 
-    const handleStatusChange = (seatId, newStatus) => {
-        updateSeat(seatId, { status: newStatus })
-        loadAllData()
-        addToast(`座位状态已更新为${statusLabels[newStatus]}`, 'success')
+    const handleStatusChange = async (seatId, newStatus) => {
+        try {
+            await updateSeat(seatId, { status: newStatus })
+            await loadAllData()
+            addToast(`座位状态已更新为${statusLabels[newStatus]}`, 'success')
+        } catch (error) {
+            addToast(error.message || '状态更新失败', 'error')
+        }
     }
 
     return (

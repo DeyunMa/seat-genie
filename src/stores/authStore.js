@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { selectQuery, updateRow } from '../services/sqliteService'
+import { loginUser, updateUser } from '../services/usersApi'
 
 export const useAuthStore = create(
     persist(
@@ -8,59 +8,48 @@ export const useAuthStore = create(
             user: null,
             isAuthenticated: false,
 
-            login: (username, password) => {
-                const users = selectQuery(
-                    "SELECT * FROM users WHERE username = ? AND password = ? AND activeStatus = 'Y'",
-                    [username, password]
-                )
-                const user = users[0]
-
-                if (user) {
+            login: async (username, password) => {
+                try {
+                    const user = await loginUser(username, password)
                     const { password: _, ...userWithoutPassword } = user
                     set({ user: userWithoutPassword, isAuthenticated: true })
                     return { success: true, user: userWithoutPassword }
+                } catch (error) {
+                    return { success: false, error: error.message || '用户名或密码错误' }
                 }
-
-                return { success: false, error: '用户名或密码错误' }
             },
 
             logout: () => {
                 set({ user: null, isAuthenticated: false })
             },
 
-            updateUser: (updates) => {
+            updateUserInfo: (updates) => {
                 const currentUser = get().user
                 if (currentUser) {
                     set({ user: { ...currentUser, ...updates } })
                 }
             },
 
-            changePassword: (oldPassword, newPassword) => {
+            changePassword: async (oldPassword, newPassword) => {
                 const currentUser = get().user
                 if (!currentUser) {
                     return { success: false, error: '用户未登录' }
                 }
 
-                const users = selectQuery(
-                    'SELECT * FROM users WHERE id = ?',
-                    [currentUser.id]
-                )
-                const user = users[0]
-
-                if (!user) {
-                    return { success: false, error: '用户不存在' }
-                }
-
-                if (user.password !== oldPassword) {
+                // Verify old password by attempting login
+                try {
+                    await loginUser(currentUser.username, oldPassword)
+                } catch (error) {
                     return { success: false, error: '原密码错误' }
                 }
 
-                updateRow('users', currentUser.id, {
-                    password: newPassword,
-                    updatedAt: new Date().toISOString()
-                })
-
-                return { success: true }
+                // Update password
+                try {
+                    await updateUser(currentUser.id, { password: newPassword })
+                    return { success: true }
+                } catch (error) {
+                    return { success: false, error: '密码修改失败' }
+                }
             },
 
             hasPermission: (requiredRoles) => {

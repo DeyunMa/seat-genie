@@ -37,11 +37,15 @@ function MyReservations() {
     const getSeatInfo = (seatId) => seats.find(s => s.id === seatId) || {}
     const getRoomInfo = (roomId) => rooms.find(r => r.id === roomId) || {}
 
-    const handleCancel = () => {
+    const handleCancel = async () => {
         if (selectedReservationId) {
-            cancelReservation(selectedReservationId)
-            loadAllData()
-            addToast('预约已取消', 'success')
+            try {
+                await cancelReservation(selectedReservationId)
+                await loadAllData()
+                addToast('预约已取消', 'success')
+            } catch (error) {
+                addToast(error.message || '取消失败', 'error')
+            }
             setIsCancelModalOpen(false)
             setSelectedReservationId(null)
         }

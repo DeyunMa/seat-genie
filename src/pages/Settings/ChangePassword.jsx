@@ -34,7 +34,7 @@ function ChangePassword() {
         // Simulate network delay
         await new Promise(resolve => setTimeout(resolve, 500))
 
-        const result = changePassword(oldPassword, newPassword)
+        const result = await changePassword(oldPassword, newPassword)
 
         if (result.success) {
             addToast('密码修改成功', 'success')

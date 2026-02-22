@@ -6,7 +6,7 @@ import './Reservation.css'
 
 function SeatReservation() {
     const { user } = useAuthStore()
-    const { rooms, seats, seatReservations, loadAllData, createReservation, getReservationsBySeat } = useDataStore()
+    const { rooms, seats, seatReservations, loadAllData, createReservation } = useDataStore()
     const { addToast } = useToast()
 
     const [selectedRoom, setSelectedRoom] = useState('')
@@ -49,7 +49,7 @@ function SeatReservation() {
         '18:00', '19:00', '20:00', '21:00'
     ]
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         if (!selectedSeat) {
             addToast('请选择座位', 'warning')
             return
@@ -60,20 +60,24 @@ function SeatReservation() {
             return
         }
 
-        const result = createReservation({
-            userId: user.id,
-            seatId: selectedSeat.id,
-            date: selectedDate,
-            startTime,
-            endTime
-        })
+        try {
+            const result = await createReservation({
+                userId: user.id,
+                seatId: selectedSeat.id,
+                date: selectedDate,
+                startTime,
+                endTime
+            })
 
-        if (result.success) {
-            addToast('预约成功！', 'success')
-            setSelectedSeat(null)
-            loadAllData()
-        } else {
-            addToast(result.error, 'error')
+            if (result.success) {
+                addToast('预约成功！', 'success')
+                setSelectedSeat(null)
+                await loadAllData()
+            } else {
+                addToast(result.error, 'error')
+            }
+        } catch (error) {
+            addToast(error.message || '预约失败', 'error')
         }
     }
 

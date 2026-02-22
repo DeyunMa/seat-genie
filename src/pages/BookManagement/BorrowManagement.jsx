@@ -6,7 +6,7 @@ import '../UserManagement/UserManagement.css'
 import './BookManagement.css'
 
 function BorrowManagement() {
-    const { books, users, bookBorrowings, loadAllData, borrowBook, returnBook } = useDataStore()
+    const { books, users, bookBorrowings, loadAllData, createBorrowing, returnBook } = useDataStore()
     const { addToast } = useToast()
     const [activeTab, setActiveTab] = useState('borrow')
     const [isBorrowModalOpen, setIsBorrowModalOpen] = useState(false)
@@ -42,7 +42,7 @@ function BorrowManagement() {
         }
 
         const staffUser = users.find(u => u.role === 'staff' || u.role === 'admin')
-        const result = await borrowBook({
+        const result = await createBorrowing({
             userId: selectedUserId,
             bookId: selectedBookId,
             handledBy: staffUser?.id
@@ -61,7 +61,7 @@ function BorrowManagement() {
 
     const handleReturn = async (borrowingId) => {
         const staffUser = users.find(u => u.role === 'staff' || u.role === 'admin')
-        const result = await returnBook(borrowingId, staffUser?.id)
+        const result = await returnBook(borrowingId)
 
         if (result.success) {
             addToast('归还登记成功', 'success')

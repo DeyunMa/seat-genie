@@ -1,17 +1,12 @@
 import { create } from 'zustand'
-import { v4 as uuidv4 } from 'uuid'
-import {
-    getAll,
-    getActive,
-    insertRow,
-    updateRow,
-    selectQuery,
-    runQuery
-} from '../services/sqliteService'
-import { STORAGE_KEYS } from '../services/initData'
 import { listBooks } from '../services/booksApi'
 import { listLoans, createLoan, updateLoan } from '../services/loansApi'
 import { listMembers, createMember } from '../services/membersApi'
+import { listUsers, createUser, updateUser, deleteUser as deleteUserApi } from '../services/usersApi'
+import { listRooms, createRoom, updateRoom, deleteRoom as deleteRoomApi } from '../services/roomsApi'
+import { listSeats, createSeat, updateSeat, deleteSeat as deleteSeatApi, getSeatsByRoom as getSeatsByRoomApi } from '../services/seatsApi'
+import { listReservations, createReservation, updateReservation, cancelReservation as cancelReservationApi } from '../services/reservationsApi'
+import { listNotifications, createNotification, updateNotification, deleteNotification as deleteNotificationApi, markAsRead, getUnreadCount } from '../services/notificationsApi'
 
 const toDateOnly = (value) => {
     if (!value) return null
@@ -50,623 +45,384 @@ export const useDataStore = create((set, get) => ({
     bookBorrowings: [],
     members: [],
     notifications: [],
-    notificationReads: [],
+    notificationReads: {},
+    unreadCount: 0,
 
     // Loading states
     loading: false,
+    error: null,
 
-    // Load all data from SQLite
+    // Load all data from backend
     loadAllData: async () => {
-        const users = getAll('users') || []
-        const rooms = getAll('rooms') || []
-        const seats = getAll('seats') || []
-        const seatReservations = getAll('seat_reservations') || []
-        const notifications = getAll('notifications') || []
-        const notificationReads = getAll('notification_reads') || []
-
-        set({
-            users,
-            rooms,
-            seats,
-            seatReservations,
-            notifications,
-            notificationReads
-        })
-
+        set({ loading: true, error: null })
         try {
-            const [remoteBooks, remoteMembers, remoteLoans] = await Promise.all([
-                listBooks(),
-                listMembers(),
-                listLoans({ limit: 200 })
+            const currentUser = get().getCurrentUser?.() || { id: 1, email: '' }
+            
+            const [
+                users,
+                rooms,
+                seats,
+                reservations,
+                notifications,
+                remoteBooks,
+                remoteMembers,
+                remoteLoans,
+                unread
+            ] = await Promise.all([
+                listUsers(),
+                listRooms(),
+                listSeats(),
+                listReservations(),
+                listNotifications(),
+                listBooks().catch(() => []),
+                listMembers().catch(() => []),
+                listLoans({ limit: 200 }).catch(() => []),
+                getUnreadCount(currentUser.id).catch(() => 0)
             ])
+
             const usersByEmail = users.reduce((acc, user) => {
                 if (user.email) acc[user.email] = user.id
                 return acc
             }, {})
             const borrowings = mapLoansToBorrowings(remoteLoans, usersByEmail)
+
+            // Load notification read status
+            const notificationIds = notifications.map(n => n.id)
+            let readStatus = {}
+            if (notificationIds.length > 0) {
+                try {
+                    readStatus = await getReadStatus(notificationIds, currentUser.id)
+                } catch (e) {
+                    // ignore
+                }
+            }
+
             set({
+                users,
+                rooms,
+                seats,
+                seatReservations: reservations,
+                notifications,
+                notificationReads: readStatus,
+                unreadCount: unread,
                 books: remoteBooks,
                 members: remoteMembers,
-                bookBorrowings: borrowings
+                bookBorrowings: borrowings,
+                loading: false
             })
         } catch (error) {
-            set({
-                books: getAll('books') || [],
-                bookBorrowings: getAll('book_borrowings') || []
-            })
+            set({ error: error.message, loading: false })
+            console.error('Failed to load data:', error)
         }
     },
 
     // USER OPERATIONS
-    getActiveUsers: () => getActive('users'),
+    getActiveUsers: () => get().users.filter(u => u.activeStatus === 'Y'),
 
-    addUser: (userData) => {
-        const now = new Date().toISOString()
-        const newUser = {
-            id: uuidv4(),
+    addUser: async (userData) => {
+        const newUser = await createUser({
             ...userData,
-            studentId: userData.studentId || null,
-            activeStatus: 'Y',
-            createdAt: now,
-            updatedAt: now
-        }
-        insertRow('users', newUser)
-        const users = getAll('users')
-        set({ users })
+            activeStatus: 'Y'
+        })
+        set(state => ({ users: [...state.users, newUser] }))
         return newUser
     },
 
-    updateUser: (id, updates) => {
-        const updatedData = { ...updates, updatedAt: new Date().toISOString() }
-        updateRow('users', id, updatedData)
-        const users = getAll('users')
-        set({ users })
-        return users.find(u => u.id === id)
+    updateUser: async (id, updates) => {
+        const updatedUser = await updateUser(id, updates)
+        set(state => ({
+            users: state.users.map(u => u.id === id ? updatedUser : u)
+        }))
+        return updatedUser
     },
 
-    deleteUser: (id) => {
-        updateRow('users', id, {
-            activeStatus: 'N',
-            updatedAt: new Date().toISOString()
-        })
-        const users = getAll('users')
-        set({ users })
+    deleteUser: async (id) => {
+        await deleteUserApi(id)
+        set(state => ({
+            users: state.users.filter(u => u.id !== id)
+        }))
         return true
     },
 
-    resetUserPassword: (id, newPassword = '123456') => {
+    resetUserPassword: async (id, newPassword = '123456') => {
         return get().updateUser(id, { password: newPassword })
     },
 
     // ROOM OPERATIONS
-    getActiveRooms: () => getActive('rooms'),
+    getActiveRooms: () => get().rooms.filter(r => r.activeStatus === 'Y'),
 
-    addRoom: (roomData) => {
-        const now = new Date().toISOString()
-        const newRoom = {
-            id: `room-${uuidv4().slice(0, 8)}`,
+    addRoom: async (roomData) => {
+        const newRoom = await createRoom({
             ...roomData,
-            activeStatus: 'Y',
-            createdAt: now,
-            updatedAt: now
-        }
-        insertRow('rooms', newRoom)
-        const rooms = getAll('rooms')
-        set({ rooms })
+            activeStatus: 'Y'
+        })
+        set(state => ({ rooms: [...state.rooms, newRoom] }))
         return newRoom
     },
 
-    updateRoom: (id, updates) => {
-        const updatedData = { ...updates, updatedAt: new Date().toISOString() }
-        updateRow('rooms', id, updatedData)
-        const rooms = getAll('rooms')
-        set({ rooms })
-        return rooms.find(r => r.id === id)
+    updateRoom: async (id, updates) => {
+        const updatedRoom = await updateRoom(id, updates)
+        set(state => ({
+            rooms: state.rooms.map(r => r.id === id ? updatedRoom : r)
+        }))
+        return updatedRoom
     },
 
-    deleteRoom: (id) => {
-        updateRow('rooms', id, {
-            activeStatus: 'N',
-            updatedAt: new Date().toISOString()
-        })
-        const rooms = getAll('rooms')
-        set({ rooms })
+    deleteRoom: async (id) => {
+        await deleteRoomApi(id)
+        set(state => ({
+            rooms: state.rooms.filter(r => r.id !== id),
+            seats: state.seats.filter(s => s.roomId !== id)
+        }))
         return true
     },
 
     // SEAT OPERATIONS
-    getActiveSeats: () => getActive('seats'),
+    getActiveSeats: () => get().seats.filter(s => s.activeStatus === 'Y'),
 
     getSeatsByRoom: (roomId) => {
-        return selectQuery(
-            "SELECT * FROM seats WHERE roomId = ? AND activeStatus = 'Y'",
-            [roomId]
-        )
+        return get().seats.filter(s => s.roomId === roomId && s.activeStatus === 'Y')
     },
 
-    addSeat: (seatData) => {
-        const now = new Date().toISOString()
-        const newSeat = {
-            id: `${seatData.roomId}-seat-${uuidv4().slice(0, 8)}`,
+    addSeat: async (seatData) => {
+        const newSeat = await createSeat({
             ...seatData,
             status: 'available',
-            activeStatus: 'Y',
-            createdAt: now,
-            updatedAt: now
-        }
-        insertRow('seats', newSeat)
-        const seats = getAll('seats')
-        set({ seats })
+            activeStatus: 'Y'
+        })
+        set(state => ({ seats: [...state.seats, newSeat] }))
         return newSeat
     },
 
-    updateSeat: (id, updates) => {
-        const updatedData = { ...updates, updatedAt: new Date().toISOString() }
-        updateRow('seats', id, updatedData)
-        const seats = getAll('seats')
-        set({ seats })
-        return seats.find(s => s.id === id)
+    updateSeat: async (id, updates) => {
+        const updatedSeat = await updateSeat(id, updates)
+        set(state => ({
+            seats: state.seats.map(s => s.id === id ? updatedSeat : s)
+        }))
+        return updatedSeat
     },
 
-    deleteSeat: (id) => {
-        updateRow('seats', id, {
-            activeStatus: 'N',
-            updatedAt: new Date().toISOString()
-        })
-        const seats = getAll('seats')
-        set({ seats })
+    deleteSeat: async (id) => {
+        await deleteSeatApi(id)
+        set(state => ({
+            seats: state.seats.filter(s => s.id !== id)
+        }))
         return true
     },
 
-    // BOOK OPERATIONS
-    getActiveBooks: () => getActive('books'),
+    // BOOK OPERATIONS (from API)
+    getActiveBooks: () => get().books.filter(b => b.activeStatus === 'Y'),
 
-    addBook: (bookData) => {
-        const now = new Date().toISOString()
-        const newBook = {
-            id: uuidv4(),
-            ...bookData,
-            status: 'available',
-            activeStatus: 'Y',
-            createdAt: now,
-            updatedAt: now
-        }
-        insertRow('books', newBook)
-        const books = getAll('books')
-        set({ books })
-        return newBook
+    addBook: async (bookData) => {
+        // Books are managed through booksApi directly in components
+        console.log('Use booksApi.createBook directly')
     },
 
-    updateBook: (id, updates) => {
-        const updatedData = { ...updates, updatedAt: new Date().toISOString() }
-        updateRow('books', id, updatedData)
-        const books = getAll('books')
-        set({ books })
-        return books.find(b => b.id === id)
+    updateBook: async (id, updates) => {
+        // Books are managed through booksApi directly in components
+        console.log('Use booksApi.updateBook directly')
     },
 
-    deleteBook: (id) => {
-        updateRow('books', id, {
-            activeStatus: 'N',
-            updatedAt: new Date().toISOString()
-        })
-        const books = getAll('books')
-        set({ books })
-        return true
+    deleteBook: async (id) => {
+        // Books are managed through booksApi directly in components
+        console.log('Use booksApi.deleteBook directly')
     },
 
     // SEAT RESERVATION OPERATIONS
-    createReservation: (reservationData) => {
-        const now = new Date().toISOString()
-
-        // Check for conflicts using SQL
-        const conflicts = selectQuery(`
-            SELECT * FROM seat_reservations 
-            WHERE seatId = ? AND date = ? AND status = 'active'
-            AND (
-                (? >= startTime AND ? < endTime) OR
-                (? > startTime AND ? <= endTime) OR
-                (? <= startTime AND ? >= endTime)
-            )
-        `, [
-            reservationData.seatId,
-            reservationData.date,
-            reservationData.startTime, reservationData.startTime,
-            reservationData.endTime, reservationData.endTime,
-            reservationData.startTime, reservationData.endTime
-        ])
-
-        if (conflicts.length > 0) {
-            return { success: false, error: '该时间段已被预约' }
+    createReservation: async (reservationData) => {
+        try {
+            const reservation = await createReservation({
+                ...reservationData,
+                status: 'active'
+            })
+            set(state => ({
+                seatReservations: [...state.seatReservations, reservation]
+            }))
+            return { success: true, reservation }
+        } catch (error) {
+            return { success: false, error: error.message || '该时间段已被预约' }
         }
-
-        const newReservation = {
-            id: uuidv4(),
-            ...reservationData,
-            status: 'active',
-            createdAt: now,
-            updatedAt: now
-        }
-        insertRow('seat_reservations', newReservation)
-        const seatReservations = getAll('seat_reservations')
-        set({ seatReservations })
-        return { success: true, reservation: newReservation }
     },
 
-    cancelReservation: (id) => {
-        updateRow('seat_reservations', id, {
-            status: 'cancelled',
-            updatedAt: new Date().toISOString()
-        })
-        const seatReservations = getAll('seat_reservations')
-        set({ seatReservations })
-        return true
+    cancelReservation: async (id) => {
+        const updated = await cancelReservationApi(id)
+        set(state => ({
+            seatReservations: state.seatReservations.map(r => 
+                r.id === id ? { ...r, status: 'cancelled' } : r
+            )
+        }))
+        return { success: true, reservation: updated }
     },
 
     getUserReservations: (userId) => {
-        return selectQuery('SELECT * FROM seat_reservations WHERE userId = ?', [userId])
-    },
-
-    getReservationsBySeat: (seatId, date) => {
-        return selectQuery(
-            "SELECT * FROM seat_reservations WHERE seatId = ? AND date = ? AND status = 'active'",
-            [seatId, date]
-        )
-    },
-
-    // BOOK BORROWING OPERATIONS
-    borrowBook: async (borrowData) => {
-        try {
-            const { users, members } = get()
-            const borrower = users.find(user => user.id === borrowData.userId)
-            if (!borrower) {
-                return { success: false, error: '借阅人不存在' }
-            }
-
-            let member = members.find(m => m.email === borrower.email)
-            if (!member) {
-                try {
-                    member = await createMember({
-                        name: borrower.name,
-                        email: borrower.email,
-                        phone: borrower.phone || null
-                    })
-                } catch (error) {
-                    const refreshedMembers = await listMembers()
-                    member = refreshedMembers.find(m => m.email === borrower.email)
-                    if (!member) {
-                        return { success: false, error: '无法创建借阅人档案' }
-                    }
-                    set({ members: refreshedMembers })
-                }
-            }
-
-            const dueDate = new Date()
-            dueDate.setDate(dueDate.getDate() + 14)
-            const dueAt = dueDate.toISOString()
-
-            const loan = await createLoan({
-                bookId: borrowData.bookId,
-                memberId: member.id,
-                dueAt
-            })
-
-            const [remoteBooks, remoteLoans] = await Promise.all([
-                listBooks(),
-                listLoans({ limit: 200 })
-            ])
-            const usersByEmail = users.reduce((acc, user) => {
-                if (user.email) acc[user.email] = user.id
-                return acc
-            }, {})
-            const borrowings = mapLoansToBorrowings(remoteLoans, usersByEmail)
-
-            set({
-                books: remoteBooks,
-                members: members.some(m => m.email === member.email)
-                    ? members
-                    : [...members, member],
-                bookBorrowings: borrowings
-            })
-
-            const mappedLoan = borrowings.find(b => b.id === String(loan.id)) || null
-            return { success: true, borrowing: mappedLoan }
-        } catch (error) {
-            return { success: false, error: error?.message || '借阅失败' }
-        }
-    },
-
-    returnBook: async (borrowingId, handledBy) => {
-        try {
-            const borrowing = get().bookBorrowings.find(b => b.id === String(borrowingId))
-            if (!borrowing) {
-                return { success: false, error: '借阅记录不存在' }
-            }
-
-            const returnedAt = new Date().toISOString()
-            await updateLoan(borrowingId, { returnedAt })
-
-            const { users } = get()
-            const [remoteBooks, remoteLoans] = await Promise.all([
-                listBooks(),
-                listLoans({ limit: 200 })
-            ])
-            const usersByEmail = users.reduce((acc, user) => {
-                if (user.email) acc[user.email] = user.id
-                return acc
-            }, {})
-            const borrowings = mapLoansToBorrowings(remoteLoans, usersByEmail)
-
-            set({
-                books: remoteBooks,
-                bookBorrowings: borrowings
-            })
-
-            return { success: true }
-        } catch (error) {
-            return { success: false, error: error?.message || '归还失败' }
-        }
-    },
-
-    getUserBorrowings: (userId) => {
-        return selectQuery('SELECT * FROM book_borrowings WHERE userId = ?', [userId])
-    },
-
-    getOverdueBorrowings: () => {
-        const today = new Date().toISOString().split('T')[0]
-        return selectQuery(
-            "SELECT * FROM book_borrowings WHERE status = 'borrowed' AND dueDate < ?",
-            [today]
-        )
+        return get().seatReservations.filter(r => r.userId === userId)
     },
 
     // NOTIFICATION OPERATIONS
-    getActiveNotifications: () => getActive('notifications'),
-
-    addNotification: (notificationData, createdById) => {
-        const now = new Date().toISOString()
-        const newNotification = {
-            id: uuidv4(),
+    addNotification: async (notificationData) => {
+        const newNotification = await createNotification({
             ...notificationData,
-            createdBy: createdById,
-            activeStatus: 'Y',
-            createdAt: now,
-            updatedAt: now
-        }
-        insertRow('notifications', newNotification)
-        const notifications = getAll('notifications')
-        set({ notifications })
+            activeStatus: 'Y'
+        })
+        set(state => ({ notifications: [newNotification, ...state.notifications] }))
         return newNotification
     },
 
-    updateNotification: (id, updates) => {
-        const updatedData = { ...updates, updatedAt: new Date().toISOString() }
-        updateRow('notifications', id, updatedData)
-        const notifications = getAll('notifications')
-        set({ notifications })
-        return notifications.find(n => n.id === id)
-    },
-
-    deleteNotification: (id) => {
-        updateRow('notifications', id, {
-            activeStatus: 'N',
-            updatedAt: new Date().toISOString()
-        })
-        const notifications = getAll('notifications')
-        set({ notifications })
-        return true
-    },
-
-    // NOTIFICATION READ STATUS OPERATIONS
-    markNotificationAsRead: (notificationId, userId) => {
-        const notificationReads = getAll('notification_reads') || []
-        const existingRead = notificationReads.find(
-            r => r.notificationId === notificationId && r.userId === userId
-        )
-        if (existingRead) return existingRead
-
-        const newRead = {
-            id: uuidv4(),
-            notificationId,
-            userId,
-            readAt: new Date().toISOString()
-        }
-        insertRow('notification_reads', newRead)
-        set({ notificationReads: getAll('notification_reads') })
-        return newRead
-    },
-
-    markAllNotificationsAsRead: (userId) => {
-        const notifications = getAll('notifications') || []
-        const notificationReads = getAll('notification_reads') || []
-        const activeNotifications = notifications.filter(n => n.activeStatus === 'Y')
-
-        activeNotifications.forEach(notification => {
-            const existingRead = notificationReads.find(
-                r => r.notificationId === notification.id && r.userId === userId
-            )
-            if (!existingRead) {
-                const newRead = {
-                    id: uuidv4(),
-                    notificationId: notification.id,
-                    userId,
-                    readAt: new Date().toISOString()
-                }
-                insertRow('notification_reads', newRead)
-            }
-        })
-        set({ notificationReads: getAll('notification_reads') })
-        return true
-    },
-
-    isNotificationRead: (notificationId, userId) => {
-        const notificationReads = getAll('notification_reads') || []
-        return notificationReads.some(
-            r => r.notificationId === notificationId && r.userId === userId
-        )
-    },
-
-    getUnreadNotificationCount: (userId) => {
-        if (!userId) return 0
-        const notifications = getAll('notifications') || []
-        const notificationReads = getAll('notification_reads') || []
-        const activeNotifications = notifications.filter(n => n.activeStatus === 'Y')
-
-        const unreadCount = activeNotifications.filter(notification => {
-            return !notificationReads.some(
-                r => r.notificationId === notification.id && r.userId === userId
-            )
-        }).length
-
-        return unreadCount
-    },
-
-    // NOTIFICATION COUNT - 只统计未读公告数量
-    getNotificationCount: (currentUser) => {
-        if (!currentUser) return 0
-        return get().getUnreadNotificationCount(currentUser.id)
-    },
-
-    // 获取过去7天的预约和借阅趋势数据
-    getWeeklyTrendData: () => {
-        const reservations = getAll('seat_reservations') || []
-        const borrowings = getAll('book_borrowings') || []
-
-        const days = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
-        const result = []
-
-        for (let i = 6; i >= 0; i--) {
-            const date = new Date()
-            date.setDate(date.getDate() - i)
-            const dateStr = date.toISOString().split('T')[0]
-            const dayName = days[date.getDay()]
-
-            const dayReservations = reservations.filter(r => r.date === dateStr).length
-            const dayBorrowings = borrowings.filter(b => b.borrowDate === dateStr).length
-
-            result.push({
-                name: dayName,
-                date: dateStr,
-                reservations: dayReservations,
-                borrowings: dayBorrowings,
-                peak: Math.max(dayReservations, dayBorrowings) + Math.floor(dayReservations * 0.15)
-            })
-        }
-
-        return result
-    },
-
-    // 获取各时段的预约分布
-    getTimeSlotDistribution: () => {
-        const reservations = getAll('seat_reservations') || []
-        const slots = []
-
-        for (let hour = 8; hour <= 20; hour++) {
-            const timeStr = `${String(hour).padStart(2, '0')}:00`
-            const count = reservations.filter(r => {
-                if (r.status !== 'active') return false
-                const startHour = parseInt(r.startTime.split(':')[0])
-                const endHour = parseInt(r.endTime.split(':')[0])
-                return hour >= startHour && hour < endHour
-            }).length
-
-            slots.push({ time: timeStr, count })
-        }
-
-        return slots
-    },
-
-    // 获取最近6个月的借还趋势
-    getMonthlyBorrowingTrend: () => {
-        const borrowings = getAll('book_borrowings') || []
-        const months = []
-        const monthNames = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月']
-
-        for (let i = 5; i >= 0; i--) {
-            const date = new Date()
-            date.setMonth(date.getMonth() - i)
-            const year = date.getFullYear()
-            const month = date.getMonth()
-
-            const monthStart = `${year}-${String(month + 1).padStart(2, '0')}-01`
-            const nextMonth = new Date(year, month + 1, 1)
-            const monthEnd = nextMonth.toISOString().split('T')[0]
-
-            const monthBorrowings = borrowings.filter(b =>
-                b.borrowDate >= monthStart && b.borrowDate < monthEnd
-            ).length
-
-            const monthReturns = borrowings.filter(b =>
-                b.returnDate && b.returnDate >= monthStart && b.returnDate < monthEnd
-            ).length
-
-            months.push({
-                name: monthNames[month],
-                borrowings: monthBorrowings,
-                returns: monthReturns
-            })
-        }
-
-        return months
-    },
-
-    // 获取热门图书（基于实际借阅记录）
-    getPopularBooks: () => {
-        const books = getAll('books') || []
-        const borrowings = getAll('book_borrowings') || []
-
-        const bookBorrowCounts = {}
-        borrowings.forEach(b => {
-            bookBorrowCounts[b.bookId] = (bookBorrowCounts[b.bookId] || 0) + 1
-        })
-
-        const activeBooks = books.filter(b => b.activeStatus === 'Y')
-        const booksWithCounts = activeBooks.map(book => ({
-            id: book.id,
-            name: book.title.length > 15 ? book.title.substring(0, 15) + '...' : book.title,
-            fullTitle: book.title,
-            borrowCount: bookBorrowCounts[book.id] || 0
+    updateNotification: async (id, updates) => {
+        const updated = await updateNotification(id, updates)
+        set(state => ({
+            notifications: state.notifications.map(n => n.id === id ? updated : n)
         }))
+        return updated
+    },
 
-        return booksWithCounts
-            .sort((a, b) => b.borrowCount - a.borrowCount)
-            .slice(0, 5)
+    deleteNotification: async (id) => {
+        await deleteNotificationApi(id)
+        set(state => ({
+            notifications: state.notifications.filter(n => n.id !== id)
+        }))
+        return true
+    },
+
+    markNotificationAsRead: async (notificationId, userId) => {
+        await markAsRead(notificationId, userId)
+        set(state => ({
+            notificationReads: { ...state.notificationReads, [notificationId]: true },
+            unreadCount: Math.max(0, state.unreadCount - 1)
+        }))
+    },
+
+    // BOOK BORROWING OPERATIONS (from API)
+    createBorrowing: async (borrowingData) => {
+        // First ensure member exists
+        const members = await listMembers()
+        const email = borrowingData.memberEmail || borrowingData.userEmail
+        let member = members.find(m => m.email === email)
+        
+        if (!member) {
+            // Create member if not exists
+            member = await createMember({
+                name: borrowingData.memberName || borrowingData.userName,
+                email: email,
+                phone: borrowingData.memberPhone || ''
+            })
+        }
+
+        // Create loan
+        const dueDate = new Date()
+        dueDate.setDate(dueDate.getDate() + 14)
+
+        const loan = await createLoan({
+            bookId: borrowingData.bookId,
+            memberId: member.id,
+            dueAt: dueDate.toISOString()
+        })
+
+        // Refresh borrowings
+        const loans = await listLoans({ limit: 200 })
+        const usersByEmail = get().users.reduce((acc, user) => {
+            if (user.email) acc[user.email] = user.id
+            return acc
+        }, {})
+        const borrowings = mapLoansToBorrowings(loans, usersByEmail)
+
+        set({ bookBorrowings: borrowings })
+        return loan
+    },
+
+    returnBook: async (borrowingId) => {
+        await updateLoan(borrowingId, {
+            returnedAt: new Date().toISOString()
+        })
+
+        // Refresh borrowings
+        const loans = await listLoans({ limit: 200 })
+        const usersByEmail = get().users.reduce((acc, user) => {
+            if (user.email) acc[user.email] = user.id
+            return acc
+        }, {})
+        const borrowings = mapLoansToBorrowings(loans, usersByEmail)
+
+        set({ bookBorrowings: borrowings })
+        return true
+    },
+
+    getUserBorrowings: (userId) => {
+        return get().bookBorrowings.filter(b => b.userId === userId && b.status === 'borrowed')
     },
 
     // STATISTICS
     getStats: () => {
+        const state = get()
         const today = new Date().toISOString().split('T')[0]
-
-        const users = getAll('users') || []
-        const seats = getAll('seats') || []
-        const books = getAll('books') || []
-        const reservations = getAll('seat_reservations') || []
-        const borrowings = getAll('book_borrowings') || []
-
-        const activeUsers = users.filter(u => u.activeStatus === 'Y')
-        const activeSeats = seats.filter(s => s.activeStatus === 'Y')
-        const activeBooks = books.filter(b => b.activeStatus === 'Y')
-        const todayReservations = reservations.filter(r => r.date === today && r.status === 'active')
-        const activeBorrowings = borrowings.filter(b => b.status === 'borrowed')
-        const overdueBorrowings = borrowings.filter(b => b.status === 'borrowed' && b.dueDate < today)
-
+        
+        const totalUsers = state.users.filter(u => u.activeStatus === 'Y').length
+        const totalSeats = state.seats.filter(s => s.activeStatus === 'Y').length
+        const totalBooks = state.books.filter(b => b.activeStatus === 'Y').length
+        const availableBooks = state.books.filter(b => b.activeStatus === 'Y' && b.status === 'available').length
+        const borrowedBooks = state.books.filter(b => b.status === 'borrowed').length
+        
+        const todayReservations = state.seatReservations.filter(r => 
+            r.date === today && r.status === 'active'
+        ).length
+        
+        const activeBorrowings = state.bookBorrowings.filter(b => b.status === 'borrowed').length
+        const overdueBorrowings = state.bookBorrowings.filter(b => 
+            b.status === 'borrowed' && b.dueDate < today
+        ).length
+        
+        const availableSeats = state.seats.filter(s => 
+            s.activeStatus === 'Y' && s.status === 'available'
+        ).length
+        
+        const seatUtilization = totalSeats > 0 
+            ? Math.round(((totalSeats - availableSeats) / totalSeats) * 100) 
+            : 0
+        
+        const bookBorrowRate = totalBooks > 0 
+            ? Math.round((borrowedBooks / totalBooks) * 100) 
+            : 0
+        
         return {
-            totalUsers: activeUsers.length,
-            totalStudents: activeUsers.filter(u => u.role === 'student').length,
-            totalSeats: activeSeats.length,
-            availableSeats: activeSeats.filter(s => s.status === 'available').length,
-            totalBooks: activeBooks.length,
-            availableBooks: activeBooks.filter(b => b.status === 'available').length,
-            borrowedBooks: activeBooks.filter(b => b.status === 'borrowed').length,
-            todayReservations: todayReservations.length,
-            activeBorrowings: activeBorrowings.length,
-            overdueBorrowings: overdueBorrowings.length,
-            seatUtilization: activeSeats.length > 0
-                ? Math.round((todayReservations.length / activeSeats.length) * 100)
-                : 0,
-            bookBorrowRate: activeBooks.length > 0
-                ? Math.round((activeBorrowings.length / activeBooks.length) * 100)
-                : 0
+            totalUsers,
+            totalSeats,
+            totalBooks,
+            availableBooks,
+            borrowedBooks,
+            todayReservations,
+            activeBorrowings,
+            overdueBorrowings,
+            availableSeats,
+            seatUtilization,
+            bookBorrowRate
         }
+    },
+
+    getWeeklyTrendData: () => {
+        const state = get()
+        const data = []
+        
+        for (let i = 6; i >= 0; i--) {
+            const date = new Date()
+            date.setDate(date.getDate() - i)
+            const dateStr = date.toISOString().split('T')[0]
+            const dayName = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'][date.getDay()]
+            
+            const reservations = state.seatReservations.filter(r => 
+                r.date === dateStr && r.status === 'active'
+            ).length
+            
+            const borrowings = state.bookBorrowings.filter(b => 
+                b.borrowDate === dateStr
+            ).length
+            
+            data.push({
+                name: dayName,
+                reservations,
+                borrowings
+            })
+        }
+        
+        return data
     }
 }))

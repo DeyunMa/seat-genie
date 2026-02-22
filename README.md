@@ -1,307 +1,295 @@
 # Seat Genie
 
-Seat Genie 是一个面向图书馆/自习室场景的前端单页应用（SPA），用于演示“座位预约 + 图书借阅 + 通知公告 + 统计分析”的一体化管理流程。项目内置多角色权限、演示数据与本地持久化，适合用于快速原型、课程作业、内部演示或二次开发。
-
-当前版本为“混合模式”：图书管理通过后端 API + SQLite 持久化，其余模块仍在浏览器端运行并依赖 localStorage。这样可以在保留演示体验的同时，验证前后端真实联调链路。
-
-**特性概览**
-1. 多角色权限：管理员、馆员、学生不同权限与可见页面。
-2. 座位预约：按时间段预约、冲突检测、取消预约。
-3. 自习室管理：维护自习室与座位信息、状态管理。
-4. 图书借还：借阅/归还记录、到期检测、馆员管理流程。
-5. 统计看板：座位利用率、借阅趋势、热门图书等可视化统计。
-6. 通知公告：公告发布与已读状态统计。
-7. 本地持久化：localStorage 保存数据，刷新页面不丢失。
-8. 内置演示数据：首次启动自动初始化示例用户、座位、图书与记录。
+Seat Genie 是一个面向图书馆/自习室场景的综合管理系统，支持"座位预约 + 图书借阅 + 通知公告 + 统计分析"的一体化管理流程。项目采用前后端分离架构，所有数据通过后端 API 持久化到 SQLite 数据库，适合用于快速原型、课程作业、内部演示或二次开发。
 
 ---
 
-## 当前集成状态（重要）
+## 特性概览
 
-- **已完成**：图书管理（/books）与借还管理（/borrow-management、/my-borrowings）已接入 Express + SQLite 后端 API，支持真实的增删改查与借还流程。
-- **仍在本地**：座位预约、统计看板、公告等模块仍使用 localStorage 演示数据。
-
-这意味着：你可以在不改变其它页面的情况下，先验证“图书管理 + 借还管理”端到端链路已经打通（前端 → 后端 → SQLite）。
-
----
-
-## 项目定位
-
-Seat Genie 强调“前端业务完整度”，目标是让没有后端的人也能演示一个完整的图书馆座位预约与借阅管理系统。它适合用于：
-1. UI/UX 原型演示。
-2. 前端课程作业或项目展示。
-3. 状态管理与数据建模的学习范例。
-4. 需要离线演示的场景（无需后端服务）。
+| 模块 | 功能 | 数据存储 |
+|------|------|----------|
+| 多角色权限 | 管理员、馆员、学生三级权限控制 | SQLite |
+| 座位预约 | 按时间段预约、冲突检测、取消预约 | SQLite |
+| 自习室管理 | 维护自习室信息、开放时间、容量、座位状态 | SQLite |
+| 图书管理 | 图书录入、作者管理、分类、馆藏位置 | SQLite |
+| 借还管理 | 借阅/归还记录、到期检测、逾期提醒 | SQLite |
+| 统计看板 | 座位利用率、借阅趋势、热门图书等可视化 | SQLite |
+| 通知公告 | 公告发布与已读状态统计 | SQLite |
 
 ---
 
 ## 技术栈
 
-**核心依赖**
-1. Vite 7（构建与开发服务器）
-2. React 19（UI 组件）
-3. React Router（路由管理）
-4. Zustand（全局状态管理）
-5. Recharts（统计图表）
-6. uuid（数据主键生成）
+### 前端
+- **React 19** - UI 组件
+- **React Router 7** - 路由管理
+- **Vite 7** - 构建与开发服务器
+- **Zustand 5** - 全局状态管理
+- **Recharts** - 统计图表
+- **uuid** - 数据主键生成
 
-**后端**
-1. Express.js
-2. better-sqlite3
-3. zod
-4. cors / helmet / pino
+### 后端
+- **Express.js** - Web 框架
+- **better-sqlite3** - SQLite 数据库
+- **zod** - 数据校验
+- **cors / helmet / pino** - 安全与日志
 
-**工程化与开发**
-1. ESLint（代码规范）
-2. Vite 插件：`@vitejs/plugin-react`
-
----
-
-## 主要模块
-
-**1. 登录与权限**
-- 登录逻辑基于本地用户表与角色字段。
-- 路由级保护，按角色限制访问。
-
-**2. 用户管理（管理员）**
-- 用户增删改、禁用用户。
-- 管理员可重置密码。
-
-**3. 自习室/座位管理（馆员/管理员）**
-- 维护自习室信息、开放时间、容量等。
-- 维护座位状态（可用/维护等）。
-
-**4. 座位预约（学生）**
-- 按日期 + 起止时间预约。
-- 自动检测时间冲突。
-- 可取消预约。
-
-**5. 图书管理与借还（馆员/管理员/学生）**
-- 图书录入、状态维护。
-- 学生借书记录、归还流程。
-- 逾期检测。
-
-**6. 统计看板**
-- 预约与借阅趋势。
-- 时段分布。
-- 热门图书排行。
-
-**7. 通知公告**
-- 公告发布与读取状态追踪。
-- 未读数量提醒。
+### 工程化
+- **ESLint** - 代码规范
+- **Jest + Supertest** - 后端测试
 
 ---
 
-## 本地运行（前后端）
+## 快速开始
 
-### 1. 初始化后端数据库（手动执行 SQL DDL）
+### 1. 克隆与安装
+
 ```bash
-cd backend
+# 安装前端依赖
 npm install
+
+# 安装后端依赖
+cd backend && npm install && cd ..
+```
+
+### 2. 初始化数据库
+
+```bash
+# 创建数据目录并初始化 SQLite 数据库
 mkdir -p backend/data
 sqlite3 backend/data/library.db < backend/sql/schema.sql
 ```
 
-### 2. 配置环境变量
-后端（`backend/.env`）示例：
-```
+### 3. 配置环境变量
+
+**后端**（`backend/.env`）：
+```env
 PORT=3001
 DATABASE_FILE=backend/data/library.db
 LOG_LEVEL=info
 ```
 
-前端（项目根目录 `.env`）示例：
-```
+**前端**（项目根目录 `.env`）：
+```env
 VITE_API_BASE_URL=http://localhost:3001
 ```
 
-### 3. 启动后端
+### 4. 启动服务
+
 ```bash
+# 终端 1：启动后端
 cd backend
 npm run dev
-```
 
-### 4. 启动前端
-```bash
-npm install
+# 终端 2：启动前端（在项目根目录）
 npm run dev
 ```
 
-### 5. 联调验证（图书管理）
-1. 打开前端页面并登录（任一管理员/馆员账号）。
-2. 进入“图书管理”页面。
-3. 新增一本书 → 刷新页面 → 确认仍存在。
-4. 编辑/删除图书 → 检查列表更新。
-
-### 6. 联调验证（借还管理）
-1. 进入“借还登记”页面。
-2. 选择学生与图书并确认借阅。
-3. 切换“我的借阅”查看借阅记录。
-4. 在“借还登记”中点击归还 → 记录转为已归还。
-
----
-
-## 环境变量说明
-
-**后端**
-- `PORT`：后端 HTTP 端口（默认 3001）
-- `DATABASE_FILE`：SQLite 文件路径（默认 `backend/data/library.db`）
-- `LOG_LEVEL`：日志级别（例如 `info`）
-
-**前端**
-- `VITE_API_BASE_URL`：后端 API 地址（例如 `http://localhost:3001`）
+前端默认运行在 `http://localhost:5173`，后端 API 在 `http://localhost:3001`。
 
 ---
 
 ## 演示账号
 
-项目首次启动会初始化演示用户：
+项目首次启动后，需要手动创建演示用户。使用以下 SQL 插入演示数据：
 
-- 管理员：`admin / admin123`
-- 馆员：`staff1 / staff123`
-- 学生：`student1 / student123`
-- 学生：`student2 / student123`
-- 学生：`student3 / student123`
+```sql
+INSERT INTO users (username, password, name, role, email, phone, active_status) VALUES
+('admin', 'admin123', '系统管理员', 'admin', 'admin@library.edu', '13800000001', 'Y'),
+('staff1', 'staff123', '张图书管理员', 'staff', 'staff1@library.edu', '13800000002', 'Y'),
+('student1', 'student123', '李明', 'student', 'liming@student.edu', '13800000003', 'Y'),
+('student2', 'student123', '王芳', 'student', 'wangfang@student.edu', '13800000004', 'Y'),
+('student3', 'student123', '张伟', 'student', 'zhangwei@student.edu', '13800000005', 'Y');
+```
 
----
-
-## 数据持久化与初始化
-
-**数据存储方式**
-- 图书管理与借还管理使用后端 SQLite 持久化（`backend/sql/schema.sql`）。
-- 其他模块仍使用 `localStorage` 作为持久化层。
-- 本地数据 key 以 `seat_genie_` 作为统一前缀。
-
-**初始化策略**
-- 首次启动会自动检测 `users` 表是否存在数据。
-- 若无数据，自动写入演示用户、房间、座位、图书、预约、借阅与公告。
-- 借还管理采用后端数据：首次为某位学生办理借阅时，会自动在后端创建对应 `members` 记录（以学生邮箱为唯一键）。
-- 后端 SQLite 仅包含表结构，不自动写入示例图书/借阅数据，请通过“图书管理”页面手动录入。
-
-**重置方式**
-1. 打开浏览器开发者工具。
-2. 清空 `localStorage` 中 `seat_genie_*` 相关项。
-3. 刷新页面后重新生成演示数据。
+或使用管理员账号登录后，在"用户管理"页面创建用户。
 
 ---
 
-## 目录结构概览
+## 项目结构
 
 ```
 seat-genie/
-├─ public/
-├─ src/
-│  ├─ assets/                 静态资源
-│  ├─ components/             公共组件与布局
-│  ├─ pages/                  业务页面
-│  ├─ services/               数据访问与初始化
-│  ├─ stores/                 Zustand 状态管理
-│  ├─ App.jsx                 路由与权限入口
-│  └─ main.jsx                应用启动与初始化
-├─ index.html
-├─ package.json
-└─ vite.config.js
+├── src/                          # 前端源代码
+│   ├── components/               # 公共组件
+│   │   ├── common/               # 通用组件（Modal、Toast）
+│   │   └── layout/               # 布局组件（Header、Sidebar、MainLayout）
+│   ├── pages/                    # 业务页面
+│   │   ├── BookManagement/       # 图书管理、借还管理
+│   │   ├── Dashboard/            # 首页仪表盘
+│   │   ├── Login/                # 登录页
+│   │   ├── Notification/         # 通知公告
+│   │   ├── Reservation/          # 座位预约
+│   │   ├── SeatManagement/       # 自习室/座位管理
+│   │   ├── Settings/             # 设置（修改密码）
+│   │   ├── Statistics/           # 统计看板
+│   │   └── UserManagement/       # 用户管理
+│   ├── services/                 # 数据服务层
+│   │   ├── apiClient.js          # API 客户端
+│   │   ├── booksApi.js           # 图书 API
+│   │   ├── loansApi.js           # 借阅 API
+│   │   ├── membersApi.js         # 会员 API
+│   │   ├── usersApi.js           # 用户 API
+│   │   ├── roomsApi.js           # 房间 API
+│   │   ├── seatsApi.js           # 座位 API
+│   │   ├── reservationsApi.js    # 预约 API
+│   │   ├── notificationsApi.js   # 通知 API
+│   │   └── storage.js            # 存储工具
+│   ├── stores/                   # Zustand 状态管理
+│   │   ├── authStore.js          # 认证状态
+│   │   └── dataStore.js          # 业务数据状态
+│   ├── App.jsx                   # 路由与权限入口
+│   └── main.jsx                  # 应用启动
+├── backend/                      # 后端服务
+│   ├── src/
+│   │   ├── config/               # 环境配置
+│   │   ├── db/                   # 数据库连接
+│   │   ├── middleware/           # 中间件（错误处理、校验）
+│   │   ├── routes/               # API 路由
+│   │   │   ├── users.js          # 用户管理
+│   │   │   ├── rooms.js          # 房间管理
+│   │   │   ├── seats.js          # 座位管理
+│   │   │   ├── reservations.js   # 预约管理
+│   │   │   ├── notifications.js  # 通知管理
+│   │   │   ├── authors.js        # 作者管理
+│   │   │   ├── books.js          # 图书管理
+│   │   │   ├── health.js         # 健康检查
+│   │   │   ├── loans.js          # 借还管理
+│   │   │   ├── members.js        # 会员管理
+│   │   │   └── reports.js        # 统计报表
+│   │   ├── services/             # 业务逻辑层
+│   │   ├── utils/                # 工具函数
+│   │   ├── app.js                # Express 应用
+│   │   └── index.js              # 服务入口
+│   ├── sql/
+│   │   └── schema.sql            # 数据库表结构
+│   └── tests/                    # 集成测试
+├── public/                       # 静态资源
+├── index.html
+├── vite.config.js
+└── package.json
 ```
 
 ---
 
-## 关键文件说明
+## API 接口
 
-1. `src/main.jsx`
-   - 应用入口与初始化逻辑。
-   - 执行 `initDatabase()` 与 `initializeData()`。
+后端提供完整的 RESTful API。
 
-2. `src/App.jsx`
-   - 路由与权限控制中心。
-   - 按角色控制页面访问。
+### 核心端点
 
-3. `src/services/sqliteService.js`
-   - localStorage 封装成类 SQL API。
-   - 支持简单 `SELECT/INSERT/UPDATE/DELETE` 逻辑。
+| 资源 | 端点 | 说明 |
+|------|------|------|
+| 健康检查 | `GET /health` | 服务状态 |
+| 用户 | `GET/POST /api/users` | 用户列表/创建 |
+| 用户 | `GET/PUT/DELETE /api/users/:id` | 用户详情/更新/删除 |
+| 房间 | `GET/POST /api/rooms` | 房间列表/创建 |
+| 房间 | `GET/PUT/DELETE /api/rooms/:id` | 房间详情/更新/删除 |
+| 座位 | `GET/POST /api/seats` | 座位列表/创建 |
+| 座位 | `GET/PUT/DELETE /api/seats/:id` | 座位详情/更新/删除 |
+| 预约 | `GET/POST /api/reservations` | 预约列表/创建 |
+| 预约 | `GET/PUT/DELETE /api/reservations/:id` | 预约详情/更新/删除 |
+| 预约 | `POST /api/reservations/:id/cancel` | 取消预约 |
+| 通知 | `GET/POST /api/notifications` | 通知列表/创建 |
+| 通知 | `GET/PUT/DELETE /api/notifications/:id` | 通知详情/更新/删除 |
+| 通知 | `POST /api/notifications/:id/read` | 标记已读 |
+| 图书 | `GET/POST /api/books` | 图书列表/创建 |
+| 图书 | `GET/PUT/DELETE /api/books/:id` | 图书详情/更新/删除 |
+| 作者 | `GET/POST /api/authors` | 作者列表/创建 |
+| 作者 | `GET/PUT/DELETE /api/authors/:id` | 作者详情/更新/删除 |
+| 会员 | `GET/POST /api/members` | 会员列表/创建 |
+| 会员 | `GET/PUT/DELETE /api/members/:id` | 会员详情/更新/删除 |
+| 借阅 | `GET/POST /api/loans` | 借阅列表/创建 |
+| 借阅 | `GET/PUT/DELETE /api/loans/:id` | 借阅详情/更新/删除 |
+| 报表 | `GET /api/reports/overdue-loans` | 逾期借阅 |
+| 报表 | `GET /api/reports/most-active-members` | 活跃会员 |
+| 报表 | `GET /api/reports/most-borrowed-books` | 热门图书 |
+| 报表 | `GET /api/reports/inventory-health` | 库存健康度 |
 
-4. `src/services/initData.js`
-   - 内置演示数据。
-   - 初始化用户、房间、座位、图书、借阅、预约、公告。
+### 通用查询参数
 
-5. `src/stores/authStore.js`
-   - 登录、退出、权限判断。
+列表接口支持分页、过滤和排序：
 
-6. `src/stores/dataStore.js`
-   - 核心业务数据与 CRUD。
-   - 预约冲突检测、统计数据生成。
+- `limit` / `offset` - 分页（默认 25，最大 100）
+- `sortBy` / `sortOrder` - 排序（`asc`/`desc`）
+- `q` - 关键词搜索
 
-7. `backend/sql/schema.sql`
-   - 后端 SQLite 建表脚本（手动执行）。
-
-8. `backend/src/routes/books.js`
-   - 图书管理后端 API。
-
-9. `src/services/booksApi.js`
-   - 图书管理前端 API 客户端。
-
----
-
-## 运行流程（高层）
-
-1. 前端启动后初始化本地演示数据（除图书管理外）。
-2. 后端独立运行，负责图书管理与借还管理的 CRUD。
-3. 进入登录页，使用演示账号登录。
-4. 根据用户角色显示不同菜单与路由。
-5. 图书管理与借还管理写入 SQLite；其他模块写入 localStorage。
-
----
-
-## 权限矩阵（简表）
-
-- 管理员：
-  - 用户管理
-  - 所有统计
-  - 公告管理
-  - 房间/座位/图书管理
-
-- 馆员：
-  - 房间/座位管理
-  - 图书管理/借还管理
-  - 统计看板
-
-- 学生：
-  - 座位预约
-  - 我的预约
-  - 我的借阅
-  - 公告查看
+示例：
+```
+GET /api/books?status=available&category=计算机科学&sortBy=title&sortOrder=asc&limit=10
+```
 
 ---
 
-## 设计取舍
+## 权限矩阵
 
-1. 采用“混合模式”：图书管理走后端，其它模块保持本地演示。
-2. 仍保留 localStorage 逻辑，降低非后端模块的接入成本。
-3. 类 SQL API 简化前端本地查询，但仅支持简单语句。
-4. 为演示可视化效果，内置统计与趋势生成逻辑。
+| 功能 | 管理员 | 馆员 | 学生 |
+|------|--------|------|------|
+| 用户管理 | ✅ | ❌ | ❌ |
+| 自习室/座位管理 | ✅ | ✅ | ❌ |
+| 图书管理 | ✅ | ✅ | ❌ |
+| 借还登记 | ✅ | ✅ | ❌ |
+| 座位预约 | ❌ | ❌ | ✅ |
+| 我的预约/借阅 | ✅ | ✅ | ✅ |
+| 统计看板 | ✅ | ✅ | ❌ |
+| 公告查看 | ✅ | ✅ | ✅ |
+| 修改密码 | ✅ | ✅ | ✅ |
+
+---
+
+## 测试
+
+### 后端测试
+
+```bash
+cd backend
+npm test
+```
+
+包含：
+- 列表查询中间件测试
+- 报表端点测试
+- CRUD 错误场景测试
+
+---
+
+## 数据重置
+
+如需重置所有数据：
+
+```bash
+# 删除 SQLite 数据库
+rm backend/data/library.db
+
+# 重新初始化数据库
+sqlite3 backend/data/library.db < backend/sql/schema.sql
+
+# 重新插入演示数据（可选）
+```
 
 ---
 
 ## 常见问题
 
-**Q1：为什么现在还有本地数据？**
-当前为混合模式：图书管理已接入后端，其他模块仍保留前端演示数据，以便在不增加复杂度的情况下推进真实联调。
+**Q: 如何创建第一个管理员账号？**  
+A: 首次启动时需要手动插入管理员数据到数据库，或使用 SQLite 工具直接添加。
 
-**Q2：数据安全吗？**
-图书管理数据保存在本地 SQLite 文件中，其余数据仍在浏览器本地，仅用于演示或学习，不适用于生产环境。
+**Q: 数据安全吗？**  
+A: 所有数据保存在本地 SQLite 文件中。本项目仅供演示和学习使用，不适用于生产环境。
 
-**Q3：能接入后端吗？**
-可以。当前已经提供后端基础设施，后续可以逐步替换 `sqliteService` 与 `stores` 中的数据层逻辑。
+**Q: 支持多用户并发吗？**  
+A: SQLite 支持并发读取，但写入是串行的。对于开发和演示场景足够使用。
 
 ---
 
-## 适合的二次开发方向
+## 二次开发建议
 
-1. 将座位预约、借还与公告等模块迁移到后端与数据库。
-2. 加入 JWT/Session 认证。
-3. 支持座位地图可视化与选座。
-4. 新增审批流程（例如学生预约需审核）。
-5. 加入多馆区、多校区支持。
-6. 引入消息推送（邮件/短信）。
+1. **认证升级**：接入 JWT/Session 认证替代前端模拟登录
+2. **座位可视化**：支持座位地图可视化选座
+3. **审批流程**：学生预约需管理员审核
+4. **消息推送**：接入邮件/短信通知
+5. **多校区支持**：支持多馆区、多校区管理
+6. **数据库升级**：将 SQLite 升级为 PostgreSQL/MySQL 以支持更高并发
 
 ---
 

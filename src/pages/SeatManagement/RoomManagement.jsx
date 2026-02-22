@@ -28,7 +28,7 @@ function RoomManagement() {
         setEditingRoom(null)
     }
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault()
         const formData = new FormData(e.target)
         const roomData = {
@@ -39,23 +39,30 @@ function RoomManagement() {
             closeTime: formData.get('closeTime')
         }
 
-        if (editingRoom) {
-            updateRoom(editingRoom.id, roomData)
-            addToast('房间信息已更新', 'success')
-        } else {
-            addRoom(roomData)
-            addToast('房间创建成功', 'success')
+        try {
+            if (editingRoom) {
+                await updateRoom(editingRoom.id, roomData)
+                addToast('房间信息已更新', 'success')
+            } else {
+                await addRoom(roomData)
+                addToast('房间创建成功', 'success')
+            }
+            await loadAllData()
+            handleCloseModal()
+        } catch (error) {
+            addToast(error.message || '操作失败', 'error')
         }
-
-        loadAllData()
-        handleCloseModal()
     }
 
-    const handleDelete = () => {
+    const handleDelete = async () => {
         if (selectedRoomId) {
-            deleteRoom(selectedRoomId)
-            loadAllData()
-            addToast('房间已删除', 'success')
+            try {
+                await deleteRoom(selectedRoomId)
+                await loadAllData()
+                addToast('房间已删除', 'success')
+            } catch (error) {
+                addToast(error.message || '删除失败', 'error')
+            }
             setIsDeleteModalOpen(false)
             setSelectedRoomId(null)
         }
