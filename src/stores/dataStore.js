@@ -76,7 +76,7 @@ export const useDataStore = create((set, get) => ({
                 listNotifications(),
                 listBooks().catch(() => []),
                 listMembers().catch(() => []),
-                listLoans({ limit: 200 }).catch(() => []),
+                listLoans({ limit: 100 }).catch(() => []),
                 getUnreadCount(currentUser.id).catch(() => 0)
             ])
 
@@ -259,6 +259,12 @@ export const useDataStore = create((set, get) => ({
     },
 
     // NOTIFICATION OPERATIONS
+    getNotificationCount: (user) => {
+        if (!user) return 0
+        const state = get()
+        return state.unreadCount || 0
+    },
+
     addNotification: async (notificationData) => {
         const newNotification = await createNotification({
             ...notificationData,
@@ -319,7 +325,7 @@ export const useDataStore = create((set, get) => ({
         })
 
         // Refresh borrowings
-        const loans = await listLoans({ limit: 200 })
+        const loans = await listLoans({ limit: 100 })
         const usersByEmail = get().users.reduce((acc, user) => {
             if (user.email) acc[user.email] = user.id
             return acc
@@ -336,7 +342,7 @@ export const useDataStore = create((set, get) => ({
         })
 
         // Refresh borrowings
-        const loans = await listLoans({ limit: 200 })
+        const loans = await listLoans({ limit: 100 })
         const usersByEmail = get().users.reduce((acc, user) => {
             if (user.email) acc[user.email] = user.id
             return acc

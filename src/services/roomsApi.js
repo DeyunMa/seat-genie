@@ -8,26 +8,29 @@ export const listRooms = async ({ q, sortBy, sortOrder, limit = 100, offset = 0 
     params.set('limit', String(limit))
     params.set('offset', String(offset))
 
-    const data = await apiRequest(`/api/rooms?${params.toString()}`)
-    return Array.isArray(data) ? data : []
+    const result = await apiRequest(`/api/rooms?${params.toString()}`)
+    return Array.isArray(result?.data) ? result.data : []
 }
 
 export const getRoom = async (id) => {
-    return await apiRequest(`/api/rooms/${id}`)
+    const result = await apiRequest(`/api/rooms/${id}`)
+    return result?.data ?? null
 }
 
 export const createRoom = async (payload) => {
-    return await apiRequest('/api/rooms', {
+    const result = await apiRequest('/api/rooms', {
         method: 'POST',
         body: JSON.stringify(payload)
     })
+    return result?.data ?? result
 }
 
 export const updateRoom = async (id, payload) => {
-    return await apiRequest(`/api/rooms/${id}`, {
+    const result = await apiRequest(`/api/rooms/${id}`, {
         method: 'PUT',
         body: JSON.stringify(payload)
     })
+    return result?.data ?? result
 }
 
 export const deleteRoom = async (id) => {

@@ -8,26 +8,29 @@ export const listNotifications = async ({ type, sortBy, sortOrder, limit = 100, 
     params.set('limit', String(limit))
     params.set('offset', String(offset))
 
-    const data = await apiRequest(`/api/notifications?${params.toString()}`)
-    return Array.isArray(data) ? data : []
+    const result = await apiRequest(`/api/notifications?${params.toString()}`)
+    return Array.isArray(result?.data) ? result.data : []
 }
 
 export const getNotification = async (id) => {
-    return await apiRequest(`/api/notifications/${id}`)
+    const result = await apiRequest(`/api/notifications/${id}`)
+    return result?.data ?? null
 }
 
 export const createNotification = async (payload) => {
-    return await apiRequest('/api/notifications', {
+    const result = await apiRequest('/api/notifications', {
         method: 'POST',
         body: JSON.stringify(payload)
     })
+    return result?.data ?? result
 }
 
 export const updateNotification = async (id, payload) => {
-    return await apiRequest(`/api/notifications/${id}`, {
+    const result = await apiRequest(`/api/notifications/${id}`, {
         method: 'PUT',
         body: JSON.stringify(payload)
     })
+    return result?.data ?? result
 }
 
 export const deleteNotification = async (id) => {
@@ -36,20 +39,22 @@ export const deleteNotification = async (id) => {
 }
 
 export const markAsRead = async (notificationId, userId) => {
-    return await apiRequest(`/api/notifications/${notificationId}/read`, {
+    const result = await apiRequest(`/api/notifications/${notificationId}/read`, {
         method: 'POST',
         body: JSON.stringify({ userId })
     })
+    return result?.data ?? result
 }
 
 export const getReadStatus = async (ids, userId) => {
-    return await apiRequest('/api/notifications/read-status', {
+    const result = await apiRequest('/api/notifications/read-status', {
         method: 'POST',
         body: JSON.stringify({ ids, userId })
     })
+    return result?.data ?? result
 }
 
 export const getUnreadCount = async (userId) => {
-    const data = await apiRequest(`/api/notifications/unread/count?userId=${userId}`)
-    return data?.count || 0
+    const result = await apiRequest(`/api/notifications/unread/count?userId=${userId}`)
+    return result?.data?.count || result?.count || 0
 }

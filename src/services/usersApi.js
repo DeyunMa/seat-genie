@@ -9,26 +9,29 @@ export const listUsers = async ({ role, q, sortBy, sortOrder, limit = 100, offse
     params.set('limit', String(limit))
     params.set('offset', String(offset))
 
-    const data = await apiRequest(`/api/users?${params.toString()}`)
-    return Array.isArray(data) ? data : []
+    const result = await apiRequest(`/api/users?${params.toString()}`)
+    return Array.isArray(result?.data) ? result.data : []
 }
 
 export const getUser = async (id) => {
-    return await apiRequest(`/api/users/${id}`)
+    const result = await apiRequest(`/api/users/${id}`)
+    return result?.data ?? null
 }
 
 export const createUser = async (payload) => {
-    return await apiRequest('/api/users', {
+    const result = await apiRequest('/api/users', {
         method: 'POST',
         body: JSON.stringify(payload)
     })
+    return result?.data ?? result
 }
 
 export const updateUser = async (id, payload) => {
-    return await apiRequest(`/api/users/${id}`, {
+    const result = await apiRequest(`/api/users/${id}`, {
         method: 'PUT',
         body: JSON.stringify(payload)
     })
+    return result?.data ?? result
 }
 
 export const deleteUser = async (id) => {

@@ -1,6 +1,6 @@
 import { apiRequest } from './apiClient'
 
-export const listMembers = async ({ q, sortBy, sortOrder, limit = 200, offset = 0 } = {}) => {
+export const listMembers = async ({ q, sortBy, sortOrder, limit = 100, offset = 0 } = {}) => {
     const params = new URLSearchParams()
     if (q) params.set('q', q)
     if (sortBy) params.set('sortBy', sortBy)
@@ -8,14 +8,14 @@ export const listMembers = async ({ q, sortBy, sortOrder, limit = 200, offset = 
     params.set('limit', String(limit))
     params.set('offset', String(offset))
 
-    const data = await apiRequest(`/api/members?${params.toString()}`)
-    return Array.isArray(data) ? data : []
+    const result = await apiRequest(`/api/members?${params.toString()}`)
+    return Array.isArray(result?.data) ? result.data : []
 }
 
 export const createMember = async (payload) => {
-    const data = await apiRequest('/api/members', {
+    const result = await apiRequest('/api/members', {
         method: 'POST',
         body: JSON.stringify(payload)
     })
-    return data
+    return result?.data ?? result
 }
