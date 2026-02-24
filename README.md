@@ -1,98 +1,155 @@
 # Seat Genie
 
-Seat Genie 是一个完整的图书馆/自习室综合管理系统，采用前后端分离架构，支持"座位预约 + 图书借阅 + 用户管理 + 通知公告 + 统计分析"的一体化管理流程。
+<p align="center">
+  <img src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white" alt="React 19">
+  <img src="https://img.shields.io/badge/Vite-7-646CFF?logo=vite&logoColor=white" alt="Vite 7">
+  <img src="https://img.shields.io/badge/Express-4-000000?logo=express&logoColor=white" alt="Express 4">
+  <img src="https://img.shields.io/badge/SQLite-3-003B57?logo=sqlite&logoColor=white" alt="SQLite 3">
+  <img src="https://img.shields.io/badge/status-已完成-brightgreen" alt="Status">
+</p>
+
+<p align="center">
+  <b>图书馆 / 自习室综合管理系统</b>
+</p>
 
 ---
 
-## ✅ 项目状态：已完成
+## 📖 项目简介
 
-这是一个**完整可用的前后端分离项目**，所有功能均已实现并通过 API 连接后端数据库。
+**Seat Genie** 是一个完整的图书馆/自习室综合管理系统，采用**前后端分离架构**，支持"座位预约 + 图书借阅 + 用户管理 + 通知公告 + 统计分析"的一体化管理流程。
 
-### 已完成功能
+### 核心特性
 
-| 模块 | 功能 | 状态 |
-|------|------|------|
-| 用户管理 | 管理员/馆员/学生三角色，增删改查、密码管理 | ✅ |
-| 自习室管理 | 房间信息管理、容量设置、开放时间 | ✅ |
-| 座位管理 | 座位分配、状态管理（可用/占用/维护）| ✅ |
-| 座位预约 | 按时段预约、实时冲突检测、取消预约 | ✅ |
-| 图书管理 | 图书录入、分类、状态管理 | ✅ |
-| 借还管理 | 借阅登记、归还处理、逾期检测 | ✅ |
-| 统计看板 | 资源利用率、趋势图表、数据可视化 | ✅ |
-| 通知公告 | 公告发布、已读状态追踪 | ✅ |
+- 🪑 **座位预约系统** - 支持按时段预约自习室座位，实时冲突检测
+- 📚 **图书借还管理** - 完整的图书借阅、归还、逾期追踪流程
+- 👥 **多角色权限** - 管理员、馆员、学生三级权限体系
+- 📊 **数据可视化** - 基于 Recharts 的统计图表与报表分析
+- 🔔 **通知公告** - 系统公告发布与已读状态追踪
+- 🔐 **安全可靠** - 基于角色的访问控制，数据校验与错误处理
+
+---
+
+## ✅ 项目状态：已完成并可用
+
+这是一个**完整可用的前后端分离项目**，所有核心功能均已实现并通过 RESTful API 连接后端数据库。
+
+### 功能清单
+
+| 模块 | 功能描述 | 状态 |
+|------|----------|------|
+| **用户管理** | 三角色体系（管理员/馆员/学生），增删改查、密码管理、状态控制 | ✅ 已完成 |
+| **自习室管理** | 房间信息管理、容量设置、开放时间配置 | ✅ 已完成 |
+| **座位管理** | 座位分配、状态管理（可用/占用/维护） | ✅ 已完成 |
+| **座位预约** | 按时段预约、实时冲突检测、取消预约 | ✅ 已完成 |
+| **图书管理** | 图书录入、ISBN 管理、作者关联、分类检索 | ✅ 已完成 |
+| **会员管理** | 会员注册、信息维护、借阅权限管理 | ✅ 已完成 |
+| **借还管理** | 借阅登记、归还处理、逾期检测与提醒 | ✅ 已完成 |
+| **统计看板** | 资源利用率、趋势图表、实时数据可视化 | ✅ 已完成 |
+| **统计报表** | 座位使用率、图书流通率、逾期统计 | ✅ 已完成 |
+| **通知公告** | 公告发布、分类管理、已读状态追踪 | ✅ 已完成 |
 
 ---
 
 ## 🚀 快速开始
 
+### 环境要求
+
+- **Node.js** >= 18.0.0
+- **npm** >= 9.0.0
+- **SQLite 3**（命令行工具，可选）
+
 ### 方式一：完整启动（推荐）
 
 ```bash
-# 1. 安装依赖
+# 1. 克隆项目并进入目录
+git clone <repository-url>
+cd seat-genie
+
+# 2. 安装前端依赖
 npm install
+
+# 3. 安装后端依赖
 cd backend && npm install && cd ..
 
-# 2. 初始化数据库（如尚未创建）
+# 4. 初始化数据库
 mkdir -p backend/data
 sqlite3 backend/data/library.db < backend/sql/schema.sql
 
-# 3. 创建管理员账号（如尚未创建）
+# 5. 创建初始管理员账号
 sqlite3 backend/data/library.db "INSERT INTO users (username, password, name, role, email, active_status) VALUES ('admin', 'admin123', '系统管理员', 'admin', 'admin@library.edu', 'Y');"
 
-# 4. 启动后端（终端1）
+# 6. 启动后端服务（终端 1）
 cd backend
 npm run dev
 
-# 5. 启动前端（终端2，在项目根目录）
+# 7. 启动前端应用（终端 2，在项目根目录）
+cd ..
 npm run dev
 
-# 6. 访问系统
-# 打开 http://localhost:5173
+# 8. 访问系统
+# 打开浏览器访问 http://localhost:5173
 # 使用 admin/admin123 登录
 ```
 
-### 方式二：使用演示数据
+### 方式二：使用演示数据（体验完整功能）
 
 ```bash
-# 导入完整演示数据（包含用户、自习室、座位、图书）
-sqlite3 backend/data/library.db < backend/sql/demo_data.sql
+# 导入完整的演示数据（包含用户、自习室、座位、图书、借阅记录等）
+sqlite3 backend/data/library.db < backend/sql/seed.sql
+```
+
+### 方式三：Docker 部署（可选）
+
+```bash
+# 构建镜像
+docker build -t seat-genie .
+
+# 运行容器
+docker run -p 3001:3001 -p 5173:5173 seat-genie
 ```
 
 ---
 
 ## 🔑 演示账号
 
-| 角色 | 用户名 | 密码 | 权限 |
-|------|--------|------|------|
-| 管理员 | `admin` | `admin123` | 全部功能 |
-| 馆员 | `staff1` | `staff123` | 图书/座位管理 |
-| 学生 | `student1` | `student123` | 预约/借阅/查看 |
+| 角色 | 用户名 | 密码 | 权限说明 |
+|------|--------|------|----------|
+| **管理员** | `admin` | `admin123` | 全部功能：用户管理、系统配置、数据统计 |
+| **馆员** | `staff1` | `staff123` | 图书/座位管理、借还登记、通知发布 |
+| **学生** | `student1` | `student123` | 座位预约、图书借阅、个人中心 |
+
+> 💡 **提示**: 导入演示数据后可使用上述账号直接登录体验。
 
 ---
 
 ## 🏗️ 技术架构
 
-### 前端
-| 技术 | 版本 | 用途 |
-|------|------|------|
-| React | 19 | UI框架 |
-| React Router | 7 | 路由管理 |
-| Vite | 7 | 构建工具 |
-| Zustand | 5 | 状态管理 |
-| Recharts | - | 数据可视化 |
+### 前端技术栈
 
-### 后端
 | 技术 | 版本 | 用途 |
 |------|------|------|
-| Express.js | 4.x | Web框架 |
-| better-sqlite3 | 9.x | 数据库驱动 |
-| Zod | 3.x | 数据校验 |
-| CORS/Helmet/Pino | - | 安全/日志 |
+| [React](https://react.dev/) | 19.2.0 | UI 框架，构建用户界面 |
+| [React Router](https://reactrouter.com/) | 7.12.0 | 路由管理，支持嵌套路由与导航守卫 |
+| [Vite](https://vitejs.dev/) | 7.2.4 | 构建工具，提供快速开发与热更新 |
+| [Zustand](https://zustand-demo.pmnd.rs/) | 5.0.9 | 状态管理，轻量级、无样板代码 |
+| [Recharts](https://recharts.org/) | 3.6.0 | 数据可视化，统计图表库 |
+
+### 后端技术栈
+
+| 技术 | 版本 | 用途 |
+|------|------|------|
+| [Express.js](https://expressjs.com/) | 4.19.2 | Web 框架，RESTful API 服务 |
+| [better-sqlite3](https://github.com/WiseLibs/better-sqlite3) | 9.4.3 | SQLite 驱动，同步高性能数据库操作 |
+| [Zod](https://zod.dev/) | 3.23.8 | 数据校验，运行时类型检查 |
+| [CORS](https://github.com/expressjs/cors) | 2.8.5 | 跨域资源共享支持 |
+| [Helmet](https://helmetjs.github.io/) | 7.1.0 | 安全中间件，HTTP 头保护 |
+| [Pino](https://getpino.io/) | 9.2.0 | 高性能日志记录 |
 
 ### 数据库
+
 - **类型**: SQLite 3
-- **文件**: `backend/data/library.db`
-- **特点**: 零配置、单文件、便携
+- **文件位置**: `backend/data/library.db`
+- **特点**: 零配置、单文件、便携、适合中小型应用
 
 ---
 
@@ -100,223 +157,415 @@ sqlite3 backend/data/library.db < backend/sql/demo_data.sql
 
 ```
 seat-genie/
-├── src/                          # 前端源代码
-│   ├── components/               # 公共组件
-│   │   ├── common/               # Modal、Toast
-│   │   └── layout/               # Header、Sidebar、MainLayout
-│   ├── pages/                    # 业务页面
-│   │   ├── BookManagement/       # 图书管理、借还管理
-│   │   ├── Dashboard/            # 统计看板
-│   │   ├── Login/                # 登录页
-│   │   ├── Notification/         # 通知公告
-│   │   ├── Reservation/          # 座位预约
-│   │   ├── SeatManagement/       # 自习室/座位管理
-│   │   ├── Settings/             # 设置
-│   │   ├── Statistics/           # 统计报表
-│   │   └── UserManagement/       # 用户管理
-│   ├── services/                 # API客户端
-│   │   ├── apiClient.js          # HTTP请求基类
-│   │   ├── booksApi.js           # 图书API
-│   │   ├── loansApi.js           # 借阅API
-│   │   ├── membersApi.js         # 会员API
-│   │   ├── usersApi.js           # 用户API
-│   │   ├── roomsApi.js           # 房间API
-│   │   ├── seatsApi.js           # 座位API
-│   │   ├── reservationsApi.js    # 预约API
-│   │   └── notificationsApi.js   # 通知API
-│   ├── stores/                   # 状态管理
-│   │   ├── authStore.js          # 认证状态
-│   │   └── dataStore.js          # 业务数据状态
-│   ├── App.jsx                   # 路由配置
-│   └── main.jsx                  # 应用入口
-├── backend/                      # 后端服务
+├── src/                              # 前端源代码
+│   ├── components/                   # 公共组件
+│   │   ├── common/                   # 通用组件
+│   │   │   ├── Modal.jsx             # 模态框组件
+│   │   │   ├── Modal.css
+│   │   │   ├── Toast.jsx             # 消息提示组件
+│   │   │   └── Toast.css
+│   │   └── layout/                   # 布局组件
+│   │       ├── Header.jsx            # 顶部导航
+│   │       ├── Header.css
+│   │       ├── Sidebar.jsx           # 侧边栏菜单
+│   │       ├── Sidebar.css
+│   │       ├── MainLayout.jsx        # 主布局容器
+│   │       └── MainLayout.css
+│   ├── pages/                        # 业务页面（按模块组织）
+│   │   ├── Login/                    # 登录页
+│   │   ├── Dashboard/                # 统计看板首页
+│   │   ├── UserManagement/           # 用户管理
+│   │   │   ├── UserList.jsx          # 用户列表
+│   │   │   └── RoleManagement.jsx    # 角色管理
+│   │   ├── SeatManagement/           # 自习室/座位管理
+│   │   │   ├── RoomManagement.jsx    # 自习室管理
+│   │   │   └── SeatList.jsx          # 座位列表
+│   │   ├── BookManagement/           # 图书/借阅管理
+│   │   │   ├── BookList.jsx          # 图书列表
+│   │   │   ├── BorrowManagement.jsx  # 借还登记
+│   │   │   └── MyBorrowings.jsx      # 我的借阅
+│   │   ├── Reservation/              # 座位预约
+│   │   │   ├── SeatReservation.jsx   # 座位预约页
+│   │   │   └── MyReservations.jsx    # 我的预约
+│   │   ├── Notification/             # 通知公告
+│   │   ├── Statistics/               # 统计报表
+│   │   └── Settings/                 # 系统设置
+│   ├── services/                     # API 服务层
+│   │   ├── apiClient.js              # HTTP 请求基类
+│   │   ├── usersApi.js               # 用户 API
+│   │   ├── roomsApi.js               # 自习室 API
+│   │   ├── seatsApi.js               # 座位 API
+│   │   ├── reservationsApi.js        # 预约 API
+│   │   ├── booksApi.js               # 图书 API
+│   │   ├── loansApi.js               # 借阅 API
+│   │   ├── membersApi.js             # 会员 API
+│   │   └── notificationsApi.js       # 通知 API
+│   ├── stores/                       # 状态管理（Zustand）
+│   │   ├── authStore.js              # 认证状态
+│   │   └── dataStore.js              # 业务数据状态
+│   ├── App.jsx                       # 路由配置与权限控制
+│   ├── App.css
+│   ├── main.jsx                      # 应用入口
+│   └── index.css                     # 全局样式
+├── backend/                          # 后端服务
 │   ├── src/
-│   │   ├── config/               # 环境配置
-│   │   ├── db/                   # 数据库连接
-│   │   ├── middleware/           # 中间件
-│   │   ├── routes/               # API路由（10个模块）
-│   │   │   ├── users.js
-│   │   │   ├── rooms.js
-│   │   │   ├── seats.js
-│   │   │   ├── reservations.js
-│   │   │   ├── notifications.js
-│   │   │   ├── books.js
-│   │   │   ├── authors.js
-│   │   │   ├── members.js
-│   │   │   ├── loans.js
-│   │   │   └── reports.js
-│   │   ├── services/             # 业务逻辑层
-│   │   ├── utils/                # 工具函数
-│   │   ├── app.js                # Express应用
-│   │   └── index.js              # 服务入口
-│   ├── sql/
-│   │   ├── schema.sql            # 数据库表结构
-│   │   └── demo_data.sql         # 演示数据
-│   └── data/
-│       └── library.db            # SQLite数据库文件
-├── public/                       # 静态资源
-├── index.html
-├── vite.config.js
+│   │   ├── config/                   # 环境配置
+│   │   │   └── env.js
+│   │   ├── db/                       # 数据库连接
+│   │   │   └── index.js
+│   │   ├── middleware/               # 中间件
+│   │   │   ├── errorHandler.js       # 错误处理
+│   │   │   └── validate.js           # 请求验证
+│   │   ├── routes/                   # API 路由（10 个模块）
+│   │   │   ├── health.js             # 健康检查
+│   │   │   ├── users.js              # 用户管理
+│   │   │   ├── rooms.js              # 自习室管理
+│   │   │   ├── seats.js              # 座位管理
+│   │   │   ├── reservations.js       # 预约管理
+│   │   │   ├── notifications.js      # 通知管理
+│   │   │   ├── books.js              # 图书管理
+│   │   │   ├── authors.js            # 作者管理
+│   │   │   ├── members.js            # 会员管理
+│   │   │   ├── loans.js              # 借阅管理
+│   │   │   └── reports.js            # 报表统计
+│   │   ├── services/                 # 业务逻辑层
+│   │   ├── utils/                    # 工具函数
+│   │   ├── app.js                    # Express 应用配置
+│   │   ├── index.js                  # 服务入口
+│   │   └── logger.js                 # 日志配置
+│   ├── sql/                          # SQL 脚本
+│   │   ├── schema.sql                # 数据库表结构
+│   │   └── seed.sql                  # 种子数据
+│   ├── data/                         # 数据目录
+│   │   └── library.db                # SQLite 数据库文件
+│   └── tests/                        # 测试文件
+├── public/                           # 静态资源
+├── index.html                        # 前端入口 HTML
+├── vite.config.js                    # Vite 配置
+├── eslint.config.js                  # ESLint 配置
 └── package.json
 ```
 
 ---
 
-## 🔌 API 接口
+## 🔌 API 接口文档
+
+### 基础信息
+
+- **基础 URL**: `http://localhost:3001`
+- **数据格式**: JSON
+- **字符编码**: UTF-8
 
 ### 核心端点
 
-| 资源 | 端点 | 说明 |
+#### 系统
+| 方法 | 端点 | 说明 |
 |------|------|------|
-| 健康检查 | `GET /health` | 服务状态 |
-| 用户 | `GET/POST /api/users` | 用户列表/创建 |
-| 用户 | `GET/PUT/DELETE /api/users/:id` | 用户详情/更新/删除 |
-| 房间 | `GET/POST /api/rooms` | 房间列表/创建 |
-| 房间 | `GET/PUT/DELETE /api/rooms/:id` | 房间详情/更新/删除 |
-| 座位 | `GET/POST /api/seats` | 座位列表/创建 |
-| 座位 | `GET/PUT/DELETE /api/seats/:id` | 座位详情/更新/删除 |
-| 预约 | `GET/POST /api/reservations` | 预约列表/创建 |
-| 预约 | `POST /api/reservations/:id/cancel` | 取消预约 |
-| 通知 | `GET/POST /api/notifications` | 通知列表/创建 |
-| 图书 | `GET/POST /api/books` | 图书列表/创建 |
-| 借阅 | `GET/POST /api/loans` | 借阅列表/创建 |
-| 报表 | `GET /api/reports/overdue-loans` | 逾期统计 |
+| GET | `/health` | 健康检查，返回服务状态 |
+
+#### 用户管理
+| 方法 | 端点 | 说明 |
+|------|------|------|
+| GET | `/api/users` | 获取用户列表（支持分页、搜索） |
+| POST | `/api/users` | 创建新用户 |
+| GET | `/api/users/:id` | 获取用户详情 |
+| PUT | `/api/users/:id` | 更新用户信息 |
+| DELETE | `/api/users/:id` | 删除用户 |
+
+#### 自习室与座位
+| 方法 | 端点 | 说明 |
+|------|------|------|
+| GET | `/api/rooms` | 获取自习室列表 |
+| POST | `/api/rooms` | 创建自习室 |
+| GET | `/api/rooms/:id` | 获取自习室详情 |
+| GET | `/api/seats` | 获取座位列表（可按房间筛选） |
+| POST | `/api/seats` | 创建座位 |
+| PUT | `/api/seats/:id` | 更新座位信息/状态 |
+
+#### 座位预约
+| 方法 | 端点 | 说明 |
+|------|------|------|
+| GET | `/api/reservations` | 获取预约列表 |
+| POST | `/api/reservations` | 创建预约（自动冲突检测） |
+| POST | `/api/reservations/:id/cancel` | 取消预约 |
+
+#### 图书与借阅
+| 方法 | 端点 | 说明 |
+|------|------|------|
+| GET | `/api/books` | 获取图书列表（支持搜索、筛选） |
+| POST | `/api/books` | 录入新图书 |
+| GET | `/api/loans` | 获取借阅记录 |
+| POST | `/api/loans` | 登记借阅 |
+| POST | `/api/loans/:id/return` | 归还图书 |
+
+#### 通知公告
+| 方法 | 端点 | 说明 |
+|------|------|------|
+| GET | `/api/notifications` | 获取通知列表 |
+| POST | `/api/notifications` | 发布通知 |
+| POST | `/api/notifications/:id/read` | 标记已读 |
+
+#### 统计报表
+| 方法 | 端点 | 说明 |
+|------|------|------|
+| GET | `/api/reports/seat-usage` | 座位使用率报表 |
+| GET | `/api/reports/book-circulation` | 图书流通率报表 |
+| GET | `/api/reports/overdue-loans` | 逾期借阅统计 |
 
 ### 通用查询参数
 
-- `limit` / `offset` - 分页（默认25，最大100）
-- `sortBy` / `sortOrder` - 排序（`asc`/`desc`）
-- `q` - 关键词搜索
+所有列表接口支持以下参数：
+
+| 参数 | 类型 | 说明 | 默认值 |
+|------|------|------|--------|
+| `limit` | number | 每页数量 | 25 |
+| `offset` | number | 偏移量 | 0 |
+| `sortBy` | string | 排序字段 | id |
+| `sortOrder` | string | 排序方向（`asc`/`desc`） | asc |
+| `q` | string | 关键词搜索 | - |
+
+### 响应格式
+
+```json
+{
+  "success": true,
+  "data": { ... },
+  "meta": {
+    "total": 100,
+    "limit": 25,
+    "offset": 0
+  }
+}
+```
 
 ---
 
 ## 🔐 权限矩阵
 
-| 功能 | 管理员 | 馆员 | 学生 |
-|------|--------|------|------|
-| 用户管理 | ✅ | ❌ | ❌ |
-| 自习室/座位管理 | ✅ | ✅ | ❌ |
-| 图书管理 | ✅ | ✅ | ❌ |
-| 借还登记 | ✅ | ✅ | ❌ |
-| 座位预约 | ❌ | ❌ | ✅ |
-| 我的预约/借阅 | ✅ | ✅ | ✅ |
-| 统计看板 | ✅ | ✅ | ❌ |
-| 通知公告 | ✅ | ✅ | ✅ |
+| 功能模块 | 管理员 | 馆员 | 学生 |
+|----------|--------|------|------|
+| **用户管理** | ✅ 完整权限 | ❌ 无权限 | ❌ 无权限 |
+| **自习室/座位管理** | ✅ 完整权限 | ✅ 完整权限 | ❌ 仅查看 |
+| **图书管理** | ✅ 完整权限 | ✅ 完整权限 | ❌ 仅查看 |
+| **借还登记** | ✅ 完整权限 | ✅ 完整权限 | ❌ 无权限 |
+| **座位预约** | ❌ 无权限 | ❌ 无权限 | ✅ 完整权限 |
+| **我的预约** | ✅ 查看自己 | ✅ 查看自己 | ✅ 完整权限 |
+| **我的借阅** | ✅ 查看自己 | ✅ 查看自己 | ✅ 完整权限 |
+| **统计看板** | ✅ 完整权限 | ✅ 完整权限 | ❌ 无权限 |
+| **通知公告** | ✅ 发布/查看 | ✅ 发布/查看 | ✅ 仅查看 |
 
 ---
 
-## 🗄️ 数据库
+## 🗄️ 数据库设计
 
 ### 表结构
 
 ```sql
-users               # 用户表
-rooms               # 自习室表
-seats               # 座位表
-reservations        # 预约表
-notifications       # 通知表
-notification_reads  # 通知已读表
-authors             # 作者表
-books               # 图书表
-members             # 会员表
-loans               # 借阅表
+users                 -- 用户表（管理员/馆员/学生）
+├── id, username, password, name, role, email, phone, active_status
+
+rooms                 -- 自习室表
+├── id, name, location, capacity, open_time, close_time, description, status
+
+seats                 -- 座位表
+├── id, room_id, seat_number, status (available/occupied/maintenance)
+
+reservations          -- 预约表
+├── id, seat_id, user_id, start_time, end_time, status, created_at
+
+notifications         -- 通知公告表
+├── id, title, content, type, priority, publisher_id, publish_time
+
+notification_reads    -- 通知已读状态表
+├── id, notification_id, user_id, read_time
+
+authors               -- 作者表
+├── id, name, bio, birth_date, nationality
+
+books                 -- 图书表
+├── id, isbn, title, author_id, category, publisher, publish_year, status
+
+members               -- 会员表
+├── id, user_id, membership_number, expiry_date, max_books, status
+
+loans                 -- 借阅记录表
+├── id, book_id, member_id, loan_date, due_date, return_date, status
+```
+
+### E-R 关系图
+
+```
+users (1) ────────< (N) reservations >──────── (N) seats
+   │                                              │
+   │                                              │
+   │ (1)                                    (N) rooms
+   │
+   └───────< (N) members >────────< (N) loans >──────── (N) books
+                                              │
+                                              │
+                                         (N) authors
 ```
 
 ### 数据库工具
 
 ```bash
-# 命令行访问
+# 命令行访问数据库
 sqlite3 backend/data/library.db
 
 # 常用命令
-.tables              # 查看所有表
-.schema users        # 查看表结构
-SELECT * FROM users; # 查询数据
-.quit                # 退出
+.tables                    # 查看所有表
+.schema users              # 查看表结构
+.schema --indent users     # 格式化查看表结构
+SELECT * FROM users;       # 查询数据
+.headers on                # 开启表头显示
+.mode column               # 列对齐显示
+.quit                      # 退出
 ```
 
-图形化工具推荐：[DB Browser for SQLite](https://sqlitebrowser.org/)
+**图形化工具推荐**: [DB Browser for SQLite](https://sqlitebrowser.org/)
 
 ---
 
 ## 🧪 测试
 
-### 后端测试
+### 后端单元测试
 
 ```bash
 cd backend
 npm test
 ```
 
-### API测试
+测试覆盖：
+- CRUD 错误场景处理
+- 列表查询参数验证
+- 报表统计准确性
+
+### API 接口测试示例
 
 ```bash
 # 健康检查
 curl http://localhost:3001/health
 
-# 获取用户列表
-curl http://localhost:3001/api/users
+# 获取用户列表（带分页）
+curl "http://localhost:3001/api/users?limit=10&offset=0"
 
 # 创建用户
 curl -X POST http://localhost:3001/api/users \
   -H "Content-Type: application/json" \
-  -d '{"username":"test","password":"123456","name":"测试","role":"student"}'
+  -d '{
+    "username": "testuser",
+    "password": "password123",
+    "name": "测试用户",
+    "role": "student",
+    "email": "test@example.edu"
+  }'
+
+# 获取图书列表（带搜索）
+curl "http://localhost:3001/api/books?q=JavaScript&limit=5"
 ```
 
 ---
 
-## 📦 部署
+## 📦 部署指南
 
 ### 开发环境
 
 ```bash
-# 前端
+# 前端开发服务器（热更新）
 npm run dev
 
-# 后端
+# 后端开发服务器（带自动重启）
 cd backend && npm run dev
 ```
 
 ### 生产构建
 
 ```bash
-# 构建前端
+# 1. 构建前端静态文件
 npm run build
+# 输出目录: dist/
 
-# 生产模式启动后端
+# 2. 生产模式启动后端
 cd backend
-npm start
+NODE_ENV=production npm start
+```
+
+### 环境变量
+
+后端支持以下环境变量（配置在 `backend/.env`）：
+
+```env
+PORT=3001                           # 服务端口
+NODE_ENV=development                # 运行环境
+DB_PATH=./data/library.db           # 数据库路径
+LOG_LEVEL=info                      # 日志级别
 ```
 
 ---
 
 ## 🛣️ 开发路线图
 
-- [x] 用户管理
+### 已实现 ✅
+
+- [x] 用户管理（三角色权限体系）
 - [x] 自习室/座位管理
-- [x] 座位预约系统
+- [x] 座位预约系统（含冲突检测）
 - [x] 图书管理系统
-- [x] 借还管理系统
-- [x] 统计看板
-- [x] 通知公告
-- [ ] JWT认证（当前为Session模拟）
-- [ ] 座位地图可视化
-- [ ] 消息推送（邮件/短信）
-- [ ] 多校区支持
+- [x] 会员管理系统
+- [x] 借还管理系统（含逾期追踪）
+- [x] 统计看板与报表
+- [x] 通知公告系统
+- [x] RESTful API 完整实现
+- [x] 前后端联调测试
+
+### 规划中 📋
+
+- [ ] JWT 认证（当前为 Session 模拟）
+- [ ] 座位地图可视化（拖拽选座）
+- [ ] 消息推送（邮件/短信提醒）
+- [ ] 多校区/多馆支持
 - [ ] 数据库迁移（MySQL/PostgreSQL）
+- [ ] 移动端适配/PWA
+- [ ] 预约提醒定时任务
+- [ ] 数据导入/导出（Excel）
 
 ---
 
-## 📝 License
+## 🤝 贡献指南
 
-本项目仅用于学习与演示用途，如需商用请自行完善与审查相关合规要求。
+欢迎提交 Issue 和 Pull Request！
+
+### 提交规范
+
+- **Bug 报告**: 使用 [Bug] 前缀，描述复现步骤
+- **功能建议**: 使用 [Feature] 前缀，说明使用场景
+- **代码提交**: 遵循 [Conventional Commits](https://www.conventionalcommits.org/)
+
+### 开发流程
+
+1. Fork 本仓库
+2. 创建特性分支 (`git checkout -b feature/amazing-feature`)
+3. 提交更改 (`git commit -m 'Add some amazing feature'`)
+4. 推送分支 (`git push origin feature/amazing-feature`)
+5. 创建 Pull Request
 
 ---
 
-## 🤝 贡献
+## 📝 许可证
 
-欢迎提交 Issue 和 PR！
+本项目仅用于**学习与演示用途**，如需商用请自行完善与审查相关合规要求。
 
 ---
 
-**项目状态**: ✅ 已完成并可用 | **最后更新**: 2026-02-22
+## 📧 联系方式
+
+如有问题或建议，欢迎通过以下方式联系：
+
+- 提交 [Issue](../../issues)
+- 发送邮件至项目维护者
+
+---
+
+<p align="center">
+  <b>项目状态</b>: ✅ 已完成并可用 &nbsp;|&nbsp; <b>最后更新</b>: 2026-02-24
+</p>
