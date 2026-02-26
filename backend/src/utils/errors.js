@@ -31,10 +31,40 @@ const buildErrorPayload = ({ message, code, details }) => {
   return payload;
 };
 
+const sendInvalidId = (res, resourceName) => {
+  return res.status(400).json(
+    buildErrorPayload({
+      message: `Invalid ${resourceName} id`,
+      code: "INVALID_ID",
+    })
+  );
+};
+
+const sendNotFound = (res, resourceName) => {
+  return res.status(404).json(
+    buildErrorPayload({
+      message: `${resourceName} not found`,
+      code: "NOT_FOUND",
+    })
+  );
+};
+
+const sendConflict = (res, message) => {
+  return res.status(409).json(
+    buildErrorPayload({
+      message,
+      code: "CONFLICT",
+    })
+  );
+};
+
 module.exports = {
   AppError,
   NotFoundError,
   ConflictError,
   UnauthorizedError,
   buildErrorPayload,
+  sendInvalidId,
+  sendNotFound,
+  sendConflict,
 };

@@ -10,6 +10,13 @@ const dbFile = path.join(
 process.env.DATABASE_FILE = dbFile;
 process.env.LOG_LEVEL = "silent";
 
+jest.mock("../src/middleware/auth", () => ({
+  authenticate: (req, res, next) => {
+    req.user = { id: 1, role: "admin" };
+    next();
+  },
+}));
+
 const { createApp } = require("../src/app");
 const { getDb, closeDb } = require("../src/db");
 
@@ -50,6 +57,7 @@ const createBook = async ({ title, isbn, authorId, status }) => {
     title,
     isbn,
     authorId,
+    author: "Test Author",
     publishedYear: 2022,
     status,
   });
