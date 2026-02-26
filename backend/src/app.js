@@ -27,10 +27,15 @@ const createApp = () => {
 
   // Public routes (no auth required)
   app.use("/health", healthRoutes);
-  app.post("/api/users/login", userRoutes);
 
-  // Apply JWT authentication to all other API routes
-  app.use("/api", authenticate);
+  // Apply JWT authentication to all API routes, excluding public endpoints
+  app.use("/api", (req, res, next) => {
+    // Skip auth for login
+    if (req.path === "/users/login" && req.method === "POST") {
+      return next();
+    }
+    authenticate(req, res, next);
+  });
 
   // Protected routes
   app.use("/api/users", userRoutes);

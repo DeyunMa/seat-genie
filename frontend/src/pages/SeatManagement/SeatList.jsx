@@ -17,7 +17,7 @@ function SeatList() {
 
     useEffect(() => {
         loadAllData()
-    }, [])
+    }, [loadAllData])
 
     const activeRooms = rooms.filter(r => r.activeStatus === 'Y')
     const activeSeats = seats.filter(s => s.activeStatus === 'Y')

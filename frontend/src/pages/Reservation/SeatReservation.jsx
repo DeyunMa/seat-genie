@@ -17,7 +17,7 @@ function SeatReservation() {
 
     useEffect(() => {
         loadAllData()
-    }, [])
+    }, [loadAllData])
 
     const activeRooms = rooms.filter(r => r.activeStatus === 'Y')
     const roomSeats = selectedRoom

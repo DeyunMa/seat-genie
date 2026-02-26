@@ -15,7 +15,7 @@ function BorrowManagement() {
 
     useEffect(() => {
         loadAllData()
-    }, [])
+    }, [loadAllData])
 
     const activeUsers = users.filter(u => u.activeStatus === 'Y' && u.role === 'student')
     const availableBooks = books.filter(b => b.activeStatus === 'Y' && b.status === 'available')
@@ -60,7 +60,6 @@ function BorrowManagement() {
     }
 
     const handleReturn = async (borrowingId) => {
-        const staffUser = users.find(u => u.role === 'staff' || u.role === 'admin')
         const result = await returnBook(borrowingId)
 
         if (result.success) {

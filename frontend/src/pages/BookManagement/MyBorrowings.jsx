@@ -10,13 +10,11 @@ function MyBorrowings() {
 
     useEffect(() => {
         loadAllData()
-    }, [])
+    }, [loadAllData])
 
     const myBorrowings = bookBorrowings.filter(b => b.userId === user?.id)
     const currentBorrowings = myBorrowings.filter(b => b.status === 'borrowed')
     const historyBorrowings = myBorrowings.filter(b => b.status === 'returned')
-
-    const today = new Date().toISOString().split('T')[0]
 
     const getBookInfo = (bookId, borrowing) => {
         return books.find(b => b.id === bookId) || {

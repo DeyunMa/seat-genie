@@ -14,7 +14,7 @@ function RoomManagement() {
 
     useEffect(() => {
         loadAllData()
-    }, [])
+    }, [loadAllData])
 
     const activeRooms = rooms.filter(r => r.activeStatus === 'Y')
 

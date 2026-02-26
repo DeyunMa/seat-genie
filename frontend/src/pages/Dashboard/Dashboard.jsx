@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useAuthStore } from '../../stores/authStore'
 import { useDataStore } from '../../stores/dataStore'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts'
@@ -8,15 +8,35 @@ const COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#10b981', '#f59e0b']
 
 function Dashboard() {
     const { user } = useAuthStore()
-    const { loadAllData, getStats, getWeeklyTrendData } = useDataStore()
-    const [stats, setStats] = useState(null)
-    const [weeklyData, setWeeklyData] = useState([])
+    const {
+        users,
+        seats,
+        books,
+        seatReservations,
+        bookBorrowings,
+        loadAllData,
+        getStats,
+        getWeeklyTrendData
+    } = useDataStore()
 
     useEffect(() => {
         loadAllData()
-        setStats(getStats())
-        setWeeklyData(getWeeklyTrendData())
     }, [])
+
+    const stats = useMemo(() => getStats(), [
+        users,
+        seats,
+        books,
+        seatReservations,
+        bookBorrowings,
+        getStats
+    ])
+
+    const weeklyData = useMemo(() => getWeeklyTrendData(), [
+        seatReservations,
+        bookBorrowings,
+        getWeeklyTrendData
+    ])
 
     if (!stats) {
         return <div className="loading">加载中...</div>

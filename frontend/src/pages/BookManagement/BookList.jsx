@@ -30,7 +30,7 @@ function BookList() {
 
     useEffect(() => {
         loadBooks()
-    }, [])
+    }, [loadBooks])
 
     const activeBooks = books.filter(b => b.activeStatus === 'Y')
 
