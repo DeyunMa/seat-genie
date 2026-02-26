@@ -3,6 +3,7 @@ const cors = require("cors");
 const helmet = require("helmet");
 const pinoHttp = require("pino-http");
 const { logger } = require("./logger");
+const { authenticate } = require("./middleware/auth");
 const healthRoutes = require("./routes/health");
 const userRoutes = require("./routes/users");
 const roomRoutes = require("./routes/rooms");
@@ -24,22 +25,19 @@ const createApp = () => {
   app.use(express.json({ limit: "1mb" }));
   app.use(pinoHttp({ logger }));
 
+  // Public routes (no auth required)
   app.use("/health", healthRoutes);
-  
-  // User & Auth
+  app.post("/api/users/login", userRoutes);
+
+  // Apply JWT authentication to all other API routes
+  app.use("/api", authenticate);
+
+  // Protected routes
   app.use("/api/users", userRoutes);
-  
-  // Room & Seat Management
   app.use("/api/rooms", roomRoutes);
   app.use("/api/seats", seatRoutes);
-  
-  // Reservation
   app.use("/api/reservations", reservationRoutes);
-  
-  // Notifications
   app.use("/api/notifications", notificationRoutes);
-  
-  // Library Management (existing)
   app.use("/api/books", bookRoutes);
   app.use("/api/authors", authorRoutes);
   app.use("/api/members", memberRoutes);

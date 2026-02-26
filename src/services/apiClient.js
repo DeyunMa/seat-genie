@@ -1,3 +1,5 @@
+import { useAuthStore } from '../stores/authStore'
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001'
 
 const buildUrl = (path) => {
@@ -20,12 +22,24 @@ const parseJson = async (response) => {
 }
 
 export const apiRequest = async (path, options = {}) => {
+    // Get token from store (avoid circular dependency by reading from localStorage directly as fallback)
+    let token = null
+    try {
+        const authState = useAuthStore.getState()
+        token = authState.token
+    } catch {
+        // Store not yet initialized; token remains null
+    }
+
+    const headers = {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(options.headers || {})
+    }
+
     const response = await fetch(buildUrl(path), {
-        headers: {
-            'Content-Type': 'application/json',
-            ...(options.headers || {})
-        },
-        ...options
+        ...options,
+        headers
     })
 
     if (!response.ok) {

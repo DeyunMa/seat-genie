@@ -1,20 +1,23 @@
 const { getDb } = require("../db");
+const bcrypt = require("bcryptjs");
+
+const BCRYPT_ROUNDS = 10;
 
 const mapUser = (row) =>
   row
     ? {
-        id: row.id,
-        username: row.username,
-        password: row.password,
-        name: row.name,
-        role: row.role,
-        email: row.email,
-        phone: row.phone,
-        studentId: row.student_id,
-        activeStatus: row.active_status,
-        createdAt: row.created_at,
-        updatedAt: row.updated_at,
-      }
+      id: row.id,
+      username: row.username,
+      password: row.password,
+      name: row.name,
+      role: row.role,
+      email: row.email,
+      phone: row.phone,
+      studentId: row.student_id,
+      activeStatus: row.active_status,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+    }
     : null;
 
 const listUsers = ({ role, q, sortBy, sortOrder, limit, offset }) => {
@@ -76,6 +79,7 @@ const getUserByUsername = (username) => {
 const createUser = (payload) => {
   const db = getDb();
   const now = new Date().toISOString();
+  const hashedPassword = bcrypt.hashSync(payload.password, BCRYPT_ROUNDS);
 
   const result = db
     .prepare(
@@ -84,7 +88,7 @@ const createUser = (payload) => {
     )
     .run(
       payload.username,
-      payload.password,
+      hashedPassword,
       payload.name,
       payload.role,
       payload.email || null,
@@ -110,7 +114,7 @@ const updateUser = (id, payload) => {
   }
   if (payload.password !== undefined) {
     fields.push("password = ?");
-    params.push(payload.password);
+    params.push(bcrypt.hashSync(payload.password, BCRYPT_ROUNDS));
   }
   if (payload.name !== undefined) {
     fields.push("name = ?");

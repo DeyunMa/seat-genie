@@ -1,38 +1,40 @@
+class AppError extends Error {
+  constructor(message, statusCode = 500, code = "INTERNAL_ERROR") {
+    super(message);
+    this.statusCode = statusCode;
+    this.code = code;
+  }
+}
+
+class NotFoundError extends AppError {
+  constructor(message = "Not found") {
+    super(message, 404, "NOT_FOUND");
+  }
+}
+
+class ConflictError extends AppError {
+  constructor(message = "Conflict") {
+    super(message, 409, "CONFLICT");
+  }
+}
+
+class UnauthorizedError extends AppError {
+  constructor(message = "Unauthorized") {
+    super(message, 401, "UNAUTHORIZED");
+  }
+}
+
 const buildErrorPayload = ({ message, code, details }) => {
   const payload = { error: message };
-  if (code) {
-    payload.code = code;
-  }
-  if (details !== undefined) {
-    payload.details = details;
-  }
+  if (code) payload.code = code;
+  if (details !== undefined) payload.details = details;
   return payload;
 };
 
-const sendError = (res, status, message, code, details) =>
-  res.status(status).json(buildErrorPayload({ message, code, details }));
-
-const sendValidationError = (res, message, details) =>
-  sendError(res, 400, message, "VALIDATION_ERROR", details);
-
-const sendInvalidId = (res, resource) =>
-  sendError(res, 400, `Invalid ${resource} id`, "INVALID_ID");
-
-const sendNotFound = (res, resource) =>
-  sendError(res, 404, `${resource} not found`, "NOT_FOUND");
-
-const sendConflict = (res, message) =>
-  sendError(res, 409, message, "CONFLICT");
-
-const sendInternalServerError = (res) =>
-  sendError(res, 500, "Internal server error", "INTERNAL_SERVER_ERROR");
-
 module.exports = {
+  AppError,
+  NotFoundError,
+  ConflictError,
+  UnauthorizedError,
   buildErrorPayload,
-  sendError,
-  sendValidationError,
-  sendInvalidId,
-  sendNotFound,
-  sendConflict,
-  sendInternalServerError,
 };

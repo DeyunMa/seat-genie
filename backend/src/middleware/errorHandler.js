@@ -1,9 +1,6 @@
 const { ZodError } = require("zod");
 const { logger } = require("../logger");
-const {
-  sendInternalServerError,
-  sendValidationError,
-} = require("../utils/errors");
+const { AppError, buildErrorPayload } = require("../utils/errors");
 
 const errorHandler = (err, req, res, next) => {
   if (res.headersSent) {
@@ -11,11 +8,25 @@ const errorHandler = (err, req, res, next) => {
   }
 
   if (err instanceof ZodError) {
-    return sendValidationError(res, "Validation failed", err.flatten());
+    return res.status(400).json(buildErrorPayload({
+      message: "Validation failed",
+      code: "VALIDATION_ERROR",
+      details: err.flatten(),
+    }));
+  }
+
+  if (err instanceof AppError) {
+    return res.status(err.statusCode).json(buildErrorPayload({
+      message: err.message,
+      code: err.code,
+    }));
   }
 
   logger.error({ err }, "Unhandled error");
-  return sendInternalServerError(res);
+  return res.status(500).json(buildErrorPayload({
+    message: "Internal server error",
+    code: "INTERNAL_ERROR",
+  }));
 };
 
 module.exports = { errorHandler };

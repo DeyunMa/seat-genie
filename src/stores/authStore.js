@@ -1,26 +1,30 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { loginUser, updateUser } from '../services/usersApi'
+import { apiRequest } from '../services/apiClient'
 
 export const useAuthStore = create(
     persist(
         (set, get) => ({
             user: null,
+            token: null,
             isAuthenticated: false,
 
             login: async (username, password) => {
                 try {
-                    const user = await loginUser(username, password)
-                    const { password: _, ...userWithoutPassword } = user
-                    set({ user: userWithoutPassword, isAuthenticated: true })
-                    return { success: true, user: userWithoutPassword }
+                    const result = await apiRequest('/api/users/login', {
+                        method: 'POST',
+                        body: JSON.stringify({ username, password })
+                    })
+                    const { token, user } = result
+                    set({ user, token, isAuthenticated: true })
+                    return { success: true, user }
                 } catch (error) {
                     return { success: false, error: error.message || '用户名或密码错误' }
                 }
             },
 
             logout: () => {
-                set({ user: null, isAuthenticated: false })
+                set({ user: null, token: null, isAuthenticated: false })
             },
 
             updateUserInfo: (updates) => {
@@ -38,14 +42,20 @@ export const useAuthStore = create(
 
                 // Verify old password by attempting login
                 try {
-                    await loginUser(currentUser.username, oldPassword)
+                    await apiRequest('/api/users/login', {
+                        method: 'POST',
+                        body: JSON.stringify({ username: currentUser.username, password: oldPassword })
+                    })
                 } catch (error) {
                     return { success: false, error: '原密码错误' }
                 }
 
                 // Update password
                 try {
-                    await updateUser(currentUser.id, { password: newPassword })
+                    await apiRequest(`/api/users/${currentUser.id}`, {
+                        method: 'PUT',
+                        body: JSON.stringify({ password: newPassword })
+                    })
                     return { success: true }
                 } catch (error) {
                     return { success: false, error: '密码修改失败' }
@@ -61,7 +71,11 @@ export const useAuthStore = create(
         }),
         {
             name: 'seat_genie_auth',
-            partialize: (state) => ({ user: state.user, isAuthenticated: state.isAuthenticated })
+            partialize: (state) => ({
+                user: state.user,
+                token: state.token,
+                isAuthenticated: state.isAuthenticated
+            })
         }
     )
 )
