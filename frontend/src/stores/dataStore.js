@@ -4,9 +4,9 @@ import { listLoans, createLoan, updateLoan } from '../services/loansApi'
 import { listMembers, createMember } from '../services/membersApi'
 import { listUsers, createUser, updateUser, deleteUser as deleteUserApi } from '../services/usersApi'
 import { listRooms, createRoom, updateRoom, deleteRoom as deleteRoomApi } from '../services/roomsApi'
-import { listSeats, createSeat, updateSeat, deleteSeat as deleteSeatApi, getSeatsByRoom as getSeatsByRoomApi } from '../services/seatsApi'
-import { listReservations, createReservation, updateReservation, cancelReservation as cancelReservationApi } from '../services/reservationsApi'
-import { listNotifications, createNotification, updateNotification, deleteNotification as deleteNotificationApi, markAsRead, getUnreadCount } from '../services/notificationsApi'
+import { listSeats, createSeat, updateSeat, deleteSeat as deleteSeatApi } from '../services/seatsApi'
+import { listReservations, createReservation, cancelReservation as cancelReservationApi } from '../services/reservationsApi'
+import { listNotifications, createNotification, updateNotification, deleteNotification as deleteNotificationApi, markAsRead, getUnreadCount, getReadStatus } from '../services/notificationsApi'
 
 const toDateOnly = (value) => {
     if (!value) return null
@@ -92,7 +92,7 @@ export const useDataStore = create((set, get) => ({
             if (notificationIds.length > 0) {
                 try {
                     readStatus = await getReadStatus(notificationIds, currentUser.id)
-                } catch (e) {
+                } catch {
                     // ignore
                 }
             }
@@ -213,17 +213,17 @@ export const useDataStore = create((set, get) => ({
     // BOOK OPERATIONS (from API)
     getActiveBooks: () => get().books.filter(b => b.activeStatus === 'Y'),
 
-    addBook: async (bookData) => {
+    addBook: async () => {
         // Books are managed through booksApi directly in components
         console.log('Use booksApi.createBook directly')
     },
 
-    updateBook: async (id, updates) => {
+    updateBook: async () => {
         // Books are managed through booksApi directly in components
         console.log('Use booksApi.updateBook directly')
     },
 
-    deleteBook: async (id) => {
+    deleteBook: async () => {
         // Books are managed through booksApi directly in components
         console.log('Use booksApi.deleteBook directly')
     },
@@ -430,5 +430,60 @@ export const useDataStore = create((set, get) => ({
         }
         
         return data
+    },
+
+    getMonthlyBorrowingTrend: () => {
+        const state = get()
+        const data = []
+
+        for (let i = 29; i >= 0; i--) {
+            const date = new Date()
+            date.setDate(date.getDate() - i)
+            const dateStr = date.toISOString().split('T')[0]
+
+            const borrowings = state.bookBorrowings.filter(b => b.borrowDate === dateStr).length
+            const returns = state.bookBorrowings.filter(b => b.returnDate === dateStr).length
+
+            if (i % 5 === 0) {
+                 data.push({ name: dateStr.slice(5), borrowings, returns })
+            } else {
+                 data.push({ name: '', borrowings, returns })
+            }
+        }
+        return data
+    },
+
+    getPopularBooks: () => {
+        const state = get()
+        const bookCounts = {}
+        state.bookBorrowings.forEach(b => {
+            if (b.bookTitle) {
+                bookCounts[b.bookTitle] = (bookCounts[b.bookTitle] || 0) + 1
+            }
+        })
+
+        return Object.entries(bookCounts)
+            .map(([name, borrowCount]) => ({ name, borrowCount }))
+            .sort((a, b) => b.borrowCount - a.borrowCount)
+            .slice(0, 10)
+    },
+
+    getTimeSlotDistribution: () => {
+        const state = get()
+        const slots = {}
+        for (let i = 8; i <= 22; i++) {
+            slots[`${String(i).padStart(2, '0')}:00`] = 0
+        }
+
+        state.seatReservations.forEach(r => {
+             if (r.status === 'active' && r.start_time) {
+                 const hour = r.start_time.split(':')[0] + ':00'
+                 if (slots[hour] !== undefined) {
+                     slots[hour]++
+                 }
+             }
+        })
+
+        return Object.entries(slots).map(([time, count]) => ({ time, count }))
     }
 }))

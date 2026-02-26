@@ -16,7 +16,7 @@ function MyReservations() {
 
     useEffect(() => {
         loadAllData()
-    }, [])
+    }, [loadAllData])
 
     const myReservations = seatReservations.filter(r => r.userId === user?.id)
     const today = new Date().toISOString().split('T')[0]

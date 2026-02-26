@@ -46,7 +46,7 @@ export const useAuthStore = create(
                         method: 'POST',
                         body: JSON.stringify({ username: currentUser.username, password: oldPassword })
                     })
-                } catch (error) {
+                } catch {
                     return { success: false, error: '原密码错误' }
                 }
 
@@ -57,7 +57,7 @@ export const useAuthStore = create(
                         body: JSON.stringify({ password: newPassword })
                     })
                     return { success: true }
-                } catch (error) {
+                } catch {
                     return { success: false, error: '密码修改失败' }
                 }
             },

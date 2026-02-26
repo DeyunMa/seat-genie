@@ -11,7 +11,7 @@ function NotificationCenter() {
 
     useEffect(() => {
         loadAllData()
-    }, [])
+    }, [loadAllData])
 
     const today = new Date().toISOString().split('T')[0]
     const isStaffOrAdmin = user?.role === 'staff' || user?.role === 'admin'

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useDataStore } from '../../stores/dataStore'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts'
 import '../Dashboard/Dashboard.css'
@@ -9,14 +9,13 @@ const COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#10b981', '#f59e0b', '#3b82f6'
 function BookStatistics() {
     const { books, bookBorrowings, loadAllData, getMonthlyBorrowingTrend, getPopularBooks } = useDataStore()
     const [dateRange, setDateRange] = useState('month')
-    const [monthlyTrend, setMonthlyTrend] = useState([])
-    const [popularBooks, setPopularBooks] = useState([])
 
     useEffect(() => {
         loadAllData()
-        setMonthlyTrend(getMonthlyBorrowingTrend())
-        setPopularBooks(getPopularBooks())
     }, [])
+
+    const monthlyTrend = useMemo(() => getMonthlyBorrowingTrend(), [bookBorrowings, getMonthlyBorrowingTrend])
+    const popularBooks = useMemo(() => getPopularBooks(), [bookBorrowings, getPopularBooks])
 
     const activeBooks = books.filter(b => b.activeStatus === 'Y')
     const today = new Date().toISOString().split('T')[0]
@@ -38,14 +37,10 @@ function BookStatistics() {
     // Borrowing stats
     const activeBorrowings = bookBorrowings.filter(b => b.status === 'borrowed')
     const overdueBorrowings = activeBorrowings.filter(b => b.dueDate < today)
-    const returnedBorrowings = bookBorrowings.filter(b => b.status === 'returned')
 
     const totalBooks = activeBooks.length
     const borrowRate = totalBooks > 0
         ? Math.round((activeBorrowings.length / totalBooks) * 100)
-        : 0
-    const overdueRate = activeBorrowings.length > 0
-        ? Math.round((overdueBorrowings.length / activeBorrowings.length) * 100)
         : 0
 
     return (

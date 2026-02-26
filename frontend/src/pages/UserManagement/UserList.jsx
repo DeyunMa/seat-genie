@@ -17,7 +17,7 @@ function UserList() {
 
     useEffect(() => {
         loadAllData()
-    }, [])
+    }, [loadAllData])
 
     const activeUsers = users.filter(u => u.activeStatus === 'Y')
 

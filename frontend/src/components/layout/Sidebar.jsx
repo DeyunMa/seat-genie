@@ -1,4 +1,4 @@
-import { NavLink, useLocation } from 'react-router-dom'
+import { NavLink } from 'react-router-dom'
 import { useAuthStore } from '../../stores/authStore'
 import './Sidebar.css'
 
@@ -120,7 +120,6 @@ const roleLabels = {
 
 function Sidebar() {
     const { user } = useAuthStore()
-    const location = useLocation()
 
     const menus = menuConfig[user?.role] || menuConfig.student
 
