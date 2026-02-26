@@ -10,6 +10,13 @@ const dbFile = path.join(
 process.env.DATABASE_FILE = dbFile;
 process.env.LOG_LEVEL = "silent";
 
+jest.mock("../src/middleware/auth", () => ({
+  authenticate: (req, res, next) => {
+    req.user = { id: 1, role: "admin" };
+    next();
+  },
+}));
+
 const { createApp } = require("../src/app");
 const { getDb, closeDb } = require("../src/db");
 
@@ -32,6 +39,7 @@ const seedBooks = async () => {
   await request(app).post("/api/books").send({
     title: "Indexing the Stars",
     isbn: "9780000000001",
+    author: "Author One",
     publishedYear: 2020,
     status: "available",
   });
@@ -39,6 +47,7 @@ const seedBooks = async () => {
   await request(app).post("/api/books").send({
     title: "The Quiet Library",
     isbn: "9780000000002",
+    author: "Author Two",
     publishedYear: 2021,
     status: "available",
   });
@@ -46,6 +55,7 @@ const seedBooks = async () => {
   await request(app).post("/api/books").send({
     title: "Night Pages",
     isbn: "9780000000003",
+    author: "Author Three",
     publishedYear: 2019,
     status: "available",
   });
