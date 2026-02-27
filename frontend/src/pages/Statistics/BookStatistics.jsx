@@ -7,7 +7,7 @@ import './Statistics.css'
 const COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#10b981', '#f59e0b', '#3b82f6']
 
 function BookStatistics() {
-    const { books, bookBorrowings, loadAllData, getMonthlyBorrowingTrend, getPopularBooks } = useDataStore()
+    const { bookBorrowings, loadAllData, getMonthlyBorrowingTrend, getPopularBooks, getActiveBooks } = useDataStore()
     const [dateRange, setDateRange] = useState('month')
 
     useEffect(() => {
@@ -17,7 +17,7 @@ function BookStatistics() {
     const monthlyTrend = useMemo(() => getMonthlyBorrowingTrend(), [bookBorrowings, getMonthlyBorrowingTrend])
     const popularBooks = useMemo(() => getPopularBooks(), [bookBorrowings, getPopularBooks])
 
-    const activeBooks = books.filter(b => b.activeStatus === 'Y')
+    const activeBooks = getActiveBooks()
     const today = new Date().toISOString().split('T')[0]
 
     // Book status distribution

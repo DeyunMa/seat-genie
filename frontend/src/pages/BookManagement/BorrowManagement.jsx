@@ -6,7 +6,7 @@ import '../UserManagement/UserManagement.css'
 import './BookManagement.css'
 
 function BorrowManagement() {
-    const { books, users, bookBorrowings, loadAllData, createBorrowing, returnBook } = useDataStore()
+    const { books, users, bookBorrowings, loadAllData, createBorrowing, returnBook, getActiveBooks } = useDataStore()
     const { addToast } = useToast()
     const [activeTab, setActiveTab] = useState('borrow')
     const [isBorrowModalOpen, setIsBorrowModalOpen] = useState(false)
@@ -18,7 +18,8 @@ function BorrowManagement() {
     }, [loadAllData])
 
     const activeUsers = users.filter(u => u.activeStatus === 'Y' && u.role === 'student')
-    const availableBooks = books.filter(b => b.activeStatus === 'Y' && b.status === 'available')
+    const activeBooks = getActiveBooks()
+    const availableBooks = activeBooks.filter(b => b.status === 'available')
     const activeBorrowings = bookBorrowings.filter(b => b.status === 'borrowed')
 
     const today = new Date().toISOString().split('T')[0]

@@ -93,6 +93,9 @@ export const useDataStore = create((set, get) => ({
     // USER OPERATIONS
     getActiveUsers: () => get().users.filter(u => u.activeStatus === 'Y'),
 
+    // BOOK OPERATIONS
+    getActiveBooks: () => get().books.filter(b => b.activeStatus === 'Y'),
+
     addUser: async (userData) => {
         const newUser = await createUser({
             ...userData,
