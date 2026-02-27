@@ -1,7 +1,6 @@
 const jwt = require("jsonwebtoken");
 const { UnauthorizedError } = require("../utils/errors");
-
-const JWT_SECRET = process.env.JWT_SECRET || "seat-genie-dev-secret";
+const { config } = require("../config/env");
 
 /**
  * Middleware: verify JWT from Authorization header.
@@ -15,7 +14,7 @@ const authenticate = (req, res, next) => {
 
     const token = authHeader.slice(7);
     try {
-        const decoded = jwt.verify(token, JWT_SECRET);
+        const decoded = jwt.verify(token, config.jwtSecret);
         req.user = decoded;
         next();
     } catch (err) {
