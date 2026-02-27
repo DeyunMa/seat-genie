@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useCallback, useDeferredValue } from 'react'
 import { useToast } from '../../components/common/Toast'
 import Modal, { ConfirmModal } from '../../components/common/Modal'
 import { listBooks, createBook, updateBook, deleteBook } from '../../services/booksApi'
@@ -9,6 +9,7 @@ function BookList() {
     const [books, setBooks] = useState([])
     const [loading, setLoading] = useState(false)
     const [search, setSearch] = useState('')
+    const deferredSearch = useDeferredValue(search)
     const [categoryFilter, setCategoryFilter] = useState('all')
     const [statusFilter, setStatusFilter] = useState('all')
     const [isModalOpen, setIsModalOpen] = useState(false)
@@ -16,7 +17,7 @@ function BookList() {
     const [editingBook, setEditingBook] = useState(null)
     const [selectedBookId, setSelectedBookId] = useState(null)
 
-    const loadBooks = async () => {
+    const loadBooks = useCallback(async () => {
         setLoading(true)
         try {
             const data = await listBooks()
@@ -26,7 +27,7 @@ function BookList() {
         } finally {
             setLoading(false)
         }
-    }
+    }, [addToast])
 
     useEffect(() => {
         loadBooks()
@@ -39,13 +40,13 @@ function BookList() {
     const filteredBooks = useMemo(() => activeBooks.filter(book => {
         const authorName = book.author || ''
         const matchesSearch =
-            book.title.toLowerCase().includes(search.toLowerCase()) ||
-            book.isbn.includes(search) ||
-            authorName.toLowerCase().includes(search.toLowerCase())
+            book.title.toLowerCase().includes(deferredSearch.toLowerCase()) ||
+            book.isbn.includes(deferredSearch) ||
+            authorName.toLowerCase().includes(deferredSearch.toLowerCase())
         const matchesCategory = categoryFilter === 'all' || book.category === categoryFilter
         const matchesStatus = statusFilter === 'all' || book.status === statusFilter
         return matchesSearch && matchesCategory && matchesStatus
-    }), [activeBooks, search, categoryFilter, statusFilter])
+    }), [activeBooks, deferredSearch, categoryFilter, statusFilter])
 
     const statusLabels = {
         available: '可借阅',
