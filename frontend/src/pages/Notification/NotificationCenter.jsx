@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useAuthStore } from '../../stores/authStore'
 import { useDataStore } from '../../stores/dataStore'
 import '../UserManagement/UserManagement.css'
@@ -13,11 +13,11 @@ function NotificationCenter() {
         loadAllData()
     }, [loadAllData])
 
-    const today = new Date().toISOString().split('T')[0]
     const isStaffOrAdmin = user?.role === 'staff' || user?.role === 'admin'
 
     // Generate notifications based on data
-    const generateNotifications = () => {
+    const allNotifications = useMemo(() => {
+        const today = new Date().toISOString().split('T')[0]
         const notifications = []
 
         if (isStaffOrAdmin) {
@@ -127,9 +127,8 @@ function NotificationCenter() {
         })
 
         return notifications.sort((a, b) => new Date(b.date) - new Date(a.date))
-    }
+    }, [user, users, books, seatReservations, bookBorrowings, isStaffOrAdmin])
 
-    const allNotifications = generateNotifications()
 
     const filteredNotifications = activeTab === 'all'
         ? allNotifications
