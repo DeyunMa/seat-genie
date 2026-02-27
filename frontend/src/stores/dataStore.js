@@ -7,33 +7,8 @@ import { listRooms, createRoom, updateRoom, deleteRoom as deleteRoomApi } from '
 import { listSeats, createSeat, updateSeat, deleteSeat as deleteSeatApi } from '../services/seatsApi'
 import { listReservations, createReservation, cancelReservation as cancelReservationApi } from '../services/reservationsApi'
 import { listNotifications, createNotification, updateNotification, deleteNotification as deleteNotificationApi, markAsRead, getUnreadCount, getReadStatus } from '../services/notificationsApi'
-
-const toDateOnly = (value) => {
-    if (!value) return null
-    const normalized = typeof value === 'string' ? value.replace(' ', 'T') : value
-    const date = new Date(normalized)
-    if (Number.isNaN(date.getTime())) return null
-    return date.toISOString().split('T')[0]
-}
-
-const mapLoansToBorrowings = (loans, usersByEmail) => {
-    if (!Array.isArray(loans)) return []
-    return loans.map(loan => ({
-        id: String(loan.id),
-        userId: usersByEmail?.[loan.member_email] ?? null,
-        memberId: loan.member_id,
-        memberName: loan.member_name,
-        memberEmail: loan.member_email,
-        bookId: loan.book_id,
-        bookTitle: loan.book_title,
-        borrowDate: toDateOnly(loan.loaned_at),
-        dueDate: toDateOnly(loan.due_at),
-        returnDate: loan.returned_at ? toDateOnly(loan.returned_at) : null,
-        status: loan.returned_at ? 'returned' : 'borrowed',
-        createdAt: loan.loaned_at,
-        updatedAt: loan.returned_at ?? loan.loaned_at
-    }))
-}
+import { toDateOnly } from '../utils/dateUtils'
+import { mapLoansToBorrowings } from '../utils/mappers'
 
 export const useDataStore = create((set, get) => ({
     // Data states
