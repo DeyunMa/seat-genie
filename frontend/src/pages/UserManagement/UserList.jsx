@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useDataStore } from '../../stores/dataStore'
 import { useToast } from '../../components/common/Toast'
 import Modal, { ConfirmModal } from '../../components/common/Modal'
@@ -19,16 +19,16 @@ function UserList() {
         loadAllData()
     }, [loadAllData])
 
-    const activeUsers = users.filter(u => u.activeStatus === 'Y')
+    const activeUsers = useMemo(() => users.filter(u => u.activeStatus === 'Y'), [users])
 
-    const filteredUsers = activeUsers.filter(user => {
+    const filteredUsers = useMemo(() => activeUsers.filter(user => {
         const matchesSearch =
             user.name.toLowerCase().includes(search.toLowerCase()) ||
             user.username.toLowerCase().includes(search.toLowerCase()) ||
             user.email.toLowerCase().includes(search.toLowerCase())
         const matchesRole = roleFilter === 'all' || user.role === roleFilter
         return matchesSearch && matchesRole
-    })
+    }), [activeUsers, search, roleFilter])
 
     const roleLabels = {
         student: '学生',
