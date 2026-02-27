@@ -213,21 +213,6 @@ export const useDataStore = create((set, get) => ({
     // BOOK OPERATIONS (from API)
     getActiveBooks: () => get().books.filter(b => b.activeStatus === 'Y'),
 
-    addBook: async () => {
-        // Books are managed through booksApi directly in components
-        console.log('Use booksApi.createBook directly')
-    },
-
-    updateBook: async () => {
-        // Books are managed through booksApi directly in components
-        console.log('Use booksApi.updateBook directly')
-    },
-
-    deleteBook: async () => {
-        // Books are managed through booksApi directly in components
-        console.log('Use booksApi.deleteBook directly')
-    },
-
     // SEAT RESERVATION OPERATIONS
     createReservation: async (reservationData) => {
         try {
