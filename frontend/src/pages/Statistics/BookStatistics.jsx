@@ -17,26 +17,28 @@ function BookStatistics() {
     const monthlyTrend = useMemo(() => getMonthlyBorrowingTrend(), [bookBorrowings, getMonthlyBorrowingTrend])
     const popularBooks = useMemo(() => getPopularBooks(), [bookBorrowings, getPopularBooks])
 
-    const activeBooks = books.filter(b => b.activeStatus === 'Y')
+    const activeBooks = useMemo(() => books.filter(b => b.activeStatus === 'Y'), [books])
     const today = new Date().toISOString().split('T')[0]
 
     // Book status distribution
-    const bookStatusData = [
+    const bookStatusData = useMemo(() => [
         { name: '可借阅', value: activeBooks.filter(b => b.status === 'available').length },
         { name: '已借出', value: activeBooks.filter(b => b.status === 'borrowed').length },
         { name: '维护中', value: activeBooks.filter(b => b.status === 'maintenance').length }
-    ]
+    ], [activeBooks])
 
     // Category distribution
-    const categories = [...new Set(activeBooks.map(b => b.category))]
-    const categoryData = categories.map(cat => ({
-        name: cat,
-        count: activeBooks.filter(b => b.category === cat).length
-    })).sort((a, b) => b.count - a.count)
+    const categoryData = useMemo(() => {
+        const categories = [...new Set(activeBooks.map(b => b.category))]
+        return categories.map(cat => ({
+            name: cat,
+            count: activeBooks.filter(b => b.category === cat).length
+        })).sort((a, b) => b.count - a.count)
+    }, [activeBooks])
 
     // Borrowing stats
-    const activeBorrowings = bookBorrowings.filter(b => b.status === 'borrowed')
-    const overdueBorrowings = activeBorrowings.filter(b => b.dueDate < today)
+    const activeBorrowings = useMemo(() => bookBorrowings.filter(b => b.status === 'borrowed'), [bookBorrowings])
+    const overdueBorrowings = useMemo(() => activeBorrowings.filter(b => b.dueDate < today), [activeBorrowings, today])
 
     const totalBooks = activeBooks.length
     const borrowRate = totalBooks > 0
