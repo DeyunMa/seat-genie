@@ -108,6 +108,48 @@ describe("queryValidation utils", () => {
       const query = { age: "not a number" };
       expect(() => parseListQuery(query, schema)).toThrow(z.ZodError);
     });
+
+    it("should allow schema to override pagination values", () => {
+      const schema = z.object({
+        limit: z.string().transform(() => "custom-limit"),
+        offset: z.string().transform(() => "custom-offset"),
+      });
+      const query = { limit: "10", offset: "5" };
+      const result = parseListQuery(query, schema);
+      expect(result).toEqual({
+        limit: "custom-limit",
+        offset: "custom-offset",
+      });
+    });
+
+    it("should preserve Zod transformations", () => {
+      const schema = z.object({
+        q: z.string().transform((val) => val.toUpperCase()),
+      });
+      const query = { q: "hello" };
+      const result = parseListQuery(query, schema);
+      expect(result.q).toBe("HELLO");
+    });
+
+    it("should pass when strict schema receives only known properties", () => {
+      const schema = z.object({ q: z.string() }).strict();
+      const query = { q: "search" };
+      const result = parseListQuery(query, schema);
+      expect(result).toEqual({
+        limit: 25,
+        offset: 0,
+        q: "search",
+      });
+    });
+
+    it("should fail when strict schema receives pagination properties", () => {
+      // Because `parseListQuery` passes the entire query object to `schema.parse()`,
+      // if the schema is strict and doesn't include limit/offset, it will fail
+      // if those keys are present in the query object.
+      const schema = z.object({ q: z.string() }).strict();
+      const query = { q: "search", limit: "10" };
+      expect(() => parseListQuery(query, schema)).toThrow(z.ZodError);
+    });
   });
 
   describe("parseReportLimitQuery", () => {
