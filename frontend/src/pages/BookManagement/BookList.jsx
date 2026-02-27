@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { useToast } from '../../components/common/Toast'
 import Modal, { ConfirmModal } from '../../components/common/Modal'
 import { listBooks, createBook, updateBook, deleteBook } from '../../services/booksApi'
@@ -32,11 +32,11 @@ function BookList() {
         loadBooks()
     }, [loadBooks])
 
-    const activeBooks = books.filter(b => b.activeStatus === 'Y')
+    const activeBooks = useMemo(() => books.filter(b => b.activeStatus === 'Y'), [books])
 
-    const categories = [...new Set(activeBooks.map(b => b.category))]
+    const categories = useMemo(() => [...new Set(activeBooks.map(b => b.category))], [activeBooks])
 
-    const filteredBooks = activeBooks.filter(book => {
+    const filteredBooks = useMemo(() => activeBooks.filter(book => {
         const authorName = book.author || ''
         const matchesSearch =
             book.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -45,7 +45,7 @@ function BookList() {
         const matchesCategory = categoryFilter === 'all' || book.category === categoryFilter
         const matchesStatus = statusFilter === 'all' || book.status === statusFilter
         return matchesSearch && matchesCategory && matchesStatus
-    })
+    }), [activeBooks, search, categoryFilter, statusFilter])
 
     const statusLabels = {
         available: '可借阅',
