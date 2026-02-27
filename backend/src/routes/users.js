@@ -22,9 +22,17 @@ const listSchema = z.object({
   offset: z.coerce.number().int().min(0).optional().default(0),
 });
 
+const passwordSchema = z
+  .string()
+  .min(12, "Password must be at least 12 characters long")
+  .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+  .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+  .regex(/[0-9]/, "Password must contain at least one number")
+  .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character");
+
 const userSchema = z.object({
   username: z.string().min(1),
-  password: z.string().min(6),
+  password: passwordSchema,
   name: z.string().min(1),
   role: z.enum(["admin", "staff", "student"]),
   email: z.string().email().optional().nullable(),
@@ -34,7 +42,7 @@ const userSchema = z.object({
 
 const updateUserSchema = z.object({
   username: z.string().min(1).optional(),
-  password: z.string().min(6).optional(),
+  password: passwordSchema.optional(),
   name: z.string().min(1).optional(),
   role: z.enum(["admin", "staff", "student"]).optional(),
   email: z.string().email().optional().nullable(),
