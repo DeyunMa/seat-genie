@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useAuthStore } from '../../stores/authStore'
 import { useDataStore } from '../../stores/dataStore'
 import { useToast } from '../../components/common/Toast'
@@ -26,21 +26,29 @@ function SeatReservation() {
 
     const selectedRoomInfo = activeRooms.find(r => r.id === selectedRoom)
 
+    // Optimization: Create a map of active reservations for the selected date
+    // Key: seatId, Value: Array of reservations
+    const activeReservationsMap = useMemo(() => {
+        const map = new Map()
+        // Filter reservations first to reduce iterations in the reduce step,
+        // or just iterate once and check conditions.
+        seatReservations.forEach(r => {
+            if (r.date === selectedDate && r.status === 'active') {
+                if (!map.has(r.seatId)) {
+                    map.set(r.seatId, [])
+                }
+                map.get(r.seatId).push(r)
+            }
+        })
+        return map
+    }, [seatReservations, selectedDate])
+
     const getSeatStatus = (seatId) => {
-        const reservations = seatReservations.filter(r =>
-            r.seatId === seatId &&
-            r.date === selectedDate &&
-            r.status === 'active'
-        )
-        return reservations.length > 0 ? 'reserved' : 'available'
+        return activeReservationsMap.has(seatId) ? 'reserved' : 'available'
     }
 
     const getSeatReservations = (seatId) => {
-        return seatReservations.filter(r =>
-            r.seatId === seatId &&
-            r.date === selectedDate &&
-            r.status === 'active'
-        )
+        return activeReservationsMap.get(seatId) || []
     }
 
     const timeSlots = [
