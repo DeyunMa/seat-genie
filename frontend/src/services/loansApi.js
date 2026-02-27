@@ -7,7 +7,7 @@ export const listLoans = async ({ status, limit = 100, offset = 0 } = {}) => {
     params.set('offset', String(offset))
 
     const result = await apiRequest(`/api/loans?${params.toString()}`)
-    return Array.isArray(result?.data) ? result.data : []
+    return Array.isArray(result) ? result : []
 }
 
 export const createLoan = async (payload) => {

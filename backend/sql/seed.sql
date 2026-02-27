@@ -55,3 +55,14 @@ INSERT INTO notifications (title, content, type, created_by, active_status, crea
 INSERT INTO reservations (user_id, seat_id, date, start_time, end_time, status, created_at, updated_at) VALUES
 (3, 4, date('now'), '09:00', '12:00', 'active', datetime('now'), datetime('now')),
 (4, 11, date('now'), '14:00', '17:00', 'active', datetime('now'), datetime('now'));
+
+-- Members (linked to users via email for this seed)
+INSERT INTO members (name, email, phone, created_at) VALUES
+('李明', 'liming@student.edu', '13800000003', datetime('now')),
+('王芳', 'wangfang@student.edu', '13800000004', datetime('now')),
+('张伟', 'zhangwei@student.edu', '13800000005', datetime('now'));
+
+-- Loans
+INSERT INTO loans (book_id, member_id, loaned_at, due_at, returned_at) VALUES
+(3, 1, datetime('now', '-5 days'), datetime('now', '+9 days'), NULL),
+(1, 2, datetime('now', '-10 days'), datetime('now', '+4 days'), datetime('now', '-2 days'));

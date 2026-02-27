@@ -9,7 +9,7 @@ export const listNotifications = async ({ type, sortBy, sortOrder, limit = 100, 
     params.set('offset', String(offset))
 
     const result = await apiRequest(`/api/notifications?${params.toString()}`)
-    return Array.isArray(result?.data) ? result.data : []
+    return Array.isArray(result) ? result : []
 }
 
 export const getNotification = async (id) => {

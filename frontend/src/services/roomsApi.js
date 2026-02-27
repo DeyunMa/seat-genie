@@ -9,7 +9,7 @@ export const listRooms = async ({ q, sortBy, sortOrder, limit = 100, offset = 0 
     params.set('offset', String(offset))
 
     const result = await apiRequest(`/api/rooms?${params.toString()}`)
-    return Array.isArray(result?.data) ? result.data : []
+    return Array.isArray(result) ? result : []
 }
 
 export const getRoom = async (id) => {
