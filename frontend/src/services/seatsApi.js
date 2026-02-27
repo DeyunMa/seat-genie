@@ -11,7 +11,7 @@ export const listSeats = async ({ roomId, status, q, sortBy, sortOrder, limit = 
     params.set('offset', String(offset))
 
     const result = await apiRequest(`/api/seats?${params.toString()}`)
-    return Array.isArray(result?.data) ? result.data : []
+    return Array.isArray(result) ? result : []
 }
 
 export const getSeat = async (id) => {

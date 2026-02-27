@@ -12,7 +12,7 @@ export const listReservations = async ({ userId, seatId, date, status, sortBy, s
     params.set('offset', String(offset))
 
     const result = await apiRequest(`/api/reservations?${params.toString()}`)
-    return Array.isArray(result?.data) ? result.data : []
+    return Array.isArray(result) ? result : []
 }
 
 export const getReservation = async (id) => {

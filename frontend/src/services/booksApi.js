@@ -7,7 +7,7 @@ const normalizeBook = (book) => ({
 
 export const listBooks = async () => {
     const result = await apiRequest('/api/books?limit=100')
-    const data = Array.isArray(result?.data) ? result.data : []
+    const data = Array.isArray(result) ? result : []
     return data.map(normalizeBook)
 }
 

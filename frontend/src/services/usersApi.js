@@ -10,7 +10,7 @@ export const listUsers = async ({ role, q, sortBy, sortOrder, limit = 100, offse
     params.set('offset', String(offset))
 
     const result = await apiRequest(`/api/users?${params.toString()}`)
-    return Array.isArray(result?.data) ? result.data : []
+    return Array.isArray(result) ? result : []
 }
 
 export const getUser = async (id) => {
