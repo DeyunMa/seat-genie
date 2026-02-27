@@ -185,9 +185,6 @@ export const useDataStore = create((set, get) => ({
         return true
     },
 
-    // BOOK OPERATIONS (from API)
-    getActiveBooks: () => get().books.filter(b => b.activeStatus === 'Y'),
-
     // SEAT RESERVATION OPERATIONS
     createReservation: async (reservationData) => {
         try {
