@@ -19,14 +19,14 @@ function SeatList() {
         loadAllData()
     }, [loadAllData])
 
-    const activeRooms = rooms.filter(r => r.activeStatus === 'Y')
-    const activeSeats = seats.filter(s => s.activeStatus === 'Y')
+    const activeRooms = useMemo(() => rooms.filter(r => r.activeStatus === 'Y'), [rooms])
+    const activeSeats = useMemo(() => seats.filter(s => s.activeStatus === 'Y'), [seats])
 
-    const filteredSeats = activeSeats.filter(seat => {
+    const filteredSeats = useMemo(() => activeSeats.filter(seat => {
         const matchesRoom = selectedRoom === 'all' || seat.roomId === selectedRoom
         const matchesStatus = statusFilter === 'all' || seat.status === statusFilter
         return matchesRoom && matchesStatus
-    })
+    }), [activeSeats, selectedRoom, statusFilter])
 
     // Create a map for O(1) room name lookup
     const roomNameMap = useMemo(() => {
