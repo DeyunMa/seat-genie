@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const { UnauthorizedError } = require("../utils/errors");
+const { UnauthorizedError, ForbiddenError } = require("../utils/errors");
 
 const JWT_SECRET = process.env.JWT_SECRET || "seat-genie-dev-secret";
 
@@ -23,4 +23,18 @@ const authenticate = (req, res, next) => {
     }
 };
 
-module.exports = { authenticate };
+/**
+ * Middleware: authorize based on user roles.
+ * Must be placed after authenticate middleware.
+ * @param {string[]} allowedRoles
+ */
+const authorize = (allowedRoles) => {
+    return (req, res, next) => {
+        if (!req.user || !allowedRoles.includes(req.user.role)) {
+            return next(new ForbiddenError("Access denied"));
+        }
+        next();
+    };
+};
+
+module.exports = { authenticate, authorize };

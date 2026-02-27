@@ -8,8 +8,12 @@ const {
 } = require("../utils/queryValidation");
 const { parseId } = require("../utils/params");
 const { sendInvalidId, sendNotFound } = require("../utils/errors");
+const { authorize } = require("../middleware/auth");
 
 const router = express.Router();
+
+// All report endpoints are restricted to admin and staff
+router.use(authorize(["admin", "staff"]));
 
 const overdueQuerySchema = z.object({
   asOf: dateTimeQuery.optional(),

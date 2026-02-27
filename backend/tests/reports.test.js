@@ -10,12 +10,17 @@ const dbFile = path.join(
 process.env.DATABASE_FILE = dbFile;
 process.env.LOG_LEVEL = "silent";
 
-jest.mock("../src/middleware/auth", () => ({
-  authenticate: (req, res, next) => {
-    req.user = { id: 1, role: "admin" };
-    next();
-  },
-}));
+jest.mock("../src/middleware/auth", () => {
+  const actualAuth = jest.requireActual("../src/middleware/auth");
+  return {
+    ...actualAuth,
+    authenticate: (req, res, next) => {
+      const role = req.headers["x-test-role"] || "admin";
+      req.user = { id: 1, role: role };
+      next();
+    },
+  };
+});
 
 const { createApp } = require("../src/app");
 const { getDb, closeDb } = require("../src/db");
@@ -337,5 +342,31 @@ describe("reports validation", () => {
         error: "Validation failed",
       })
     );
+  });
+});
+
+describe("reports authorization", () => {
+  it("rejects access for students", async () => {
+    const response = await request(app)
+      .get("/api/reports/overdue-loans")
+      .set("x-test-role", "student")
+      .expect(403);
+
+    expect(response.body).toEqual(
+      expect.objectContaining({
+        code: "FORBIDDEN",
+        error: "Access denied",
+      })
+    );
+  });
+
+  it("allows access for staff", async () => {
+    await seedReportData();
+    const response = await request(app)
+      .get("/api/reports/overdue-loans")
+      .set("x-test-role", "staff")
+      .expect(200);
+
+    expect(response.body.data).toBeDefined();
   });
 });
