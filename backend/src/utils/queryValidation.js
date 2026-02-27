@@ -12,7 +12,10 @@ const emptyToUndefined = (value) => {
   return value;
 };
 
-const dateTimeQuery = z.preprocess(emptyToUndefined, z.string().datetime());
+const dateTimeQuery = z.preprocess(
+  emptyToUndefined,
+  z.string().datetime().optional()
+);
 
 const parseWithSchema = (schema, query) => {
   if (!schema) {

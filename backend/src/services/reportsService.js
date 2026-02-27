@@ -89,7 +89,7 @@ const getInventoryHealth = (asOf) => {
       `SELECT
          (SELECT COUNT(*) FROM books) AS total_books,
          (SELECT COUNT(*) FROM books WHERE status = 'available') AS available_count,
-         (SELECT COUNT(*) FROM books WHERE status = 'borrowed') AS borrowed_count,
+         (SELECT COUNT(*) FROM books WHERE status IN ('borrowed', 'checked_out')) AS borrowed_count,
          (SELECT COUNT(*) FROM books WHERE status = 'maintenance') AS maintenance_count,
          (SELECT COUNT(*) FROM books WHERE status = 'lost') AS lost_count,
          (SELECT COUNT(*) FROM loans WHERE returned_at IS NULL AND due_at < ?) AS overdue_loans,
