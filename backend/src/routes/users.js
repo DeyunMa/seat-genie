@@ -105,13 +105,13 @@ router.get("/:id", validate({ params: idSchema }), (req, res, next) => {
 });
 
 // POST /api/users
-router.post("/", validate({ body: userSchema }), (req, res, next) => {
+router.post("/", validate({ body: userSchema }), async (req, res, next) => {
   try {
     const existing = usersService.getUserByUsername(req.body.username);
     if (existing) {
       throw new ConflictError("Username already exists");
     }
-    const user = usersService.createUser(req.body);
+    const user = await usersService.createUser(req.body);
     res.status(201).json({ data: sanitizeUser(user) });
   } catch (err) {
     next(err);
@@ -119,13 +119,13 @@ router.post("/", validate({ body: userSchema }), (req, res, next) => {
 });
 
 // PUT /api/users/:id
-router.put("/:id", validate({ params: idSchema, body: updateUserSchema }), (req, res, next) => {
+router.put("/:id", validate({ params: idSchema, body: updateUserSchema }), async (req, res, next) => {
   try {
     const existing = usersService.getUserById(req.params.id);
     if (!existing || existing.activeStatus !== "Y") {
       throw new NotFoundError("User not found");
     }
-    const user = usersService.updateUser(req.params.id, req.body);
+    const user = await usersService.updateUser(req.params.id, req.body);
     res.json({ data: sanitizeUser(user) });
   } catch (err) {
     next(err);

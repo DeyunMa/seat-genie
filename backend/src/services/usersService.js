@@ -76,10 +76,10 @@ const getUserByUsername = (username) => {
   return mapUser(row);
 };
 
-const createUser = (payload) => {
+const createUser = async (payload) => {
   const db = getDb();
   const now = new Date().toISOString();
-  const hashedPassword = bcrypt.hashSync(payload.password, BCRYPT_ROUNDS);
+  const hashedPassword = await bcrypt.hash(payload.password, BCRYPT_ROUNDS);
 
   const result = db
     .prepare(
@@ -101,7 +101,7 @@ const createUser = (payload) => {
   return getUserById(result.lastInsertRowid);
 };
 
-const updateUser = (id, payload) => {
+const updateUser = async (id, payload) => {
   const db = getDb();
   const now = new Date().toISOString();
 
@@ -114,7 +114,7 @@ const updateUser = (id, payload) => {
   }
   if (payload.password !== undefined) {
     fields.push("password = ?");
-    params.push(bcrypt.hashSync(payload.password, BCRYPT_ROUNDS));
+    params.push(await bcrypt.hash(payload.password, BCRYPT_ROUNDS));
   }
   if (payload.name !== undefined) {
     fields.push("name = ?");
