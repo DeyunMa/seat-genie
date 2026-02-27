@@ -1,13 +1,14 @@
 -- Seed data for Seat Genie library management system
 
 -- Users (admin, staff, students)
--- Passwords are bcrypt hashed (rounds=10). Plaintext: admin123, staff123, student123
+-- 密码均为 bcrypt 哈希（rounds=10），明文密码：
+-- admin: AdminPass123!, staff: StaffPass123!, student: StudentPass123!
 INSERT INTO users (username, password, name, role, email, phone, student_id, active_status, created_at, updated_at) VALUES
-('admin', '$2b$10$ytyBPxaOSnQg1b4tX5XONuPHizHkpd9eVqYW74SIPPz7DSzUbcxRO', '系统管理员', 'admin', 'admin@library.edu', '13800000001', NULL, 'Y', datetime('now'), datetime('now')),
-('staff1', '$2b$10$FX0BkVA7UkPtFV9kRSVQ.OHvqsUXXfHDDBsCRHhDGxJj7hFE2KwHO', '张图书管理员', 'staff', 'staff1@library.edu', '13800000002', NULL, 'Y', datetime('now'), datetime('now')),
-('student1', '$2b$10$5wL2GO4.WYrgcCUTvE4OK.PLKnRo4fZ1Y0LrsXT1.DnIs26/EAIJm', '李明', 'student', 'liming@student.edu', '13800000003', '2024001001', 'Y', datetime('now'), datetime('now')),
-('student2', '$2b$10$5wL2GO4.WYrgcCUTvE4OK.PLKnRo4fZ1Y0LrsXT1.DnIs26/EAIJm', '王芳', 'student', 'wangfang@student.edu', '13800000004', '2024001002', 'Y', datetime('now'), datetime('now')),
-('student3', '$2b$10$5wL2GO4.WYrgcCUTvE4OK.PLKnRo4fZ1Y0LrsXT1.DnIs26/EAIJm', '张伟', 'student', 'zhangwei@student.edu', '13800000005', '2024001003', 'Y', datetime('now'), datetime('now'));
+('admin', '$2b$10$k4GXq5VWuYe2s0hiVzP6r.fm3N3vSY..XHRSs6NDc5AZiA5qR43SG', '系统管理员', 'admin', 'admin@library.edu', '13800000001', NULL, 'Y', datetime('now'), datetime('now')),
+('staff1', '$2b$10$1QL28dY6lic2hbiC0rEw2OtvCbMnD5.RKjiPvnOL9LB1M1EYshFo.', '张图书管理员', 'staff', 'staff1@library.edu', '13800000002', NULL, 'Y', datetime('now'), datetime('now')),
+('student1', '$2b$10$sgnLsF3RRMfncSalHNuv5OqHdQ5jI.TrXVjo1NSvw5j08uQnyoo7G', '李明', 'student', 'liming@student.edu', '13800000003', '2024001001', 'Y', datetime('now'), datetime('now')),
+('student2', '$2b$10$sgnLsF3RRMfncSalHNuv5OqHdQ5jI.TrXVjo1NSvw5j08uQnyoo7G', '王芳', 'student', 'wangfang@student.edu', '13800000004', '2024001002', 'Y', datetime('now'), datetime('now')),
+('student3', '$2b$10$sgnLsF3RRMfncSalHNuv5OqHdQ5jI.TrXVjo1NSvw5j08uQnyoo7G', '张伟', 'student', 'zhangwei@student.edu', '13800000005', '2024001003', 'Y', datetime('now'), datetime('now'));
 
 -- Study rooms
 INSERT INTO rooms (name, floor, capacity, open_time, close_time, active_status, created_at, updated_at) VALUES

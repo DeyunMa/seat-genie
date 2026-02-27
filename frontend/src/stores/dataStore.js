@@ -32,7 +32,7 @@ export const useDataStore = create((set, get) => ({
         set({ loading: true, error: null })
         try {
             const currentUser = get().getCurrentUser?.() || { id: 1, email: '' }
-            
+
             const [
                 users,
                 rooms,
@@ -119,7 +119,7 @@ export const useDataStore = create((set, get) => ({
         return true
     },
 
-    resetUserPassword: async (id, newPassword = '123456') => {
+    resetUserPassword: async (id, newPassword = 'TempPass123!') => {
         return get().updateUser(id, { password: newPassword })
     },
 
@@ -204,7 +204,7 @@ export const useDataStore = create((set, get) => ({
     cancelReservation: async (id) => {
         const updated = await cancelReservationApi(id)
         set(state => ({
-            seatReservations: state.seatReservations.map(r => 
+            seatReservations: state.seatReservations.map(r =>
                 r.id === id ? { ...r, status: 'cancelled' } : r
             )
         }))
@@ -261,7 +261,7 @@ export const useDataStore = create((set, get) => ({
         const members = await listMembers()
         const email = borrowingData.memberEmail || borrowingData.userEmail
         let member = members.find(m => m.email === email)
-        
+
         if (!member) {
             // Create member if not exists
             member = await createMember({
@@ -318,34 +318,34 @@ export const useDataStore = create((set, get) => ({
     getStats: () => {
         const state = get()
         const today = new Date().toISOString().split('T')[0]
-        
+
         const totalUsers = state.users.filter(u => u.activeStatus === 'Y').length
         const totalSeats = state.seats.filter(s => s.activeStatus === 'Y').length
         const totalBooks = state.books.filter(b => b.activeStatus === 'Y').length
         const availableBooks = state.books.filter(b => b.activeStatus === 'Y' && b.status === 'available').length
         const borrowedBooks = state.books.filter(b => b.status === 'borrowed').length
-        
-        const todayReservations = state.seatReservations.filter(r => 
+
+        const todayReservations = state.seatReservations.filter(r =>
             r.date === today && r.status === 'active'
         ).length
-        
+
         const activeBorrowings = state.bookBorrowings.filter(b => b.status === 'borrowed').length
-        const overdueBorrowings = state.bookBorrowings.filter(b => 
+        const overdueBorrowings = state.bookBorrowings.filter(b =>
             b.status === 'borrowed' && b.dueDate < today
         ).length
-        
-        const availableSeats = state.seats.filter(s => 
+
+        const availableSeats = state.seats.filter(s =>
             s.activeStatus === 'Y' && s.status === 'available'
         ).length
-        
-        const seatUtilization = totalSeats > 0 
-            ? Math.round(((totalSeats - availableSeats) / totalSeats) * 100) 
+
+        const seatUtilization = totalSeats > 0
+            ? Math.round(((totalSeats - availableSeats) / totalSeats) * 100)
             : 0
-        
-        const bookBorrowRate = totalBooks > 0 
-            ? Math.round((borrowedBooks / totalBooks) * 100) 
+
+        const bookBorrowRate = totalBooks > 0
+            ? Math.round((borrowedBooks / totalBooks) * 100)
             : 0
-        
+
         return {
             totalUsers,
             totalSeats,
@@ -364,28 +364,28 @@ export const useDataStore = create((set, get) => ({
     getWeeklyTrendData: () => {
         const state = get()
         const data = []
-        
+
         for (let i = 6; i >= 0; i--) {
             const date = new Date()
             date.setDate(date.getDate() - i)
             const dateStr = date.toISOString().split('T')[0]
             const dayName = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'][date.getDay()]
-            
-            const reservations = state.seatReservations.filter(r => 
+
+            const reservations = state.seatReservations.filter(r =>
                 r.date === dateStr && r.status === 'active'
             ).length
-            
-            const borrowings = state.bookBorrowings.filter(b => 
+
+            const borrowings = state.bookBorrowings.filter(b =>
                 b.borrowDate === dateStr
             ).length
-            
+
             data.push({
                 name: dayName,
                 reservations,
                 borrowings
             })
         }
-        
+
         return data
     },
 
@@ -402,9 +402,9 @@ export const useDataStore = create((set, get) => ({
             const returns = state.bookBorrowings.filter(b => b.returnDate === dateStr).length
 
             if (i % 5 === 0) {
-                 data.push({ name: dateStr.slice(5), borrowings, returns })
+                data.push({ name: dateStr.slice(5), borrowings, returns })
             } else {
-                 data.push({ name: '', borrowings, returns })
+                data.push({ name: '', borrowings, returns })
             }
         }
         return data
@@ -433,12 +433,12 @@ export const useDataStore = create((set, get) => ({
         }
 
         state.seatReservations.forEach(r => {
-             if (r.status === 'active' && r.start_time) {
-                 const hour = r.start_time.split(':')[0] + ':00'
-                 if (slots[hour] !== undefined) {
-                     slots[hour]++
-                 }
-             }
+            if (r.status === 'active' && r.start_time) {
+                const hour = r.start_time.split(':')[0] + ':00'
+                if (slots[hour] !== undefined) {
+                    slots[hour]++
+                }
+            }
         })
 
         return Object.entries(slots).map(([time, count]) => ({ time, count }))

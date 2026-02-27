@@ -63,9 +63,9 @@ function UserList() {
                 await updateUser(editingUser.id, userData)
                 addToast('用户信息已更新', 'success')
             } else {
-                userData.password = '123456' // Default password
+                userData.password = 'TempPass123!' // 默认密码，符合强密码策略
                 await addUser(userData)
-                addToast('用户创建成功，默认密码为 123456', 'success')
+                addToast('用户创建成功，默认密码为 TempPass123!', 'success')
             }
             await loadAllData()
             handleCloseModal()
@@ -92,7 +92,7 @@ function UserList() {
         if (selectedUserId) {
             try {
                 await resetUserPassword(selectedUserId)
-                addToast('密码已重置为 123456', 'success')
+                addToast('密码已重置为 TempPass123!', 'success')
             } catch (error) {
                 addToast(error.message || '重置失败', 'error')
             }
@@ -255,7 +255,7 @@ function UserList() {
                 onClose={() => setIsResetModalOpen(false)}
                 onConfirm={handleResetPassword}
                 title="重置密码"
-                message="确定要重置该用户的密码吗？密码将被重置为 123456。"
+                message="确定要重置该用户的密码吗？密码将被重置为 TempPass123!"
                 confirmText="重置"
             />
         </div>
