@@ -8,25 +8,18 @@ const {
 
 describe("queryValidation utils", () => {
   describe("dateTimeQuery", () => {
-    // When used in Zod schemas as .optional(), undefined is valid.
-    // However, when testing the schema directly with .parse(), the base schema (z.string()) expects a string.
-    // The preprocess turns empty/null/undefined into undefined.
-    // z.string().datetime() requires a string, so undefined fails validation unless .optional() is used.
-
-    const optionalDateTimeQuery = dateTimeQuery.optional();
-
-    it("should transform empty string to undefined (when optional)", () => {
-      const result = optionalDateTimeQuery.parse("");
+    it("should transform empty string to undefined", () => {
+      const result = dateTimeQuery.parse("");
       expect(result).toBeUndefined();
     });
 
-    it("should transform null to undefined (when optional)", () => {
-      const result = optionalDateTimeQuery.parse(null);
+    it("should transform null to undefined", () => {
+      const result = dateTimeQuery.parse(null);
       expect(result).toBeUndefined();
     });
 
-    it("should transform undefined to undefined (when optional)", () => {
-      const result = optionalDateTimeQuery.parse(undefined);
+    it("should transform undefined to undefined", () => {
+      const result = dateTimeQuery.parse(undefined);
       expect(result).toBeUndefined();
     });
 
@@ -39,6 +32,11 @@ describe("queryValidation utils", () => {
     it("should throw an error for an invalid datetime string", () => {
       const invalidDate = "invalid-date";
       expect(() => dateTimeQuery.parse(invalidDate)).toThrow(z.ZodError);
+    });
+
+    it("should throw an error for non-string input", () => {
+      const invalidInput = 12345;
+      expect(() => dateTimeQuery.parse(invalidInput)).toThrow(z.ZodError);
     });
   });
 
