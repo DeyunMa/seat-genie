@@ -108,6 +108,39 @@ describe("queryValidation utils", () => {
       const query = { age: "not a number" };
       expect(() => parseListQuery(query, schema)).toThrow(z.ZodError);
     });
+
+    it("should prioritize limit/offset from schema if conflict exists", () => {
+      const conflictSchema = z.object({
+        limit: z.string(), // Schema expects string limit
+        extra: z.string(),
+      });
+      const query = { limit: "10", extra: "test" };
+
+      const result = parseListQuery(query, conflictSchema);
+      // It got overwritten by schema
+      expect(result.limit).toBe("10");
+      expect(result.extra).toBe("test");
+    });
+
+    it("should strip fields not in schema", () => {
+      const query = { limit: "10", extraField: "shouldBeGone" };
+      const result = parseListQuery(query, testSchema);
+      expect(result).not.toHaveProperty("extraField");
+      expect(result).toEqual({ limit: 10, offset: 0 });
+    });
+
+    it("should throw error if query is null", () => {
+       expect(() => parseListQuery(null, testSchema)).toThrow(z.ZodError);
+    });
+
+    it("should throw error if query is undefined", () => {
+       expect(() => parseListQuery(undefined, testSchema)).toThrow(z.ZodError);
+    });
+
+    it("should throw validation error if limit is non-numeric string", () => {
+      const query = { limit: "abc" };
+      expect(() => parseListQuery(query, testSchema)).toThrow(z.ZodError);
+    });
   });
 
   describe("parseReportLimitQuery", () => {
