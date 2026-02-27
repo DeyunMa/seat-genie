@@ -57,6 +57,28 @@ describe("Pagination Utils", () => {
     it("should throw ZodError if offset is not a number", () => {
       expect(() => parsePagination({ offset: "xyz" })).toThrow(z.ZodError);
     });
+
+    it("should throw ZodError if limit is a float", () => {
+      expect(() => parsePagination({ limit: "10.5" })).toThrow(z.ZodError);
+    });
+
+    it("should throw ZodError if offset is a float", () => {
+      expect(() => parsePagination({ offset: "0.5" })).toThrow(z.ZodError);
+    });
+
+    it("should handle exponential notation if it results in an integer", () => {
+      const result = parsePagination({ limit: "1e1" });
+      expect(result).toEqual({ limit: 10, offset: 0 });
+    });
+
+    it("should handle whitespace strings", () => {
+      const result = parsePagination({ limit: "  10  " });
+      expect(result).toEqual({ limit: 10, offset: 0 });
+    });
+
+    it("should throw ZodError if limit is Infinity", () => {
+      expect(() => parsePagination({ limit: "Infinity" })).toThrow(z.ZodError);
+    });
   });
 
   describe("parseReportLimit", () => {
