@@ -6,10 +6,10 @@ const usersService = require("../services/usersService");
 const { buildListQuery } = require("../utils/params");
 const { validate } = require("../middleware/validate");
 const { NotFoundError, ConflictError, AppError } = require("../utils/errors");
+const { config } = require("../config/env");
 
 const router = express.Router();
 
-const JWT_SECRET = process.env.JWT_SECRET || "seat-genie-dev-secret";
 const JWT_EXPIRES_IN = "7d";
 
 // Schemas
@@ -73,7 +73,7 @@ router.post("/login", validate({ body: loginSchema }), (req, res, next) => {
     }
 
     const payload = { id: user.id, username: user.username, role: user.role };
-    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+    const token = jwt.sign(payload, config.jwtSecret, { expiresIn: JWT_EXPIRES_IN });
 
     res.json({ data: { token, user: sanitizeUser(user) } });
   } catch (err) {
