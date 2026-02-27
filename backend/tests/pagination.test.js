@@ -30,12 +30,19 @@ describe("Pagination Utils", () => {
       expect(parsePagination({ offset: "5" })).toEqual({ limit: 25, offset: 5 });
       expect(parsePagination({ limit: "", offset: "5" })).toEqual({ limit: 25, offset: 5 });
       expect(parsePagination({ limit: null, offset: "5" })).toEqual({ limit: 25, offset: 5 });
+      expect(parsePagination({ limit: undefined, offset: "5" })).toEqual({ limit: 25, offset: 5 });
     });
 
     it("should use default offset if offset is missing or empty", () => {
       expect(parsePagination({ limit: "10" })).toEqual({ limit: 10, offset: 0 });
       expect(parsePagination({ limit: "10", offset: "" })).toEqual({ limit: 10, offset: 0 });
       expect(parsePagination({ limit: "10", offset: null })).toEqual({ limit: 10, offset: 0 });
+      expect(parsePagination({ limit: "10", offset: undefined })).toEqual({ limit: 10, offset: 0 });
+    });
+
+    it("should accept boundary values for limit", () => {
+        expect(parsePagination({ limit: "1" })).toEqual({ limit: 1, offset: 0 });
+        expect(parsePagination({ limit: "100" })).toEqual({ limit: 100, offset: 0 });
     });
 
     it("should throw ZodError if limit is less than 1", () => {
@@ -44,6 +51,10 @@ describe("Pagination Utils", () => {
 
     it("should throw ZodError if limit is greater than 100", () => {
       expect(() => parsePagination({ limit: "101" })).toThrow(z.ZodError);
+    });
+
+    it("should accept boundary values for offset", () => {
+        expect(parsePagination({ offset: "0" })).toEqual({ limit: 25, offset: 0 });
     });
 
     it("should throw ZodError if offset is negative", () => {
@@ -116,12 +127,39 @@ describe("Pagination Utils", () => {
       expect(result).toEqual({ limit: 10 });
     });
 
+    it("should use default limit if limit is missing or empty", () => {
+        expect(parseReportLimit({ limit: "" })).toEqual({ limit: 25 });
+        expect(parseReportLimit({ limit: null })).toEqual({ limit: 25 });
+        expect(parseReportLimit({ limit: undefined })).toEqual({ limit: 25 });
+    });
+
+    it("should accept boundary values for limit", () => {
+        expect(parseReportLimit({ limit: "1" })).toEqual({ limit: 1 });
+        expect(parseReportLimit({ limit: "50" })).toEqual({ limit: 50 });
+    });
+
     it("should throw ZodError if limit is less than 1", () => {
       expect(() => parseReportLimit({ limit: "0" })).toThrow(z.ZodError);
     });
 
     it("should throw ZodError if limit is greater than 50", () => {
       expect(() => parseReportLimit({ limit: "51" })).toThrow(z.ZodError);
+    });
+
+    it("should throw ZodError if limit is not a number", () => {
+        expect(() => parseReportLimit({ limit: "abc" })).toThrow(z.ZodError);
+    });
+
+    it("should throw ZodError if limit is a float", () => {
+        expect(() => parseReportLimit({ limit: "10.5" })).toThrow(z.ZodError);
+    });
+
+    it("should throw ZodError if limit is Infinity", () => {
+        expect(() => parseReportLimit({ limit: "Infinity" })).toThrow(z.ZodError);
+    });
+
+    it("should handle whitespace strings", () => {
+        expect(parseReportLimit({ limit: "  10  " })).toEqual({ limit: 10 });
     });
   });
 
@@ -136,12 +174,38 @@ describe("Pagination Utils", () => {
       expect(result).toEqual({ limit: 10, offset: 5 });
     });
 
+    it("should use default limit/offset if missing or empty", () => {
+        expect(parseReportPagination({ limit: "", offset: "" })).toEqual({ limit: 25, offset: 0 });
+        expect(parseReportPagination({ limit: null, offset: null })).toEqual({ limit: 25, offset: 0 });
+    });
+
+    it("should accept boundary values for limit", () => {
+        expect(parseReportPagination({ limit: "1" })).toEqual({ limit: 1, offset: 0 });
+        expect(parseReportPagination({ limit: "50" })).toEqual({ limit: 50, offset: 0 });
+    });
+
     it("should throw ZodError if limit is greater than 50", () => {
       expect(() => parseReportPagination({ limit: "51" })).toThrow(z.ZodError);
     });
 
     it("should throw ZodError if offset is negative", () => {
       expect(() => parseReportPagination({ offset: "-1" })).toThrow(z.ZodError);
+    });
+
+    it("should throw ZodError if limit is not a number", () => {
+        expect(() => parseReportPagination({ limit: "abc" })).toThrow(z.ZodError);
+    });
+
+    it("should throw ZodError if offset is not a number", () => {
+        expect(() => parseReportPagination({ offset: "xyz" })).toThrow(z.ZodError);
+    });
+
+    it("should throw ZodError if limit is a float", () => {
+        expect(() => parseReportPagination({ limit: "10.5" })).toThrow(z.ZodError);
+    });
+
+    it("should throw ZodError if offset is a float", () => {
+        expect(() => parseReportPagination({ offset: "0.5" })).toThrow(z.ZodError);
     });
   });
 });
