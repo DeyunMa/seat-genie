@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { useToast } from '../../components/common/Toast'
 import Modal, { ConfirmModal } from '../../components/common/Modal'
 import { listBooks, createBook, updateBook, deleteBook } from '../../services/booksApi'
@@ -16,7 +16,7 @@ function BookList() {
     const [editingBook, setEditingBook] = useState(null)
     const [selectedBookId, setSelectedBookId] = useState(null)
 
-    const loadBooks = async () => {
+    const loadBooks = useCallback(async () => {
         setLoading(true)
         try {
             const data = await listBooks()
@@ -26,7 +26,7 @@ function BookList() {
         } finally {
             setLoading(false)
         }
-    }
+    }, [addToast])
 
     useEffect(() => {
         loadBooks()
