@@ -14,7 +14,7 @@ const emptyToUndefined = (value) => {
 
 const dateTimeQuery = z.preprocess(
   emptyToUndefined,
-  z.string().datetime().optional()
+  z.string().datetime({ offset: true }).optional()
 );
 
 const parseWithSchema = (schema, query) => {

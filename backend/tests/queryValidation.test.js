@@ -29,6 +29,44 @@ describe("queryValidation utils", () => {
       expect(result).toBe(validDate);
     });
 
+    it("should validate a valid ISO datetime string with milliseconds", () => {
+      const validDate = "2023-10-27T10:00:00.123Z";
+      const result = dateTimeQuery.parse(validDate);
+      expect(result).toBe(validDate);
+    });
+
+    it("should validate a valid ISO datetime string with timezone offset", () => {
+      const validDate = "2023-10-27T10:00:00+05:00";
+      const result = dateTimeQuery.parse(validDate);
+      expect(result).toBe(validDate);
+    });
+
+    it("should validate a valid ISO datetime string with negative timezone offset", () => {
+      const validDate = "2023-10-27T10:00:00-03:00";
+      const result = dateTimeQuery.parse(validDate);
+      expect(result).toBe(validDate);
+    });
+
+    it("should throw an error for date only string (missing time)", () => {
+      const invalidDate = "2023-10-27";
+      expect(() => dateTimeQuery.parse(invalidDate)).toThrow(z.ZodError);
+    });
+
+    it("should throw an error for slash separated date", () => {
+      const invalidDate = "2023/10/27";
+      expect(() => dateTimeQuery.parse(invalidDate)).toThrow(z.ZodError);
+    });
+
+    it("should throw an error for string 'null'", () => {
+      const invalidDate = "null";
+      expect(() => dateTimeQuery.parse(invalidDate)).toThrow(z.ZodError);
+    });
+
+    it("should throw an error for string 'undefined'", () => {
+      const invalidDate = "undefined";
+      expect(() => dateTimeQuery.parse(invalidDate)).toThrow(z.ZodError);
+    });
+
     it("should throw an error for an invalid datetime string", () => {
       const invalidDate = "invalid-date";
       expect(() => dateTimeQuery.parse(invalidDate)).toThrow(z.ZodError);
