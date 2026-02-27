@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useDeferredValue } from 'react'
 import { useDataStore } from '../../stores/dataStore'
 import { useToast } from '../../components/common/Toast'
 import Modal, { ConfirmModal } from '../../components/common/Modal'
@@ -8,6 +8,7 @@ function UserList() {
     const { users, loadAllData, addUser, updateUser, deleteUser, resetUserPassword } = useDataStore()
     const { addToast } = useToast()
     const [search, setSearch] = useState('')
+    const deferredSearch = useDeferredValue(search)
     const [roleFilter, setRoleFilter] = useState('all')
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
@@ -21,14 +22,17 @@ function UserList() {
 
     const activeUsers = useMemo(() => users.filter(u => u.activeStatus === 'Y'), [users])
 
-    const filteredUsers = useMemo(() => activeUsers.filter(user => {
-        const matchesSearch =
-            user.name.toLowerCase().includes(search.toLowerCase()) ||
-            user.username.toLowerCase().includes(search.toLowerCase()) ||
-            user.email.toLowerCase().includes(search.toLowerCase())
-        const matchesRole = roleFilter === 'all' || user.role === roleFilter
-        return matchesSearch && matchesRole
-    }), [activeUsers, search, roleFilter])
+    const filteredUsers = useMemo(() => {
+        const normalizedSearch = deferredSearch.toLowerCase()
+        return activeUsers.filter(user => {
+            const matchesSearch =
+                user.name.toLowerCase().includes(normalizedSearch) ||
+                user.username.toLowerCase().includes(normalizedSearch) ||
+                user.email.toLowerCase().includes(normalizedSearch)
+            const matchesRole = roleFilter === 'all' || user.role === roleFilter
+            return matchesSearch && matchesRole
+        })
+    }, [activeUsers, deferredSearch, roleFilter])
 
     const roleLabels = {
         student: '学生',
