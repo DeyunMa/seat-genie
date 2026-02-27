@@ -49,9 +49,13 @@ function BookList() {
 
     const categories = useMemo(() => [...new Set(activeBooks.map(b => b.category))], [activeBooks])
 
+    // 限制最大显示数量，防止大数据集导致渲染性能问题
+    const MAX_DISPLAY_COUNT = 500
+
     const filteredBooks = useMemo(() => {
         const lowerSearch = deferredSearch.toLowerCase()
-        return activeBooks.filter(book => {
+        const results = []
+        for (const book of activeBooks) {
             const authorName = book.author || ''
             const matchesSearch =
                 book.title.toLowerCase().includes(lowerSearch) ||
@@ -59,8 +63,14 @@ function BookList() {
                 authorName.toLowerCase().includes(lowerSearch)
             const matchesCategory = categoryFilter === 'all' || book.category === categoryFilter
             const matchesStatus = statusFilter === 'all' || book.status === statusFilter
-            return matchesSearch && matchesCategory && matchesStatus
-        })
+            if (matchesSearch && matchesCategory && matchesStatus) {
+                results.push(book)
+                if (results.length >= MAX_DISPLAY_COUNT) {
+                    break
+                }
+            }
+        }
+        return results
     }, [activeBooks, deferredSearch, categoryFilter, statusFilter])
 
     const handleOpenModal = (book = null) => {
@@ -154,6 +164,12 @@ function BookList() {
                     </select>
                 </div>
             </div>
+
+            {filteredBooks.length >= MAX_DISPLAY_COUNT && (
+                <div className="alert alert-warning">
+                    搜索结果过多，仅显示前 {MAX_DISPLAY_COUNT} 条记录，请使用更精确的筛选条件
+                </div>
+            )}
 
             <div className="data-table-container">
                 <table className="data-table">

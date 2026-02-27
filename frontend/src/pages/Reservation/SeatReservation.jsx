@@ -202,7 +202,7 @@ function SeatReservation() {
                                             key={seat.id}
                                             className={`seat-item ${status} ${isSelected ? 'selected' : ''}`}
                                             onClick={() => status === 'available' || isSelected ? setSelectedSeat(isSelected ? null : seat) : null}
-                                            title={reservations.length > 0 ? `已预约：${reservations.map(r => `${r.startTime}-${r.endTime}`).join(', ')}` : '可预约'}
+                                            title={reservations.length > 0 ? `已预约：${reservations.map(r => `${String(r.startTime).replace(/[<>&"']/g, '')}-${String(r.endTime).replace(/[<>&"']/g, '')}`).join(', ')}` : '可预约'}
                                         >
                                             <span className="seat-icon">🪑</span>
                                             <span className="seat-label">{seat.seatNumber}</span>

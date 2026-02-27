@@ -71,6 +71,25 @@ describe("Pagination Utils", () => {
       expect(result).toEqual({ limit: 10, offset: 0 });
     });
 
+    it("should throw ZodError for negative exponential notation", () => {
+      expect(() => parsePagination({ limit: "-1e1" })).toThrow(z.ZodError);
+    });
+
+    it("should parse exponential notation resulting in valid integer", () => {
+      const result = parsePagination({ limit: "1.5e1" });
+      expect(result).toEqual({ limit: 15, offset: 0 });
+    });
+
+    it("should parse hex notation to integer", () => {
+      const result = parsePagination({ limit: "0x10" });
+      expect(result).toEqual({ limit: 16, offset: 0 });
+    });
+
+    it("should parse octal notation to integer", () => {
+      const result = parsePagination({ limit: "010" });
+      expect(result).toEqual({ limit: 10, offset: 0 });
+    });
+
     it("should handle whitespace strings", () => {
       const result = parsePagination({ limit: "  10  " });
       expect(result).toEqual({ limit: 10, offset: 0 });

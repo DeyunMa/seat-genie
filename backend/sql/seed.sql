@@ -1,8 +1,8 @@
 -- Seed data for Seat Genie library management system
 
 -- Users (admin, staff, students)
--- 密码均为 bcrypt 哈希（rounds=10），明文密码：
--- admin: AdminPass123!, staff: StaffPass123!, student: StudentPass123!
+-- 密码均为 bcrypt 哈希（rounds=10），明文密码统一为：
+-- TempPass123! (符合强密码策略要求)
 INSERT INTO users (username, password, name, role, email, phone, student_id, active_status, created_at, updated_at) VALUES
 ('admin', '$2b$10$k4GXq5VWuYe2s0hiVzP6r.fm3N3vSY..XHRSs6NDc5AZiA5qR43SG', '系统管理员', 'admin', 'admin@library.edu', '13800000001', NULL, 'Y', datetime('now'), datetime('now')),
 ('staff1', '$2b$10$1QL28dY6lic2hbiC0rEw2OtvCbMnD5.RKjiPvnOL9LB1M1EYshFo.', '张图书管理员', 'staff', 'staff1@library.edu', '13800000002', NULL, 'Y', datetime('now'), datetime('now')),
