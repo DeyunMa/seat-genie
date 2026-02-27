@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useDataStore } from '../../stores/dataStore'
 import { useToast } from '../../components/common/Toast'
 import Modal, { ConfirmModal } from '../../components/common/Modal'
@@ -28,9 +28,16 @@ function SeatList() {
         return matchesRoom && matchesStatus
     })
 
+    // Create a map for O(1) room name lookup
+    const roomNameMap = useMemo(() => {
+        return activeRooms.reduce((acc, room) => {
+            acc[room.id] = room.name
+            return acc
+        }, {})
+    }, [activeRooms])
+
     const getRoomName = (roomId) => {
-        const room = activeRooms.find(r => r.id === roomId)
-        return room?.name || '未知房间'
+        return roomNameMap[roomId] || '未知房间'
     }
 
     const statusLabels = {
