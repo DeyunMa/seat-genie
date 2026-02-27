@@ -108,6 +108,49 @@ describe("queryValidation utils", () => {
       const query = { age: "not a number" };
       expect(() => parseListQuery(query, schema)).toThrow(z.ZodError);
     });
+
+    it("should handle undefined schema (same as null)", () => {
+      const query = { limit: "15" };
+      const result = parseListQuery(query, undefined);
+      expect(result).toEqual({
+        limit: 15,
+        offset: 0,
+      });
+    });
+
+    it("should overwrite pagination params if schema defines them", () => {
+      // The parseListQuery implementation returns { limit, offset, ...parsed }.
+      // If 'parsed' contains limit or offset, they will overwrite the ones from parsePagination.
+      const schema = z.object({
+        limit: z.preprocess((v) => Number(v), z.number().int().default(999)),
+        extra: z.string().optional(),
+      });
+      const query = { limit: "10", extra: "test" };
+
+      const result = parseListQuery(query, schema);
+
+      // limit: 10 comes from schema.parse(query) because of the way z.preprocess works here or just schema parsing
+      // If we used a transform that changed it, we would see it here.
+      // But more importantly, if the implementation spreads ...parsed LAST, the schema's version wins.
+      expect(result).toEqual({
+        limit: 10,
+        offset: 0,
+        extra: "test",
+      });
+    });
+
+    it("should fail when strict schema encounters pagination params", () => {
+      // If the schema is strict, it will reject keys not defined in it.
+      // Since parseWithSchema runs schema.parse(query), and query contains limit/offset,
+      // a strict schema without limit/offset should fail.
+      const schema = z.object({
+        filter: z.string().optional(),
+      }).strict();
+
+      const query = { limit: "10", offset: "0", filter: "active" };
+
+      expect(() => parseListQuery(query, schema)).toThrow(z.ZodError);
+    });
   });
 
   describe("parseReportLimitQuery", () => {
