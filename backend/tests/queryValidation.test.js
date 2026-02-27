@@ -76,6 +76,37 @@ describe("queryValidation utils", () => {
       const invalidInput = 12345;
       expect(() => dateTimeQuery.parse(invalidInput)).toThrow(z.ZodError);
     });
+
+    it("should validate a valid leap year date (Feb 29)", () => {
+      const validDate = "2024-02-29T10:00:00Z";
+      const result = dateTimeQuery.parse(validDate);
+      expect(result).toBe(validDate);
+    });
+
+    it("should throw an error for invalid leap year date (Feb 29 in non-leap year)", () => {
+      const invalidDate = "2023-02-29T10:00:00Z";
+      expect(() => dateTimeQuery.parse(invalidDate)).toThrow(z.ZodError);
+    });
+
+    it("should throw an error for invalid calendar date (Feb 30)", () => {
+      const invalidDate = "2023-02-30T10:00:00Z";
+      expect(() => dateTimeQuery.parse(invalidDate)).toThrow(z.ZodError);
+    });
+
+    it("should throw an error for whitespace only string", () => {
+      const invalidDate = "   ";
+      expect(() => dateTimeQuery.parse(invalidDate)).toThrow(z.ZodError);
+    });
+
+    it("should throw an error for array input", () => {
+      const invalidInput = [];
+      expect(() => dateTimeQuery.parse(invalidInput)).toThrow(z.ZodError);
+    });
+
+    it("should throw an error for object input", () => {
+      const invalidInput = {};
+      expect(() => dateTimeQuery.parse(invalidInput)).toThrow(z.ZodError);
+    });
   });
 
   describe("parseListQuery", () => {
