@@ -20,19 +20,11 @@ const checkConflict = (seatId, date, startTime, endTime, excludeId = null) => {
   let sql = `
     SELECT * FROM reservations 
     WHERE seat_id = ? AND date = ? AND status = 'active'
-    AND (
-      (? >= start_time AND ? < end_time) OR
-      (? > start_time AND ? <= end_time) OR
-      (? <= start_time AND ? >= end_time)
-    )
+    AND (? < end_time AND ? > start_time)
   `;
   const params = [
     seatId,
     date,
-    startTime,
-    startTime,
-    endTime,
-    endTime,
     startTime,
     endTime,
   ];
