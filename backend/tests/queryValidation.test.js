@@ -40,6 +40,12 @@ describe("queryValidation utils", () => {
       const invalidDate = "invalid-date";
       expect(() => dateTimeQuery.parse(invalidDate)).toThrow(z.ZodError);
     });
+
+    it("should throw an error for non-string inputs", () => {
+      expect(() => dateTimeQuery.parse(123)).toThrow(z.ZodError);
+      expect(() => dateTimeQuery.parse(true)).toThrow(z.ZodError);
+      expect(() => dateTimeQuery.parse({})).toThrow(z.ZodError);
+    });
   });
 
   describe("parseListQuery", () => {
@@ -106,6 +112,52 @@ describe("queryValidation utils", () => {
         age: z.number(),
       });
       const query = { age: "not a number" };
+      expect(() => parseListQuery(query, schema)).toThrow(z.ZodError);
+    });
+
+    it("should handle overlapping fields by prioritizing the schema", () => {
+      // We test that if the schema provides a limit, it overrides the one from parsePagination.
+      // Note: parsePagination runs first, so the value must be valid according to base pagination rules (<= 100).
+      // We use a transformer to return a distinct value to prove precedence.
+      const overrideSchema = z.object({
+        limit: z.preprocess((val) => Number(val), z.number().transform(() => 99)),
+      });
+      const query = { limit: "10" };
+      const result = parseListQuery(query, overrideSchema);
+      expect(result).toEqual({
+        limit: 99,
+        offset: 0,
+      });
+    });
+
+    it("should strip extra fields not in the schema", () => {
+      // Zod strips by default
+      const result = parseListQuery({ limit: "10", extra: "field" }, testSchema);
+      expect(result).not.toHaveProperty("extra");
+      expect(result).toEqual({
+        limit: 10,
+        offset: 0,
+      });
+    });
+
+    it("should throw error if schema is strict and extra fields are present", () => {
+      const strictSchema = z.object({
+        name: z.string(),
+      }).strict();
+
+      // limit and offset are handled separately, but they are still in the 'query' object passed to parseWithSchema.
+      // If strictSchema is used, it will see 'limit' and 'offset' as unknown keys and throw.
+      const query = { limit: "10", name: "test" };
+      expect(() => parseListQuery(query, strictSchema)).toThrow(z.ZodError);
+    });
+
+    it("should throw error for type coercion conflicts", () => {
+      // Schema expects a number strictly, but query provides a string.
+      // parsePagination handles limit/offset separately, but if we define another field
+      const schema = z.object({
+        age: z.number(), // Strict number, no coerce
+      });
+      const query = { age: "25" };
       expect(() => parseListQuery(query, schema)).toThrow(z.ZodError);
     });
   });
