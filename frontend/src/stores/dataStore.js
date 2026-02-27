@@ -7,7 +7,6 @@ import { listRooms, createRoom, updateRoom, deleteRoom as deleteRoomApi } from '
 import { listSeats, createSeat, updateSeat, deleteSeat as deleteSeatApi } from '../services/seatsApi'
 import { listReservations, createReservation, cancelReservation as cancelReservationApi } from '../services/reservationsApi'
 import { listNotifications, createNotification, updateNotification, deleteNotification as deleteNotificationApi, markAsRead, getUnreadCount, getReadStatus } from '../services/notificationsApi'
-import { toDateOnly } from '../utils/dateUtils'
 import { mapLoansToBorrowings } from '../utils/mappers'
 
 export const useDataStore = create((set, get) => ({
