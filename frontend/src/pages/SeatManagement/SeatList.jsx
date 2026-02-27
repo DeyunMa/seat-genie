@@ -22,8 +22,9 @@ function SeatList() {
     const activeRooms = useMemo(() => rooms.filter(r => r.activeStatus === 'Y'), [rooms])
     const activeSeats = useMemo(() => seats.filter(s => s.activeStatus === 'Y'), [seats])
 
+    // Optimized filtering with type conversion for room ID comparison
     const filteredSeats = useMemo(() => activeSeats.filter(seat => {
-        const matchesRoom = selectedRoom === 'all' || seat.roomId === selectedRoom
+        const matchesRoom = selectedRoom === 'all' || seat.roomId === Number(selectedRoom)
         const matchesStatus = statusFilter === 'all' || seat.status === statusFilter
         return matchesRoom && matchesStatus
     }), [activeSeats, selectedRoom, statusFilter])
