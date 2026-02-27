@@ -1,3 +1,8 @@
+// Mock the database to prevent loading better-sqlite3
+jest.mock("../src/db", () => ({
+  getDb: jest.fn(),
+}));
+
 const { buildFilters } = require("../src/services/booksService");
 
 describe("buildFilters", () => {
@@ -82,6 +87,11 @@ describe("buildFilters", () => {
         activeStatus: ""
       });
       expect(result).toEqual({ where: "", params: [] });
+    });
+
+    it("ignores activeStatus if 0 or false", () => {
+      expect(buildFilters({ activeStatus: 0 })).toEqual({ where: "", params: [] });
+      expect(buildFilters({ activeStatus: false })).toEqual({ where: "", params: [] });
     });
   });
 
