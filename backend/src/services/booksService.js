@@ -215,4 +215,5 @@ module.exports = {
   createBook,
   updateBook,
   deleteBook,
+  buildFilters,
 };
