@@ -5,6 +5,18 @@ import Modal, { ConfirmModal } from '../../components/common/Modal'
 import '../UserManagement/UserManagement.css'
 import './SeatManagement.css'
 
+const statusLabels = {
+    available: '可用',
+    occupied: '使用中',
+    maintenance: '维护中'
+}
+
+const statusColors = {
+    available: 'success',
+    occupied: 'warning',
+    maintenance: 'error'
+}
+
 function SeatList() {
     const { rooms, seats, loadAllData, addSeat, updateSeat, deleteSeat } = useDataStore()
     const { addToast } = useToast()
@@ -38,18 +50,6 @@ function SeatList() {
 
     const getRoomName = (roomId) => {
         return roomNameMap[roomId] || '未知房间'
-    }
-
-    const statusLabels = {
-        available: '可用',
-        occupied: '使用中',
-        maintenance: '维护中'
-    }
-
-    const statusColors = {
-        available: 'success',
-        occupied: 'warning',
-        maintenance: 'error'
     }
 
     const handleOpenModal = (seat = null) => {
