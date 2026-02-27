@@ -4,6 +4,18 @@ import Modal, { ConfirmModal } from '../../components/common/Modal'
 import { listBooks, createBook, updateBook, deleteBook } from '../../services/booksApi'
 import '../UserManagement/UserManagement.css'
 
+const STATUS_LABELS = {
+    available: '可借阅',
+    borrowed: '已借出',
+    maintenance: '维护中'
+}
+
+const STATUS_COLORS = {
+    available: 'success',
+    borrowed: 'warning',
+    maintenance: 'error'
+}
+
 function BookList() {
     const { addToast } = useToast()
     const [books, setBooks] = useState([])
@@ -37,28 +49,19 @@ function BookList() {
 
     const categories = useMemo(() => [...new Set(activeBooks.map(b => b.category))], [activeBooks])
 
-    const filteredBooks = useMemo(() => activeBooks.filter(book => {
-        const authorName = book.author || ''
-        const matchesSearch =
-            book.title.toLowerCase().includes(deferredSearch.toLowerCase()) ||
-            book.isbn.includes(deferredSearch) ||
-            authorName.toLowerCase().includes(deferredSearch.toLowerCase())
-        const matchesCategory = categoryFilter === 'all' || book.category === categoryFilter
-        const matchesStatus = statusFilter === 'all' || book.status === statusFilter
-        return matchesSearch && matchesCategory && matchesStatus
-    }), [activeBooks, deferredSearch, categoryFilter, statusFilter])
-
-    const statusLabels = {
-        available: '可借阅',
-        borrowed: '已借出',
-        maintenance: '维护中'
-    }
-
-    const statusColors = {
-        available: 'success',
-        borrowed: 'warning',
-        maintenance: 'error'
-    }
+    const filteredBooks = useMemo(() => {
+        const lowerSearch = deferredSearch.toLowerCase()
+        return activeBooks.filter(book => {
+            const authorName = book.author || ''
+            const matchesSearch =
+                book.title.toLowerCase().includes(lowerSearch) ||
+                book.isbn.includes(deferredSearch) ||
+                authorName.toLowerCase().includes(lowerSearch)
+            const matchesCategory = categoryFilter === 'all' || book.category === categoryFilter
+            const matchesStatus = statusFilter === 'all' || book.status === statusFilter
+            return matchesSearch && matchesCategory && matchesStatus
+        })
+    }, [activeBooks, deferredSearch, categoryFilter, statusFilter])
 
     const handleOpenModal = (book = null) => {
         setEditingBook(book)
@@ -178,8 +181,8 @@ function BookList() {
                                 </td>
                                 <td>{book.location}</td>
                                 <td>
-                                    <span className={`badge badge-${statusColors[book.status]}`}>
-                                        {statusLabels[book.status]}
+                                    <span className={`badge badge-${STATUS_COLORS[book.status]}`}>
+                                        {STATUS_LABELS[book.status]}
                                     </span>
                                 </td>
                                 <td>
