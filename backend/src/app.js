@@ -5,7 +5,7 @@ const pinoHttp = require("pino-http");
 const { logger } = require("./logger");
 const { authenticate } = require("./middleware/auth");
 const healthRoutes = require("./routes/health");
-const userRoutes = require("./routes/users");
+const { publicRouter: publicUserRouter, protectedRouter: protectedUserRouter } = require("./routes/users");
 const roomRoutes = require("./routes/rooms");
 const seatRoutes = require("./routes/seats");
 const reservationRoutes = require("./routes/reservations");
@@ -28,17 +28,15 @@ const createApp = () => {
   // Public routes (no auth required)
   app.use("/health", healthRoutes);
 
-  // Apply JWT authentication to all API routes, excluding public endpoints
-  app.use("/api", (req, res, next) => {
-    // Skip auth for login
-    if (req.path === "/users/login" && req.method === "POST") {
-      return next();
-    }
-    authenticate(req, res, next);
-  });
+  // Public user routes (e.g., login)
+  // Mounted before auth middleware so they are accessible without token
+  app.use("/api/users", publicUserRouter);
+
+  // Apply JWT authentication to all other API routes
+  app.use("/api", authenticate);
 
   // Protected routes
-  app.use("/api/users", userRoutes);
+  app.use("/api/users", protectedUserRouter);
   app.use("/api/rooms", roomRoutes);
   app.use("/api/seats", seatRoutes);
   app.use("/api/reservations", reservationRoutes);

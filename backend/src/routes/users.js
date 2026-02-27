@@ -7,7 +7,8 @@ const { buildListQuery } = require("../utils/params");
 const { validate } = require("../middleware/validate");
 const { NotFoundError, ConflictError, AppError } = require("../utils/errors");
 
-const router = express.Router();
+const protectedRouter = express.Router();
+const publicRouter = express.Router();
 
 const JWT_SECRET = process.env.JWT_SECRET || "seat-genie-dev-secret";
 const JWT_EXPIRES_IN = "7d";
@@ -59,8 +60,8 @@ const sanitizeUser = (user) => {
   return rest;
 };
 
-// POST /api/users/login
-router.post("/login", validate({ body: loginSchema }), (req, res, next) => {
+// POST /api/users/login (Public)
+publicRouter.post("/login", validate({ body: loginSchema }), (req, res, next) => {
   try {
     const user = usersService.getUserByUsername(req.body.username);
     if (!user || user.activeStatus !== "Y") {
@@ -81,8 +82,8 @@ router.post("/login", validate({ body: loginSchema }), (req, res, next) => {
   }
 });
 
-// GET /api/users
-router.get("/", validate({ query: listSchema }), (req, res, next) => {
+// GET /api/users (Protected)
+protectedRouter.get("/", validate({ query: listSchema }), (req, res, next) => {
   try {
     const result = usersService.listUsers(buildListQuery(req.query));
     res.json({ data: result.data.map(sanitizeUser), meta: result.meta });
@@ -91,8 +92,8 @@ router.get("/", validate({ query: listSchema }), (req, res, next) => {
   }
 });
 
-// GET /api/users/:id
-router.get("/:id", validate({ params: idSchema }), (req, res, next) => {
+// GET /api/users/:id (Protected)
+protectedRouter.get("/:id", validate({ params: idSchema }), (req, res, next) => {
   try {
     const user = usersService.getUserById(req.params.id);
     if (!user || user.activeStatus !== "Y") {
@@ -104,8 +105,8 @@ router.get("/:id", validate({ params: idSchema }), (req, res, next) => {
   }
 });
 
-// POST /api/users
-router.post("/", validate({ body: userSchema }), async (req, res, next) => {
+// POST /api/users (Protected)
+protectedRouter.post("/", validate({ body: userSchema }), async (req, res, next) => {
   try {
     const existing = usersService.getUserByUsername(req.body.username);
     if (existing) {
@@ -118,8 +119,8 @@ router.post("/", validate({ body: userSchema }), async (req, res, next) => {
   }
 });
 
-// PUT /api/users/:id
-router.put("/:id", validate({ params: idSchema, body: updateUserSchema }), async (req, res, next) => {
+// PUT /api/users/:id (Protected)
+protectedRouter.put("/:id", validate({ params: idSchema, body: updateUserSchema }), async (req, res, next) => {
   try {
     const existing = usersService.getUserById(req.params.id);
     if (!existing || existing.activeStatus !== "Y") {
@@ -132,8 +133,8 @@ router.put("/:id", validate({ params: idSchema, body: updateUserSchema }), async
   }
 });
 
-// DELETE /api/users/:id
-router.delete("/:id", validate({ params: idSchema }), (req, res, next) => {
+// DELETE /api/users/:id (Protected)
+protectedRouter.delete("/:id", validate({ params: idSchema }), (req, res, next) => {
   try {
     const existing = usersService.getUserById(req.params.id);
     if (!existing || existing.activeStatus !== "Y") {
@@ -146,4 +147,4 @@ router.delete("/:id", validate({ params: idSchema }), (req, res, next) => {
   }
 });
 
-module.exports = router;
+module.exports = { publicRouter, protectedRouter };
