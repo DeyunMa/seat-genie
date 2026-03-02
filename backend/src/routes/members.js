@@ -50,8 +50,8 @@ router.get("/", validateListQuery(listQuerySchema), (req, res, next) => {
         sortOrder: sortOrder ?? null,
       },
     });
-  } catch (error) {
-    next(error);
+  } catch (err) {
+    next(err);
   }
 });
 
@@ -66,8 +66,8 @@ router.get("/:id", (req, res, next) => {
       return sendNotFound(res, "Member");
     }
     return res.json({ data: member });
-  } catch (error) {
-    return next(error);
+  } catch (err) {
+    return next(err);
   }
 });
 
@@ -75,8 +75,8 @@ router.post("/", validateBody(memberSchema), (req, res, next) => {
   try {
     const member = membersService.createMember(req.body);
     res.status(201).json({ data: member });
-  } catch (error) {
-    next(error);
+  } catch (err) {
+    next(err);
   }
 });
 
@@ -91,8 +91,8 @@ router.put("/:id", validateBody(memberSchema), (req, res, next) => {
       return sendNotFound(res, "Member");
     }
     return res.json({ data: member });
-  } catch (error) {
-    return next(error);
+  } catch (err) {
+    return next(err);
   }
 });
 
@@ -110,8 +110,8 @@ router.delete("/:id", (req, res, next) => {
       return sendNotFound(res, "Member");
     }
     return res.status(204).send();
-  } catch (error) {
-    return next(error);
+  } catch (err) {
+    return next(err);
   }
 });
 

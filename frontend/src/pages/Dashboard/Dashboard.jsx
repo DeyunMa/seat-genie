@@ -1,4 +1,5 @@
 import { useEffect, useMemo } from 'react'
+import { Link } from 'react-router-dom'
 import { useAuthStore } from '../../stores/authStore'
 import { useDataStore } from '../../stores/dataStore'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts'
@@ -83,12 +84,12 @@ function Dashboard() {
                 <div className="quick-actions">
                     {user?.role === 'student' && (
                         <>
-                            <a href="/reserve-seat" className="quick-action-btn">
+                            <Link to="/reserve-seat" className="quick-action-btn">
                                 <span>🪑</span> 预约座位
-                            </a>
-                            <a href="/my-borrowings" className="quick-action-btn">
+                            </Link>
+                            <Link to="/my-borrowings" className="quick-action-btn">
                                 <span>📚</span> 我的借阅
-                            </a>
+                            </Link>
                         </>
                     )}
                 </div>
@@ -221,7 +222,7 @@ function Dashboard() {
                         <h4>逾期预警</h4>
                         <p>当前有 <strong>{stats.overdueBorrowings}</strong> 本图书逾期未还，请及时处理。</p>
                     </div>
-                    <a href="/notifications" className="alert-action">查看详情</a>
+                    <Link to="/notifications" className="alert-action">查看详情</Link>
                 </div>
             )}
         </div>

@@ -42,8 +42,8 @@ router.get("/", validateListQuery(loanListQuerySchema), (req, res, next) => {
       data: loans,
       meta: { total, limit, offset, status: status ?? null },
     });
-  } catch (error) {
-    next(error);
+  } catch (err) {
+    next(err);
   }
 });
 
@@ -58,8 +58,8 @@ router.get("/:id", (req, res, next) => {
       return sendNotFound(res, "Loan");
     }
     return res.json({ data: loan });
-  } catch (error) {
-    return next(error);
+  } catch (err) {
+    return next(err);
   }
 });
 
@@ -76,8 +76,8 @@ router.post("/", validateBody(loanCreateSchema), (req, res, next) => {
       return sendConflict(res, "Book not available");
     }
     return res.status(201).json({ data: outcome.data });
-  } catch (error) {
-    return next(error);
+  } catch (err) {
+    return next(err);
   }
 });
 
@@ -92,8 +92,8 @@ router.put("/:id", validateBody(loanUpdateSchema), (req, res, next) => {
       return sendNotFound(res, "Loan");
     }
     return res.json({ data: outcome.data });
-  } catch (error) {
-    return next(error);
+  } catch (err) {
+    return next(err);
   }
 });
 
@@ -108,8 +108,8 @@ router.delete("/:id", (req, res, next) => {
       return sendNotFound(res, "Loan");
     }
     return res.status(204).send();
-  } catch (error) {
-    return next(error);
+  } catch (err) {
+    return next(err);
   }
 });
 

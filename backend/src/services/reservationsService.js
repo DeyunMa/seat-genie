@@ -1,4 +1,5 @@
 const { getDb } = require("../db");
+const { NotFoundError, ConflictError } = require("../utils/errors");
 
 const mapReservation = (row) =>
   row
@@ -99,7 +100,7 @@ const createReservation = (payload) => {
   
   // Check for conflicts
   if (checkConflict(payload.seatId, payload.date, payload.startTime, payload.endTime)) {
-    throw new Error("Time slot conflict");
+    throw new ConflictError("Time slot is already reserved");
   }
 
   const now = new Date().toISOString();
@@ -127,17 +128,17 @@ const updateReservation = (id, payload) => {
   const existing = getReservationById(id);
   
   if (!existing) {
-    throw new Error("Reservation not found");
+    throw new NotFoundError("Reservation not found");
   }
 
-  // Check for conflicts if time/seat changed
+  // 时间/座位变更时检查冲突
   const seatId = payload.seatId !== undefined ? payload.seatId : existing.seatId;
   const date = payload.date !== undefined ? payload.date : existing.date;
   const startTime = payload.startTime !== undefined ? payload.startTime : existing.startTime;
   const endTime = payload.endTime !== undefined ? payload.endTime : existing.endTime;
 
   if (checkConflict(seatId, date, startTime, endTime, id)) {
-    throw new Error("Time slot conflict");
+    throw new ConflictError("Time slot is already reserved");
   }
 
   const now = new Date().toISOString();

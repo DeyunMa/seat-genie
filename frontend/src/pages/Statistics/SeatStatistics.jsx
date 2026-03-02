@@ -160,7 +160,7 @@ function SeatStatistics() {
                                 contentStyle={{ background: '#1a1a2e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
                             />
                             <Area type="monotone" dataKey="reservations" name="预约数" stroke="#6366f1" fill="rgba(99, 102, 241, 0.3)" />
-                            <Area type="monotone" dataKey="peak" name="峰值" stroke="#10b981" fill="rgba(16, 185, 129, 0.2)" />
+                            <Area type="monotone" dataKey="borrowings" name="借阅数" stroke="#10b981" fill="rgba(16, 185, 129, 0.2)" />
                         </AreaChart>
                     </ResponsiveContainer>
                 </div>
