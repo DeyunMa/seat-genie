@@ -56,57 +56,52 @@
 
 - **Node.js** >= 18.0.0
 - **npm** >= 9.0.0
-- **SQLite 3**（命令行工具，可选）
 
-### 方式一：完整启动（推荐）
+### 启动步骤
 
 ```bash
 # 1. 克隆项目并进入目录
 git clone <repository-url>
 cd seat-genie
 
-# 2. 安装前端依赖
+# 2. 安装依赖（npm workspaces 会同时安装 frontend 与 backend）
 npm install
 
-# 3. 安装后端依赖
-cd backend && npm install && cd ..
+# 3. 配置后端环境变量
+cp backend/.env.example backend/.env
+# 默认配置即可使用，生产环境请修改 JWT_SECRET
 
-# 4. 初始化数据库
-mkdir -p backend/data
-sqlite3 backend/data/library.db < backend/sql/schema.sql
-
-# 5. 创建初始管理员账号
-sqlite3 backend/data/library.db "INSERT INTO users (username, password, name, role, email, active_status) VALUES ('admin', 'admin123', '系统管理员', 'admin', 'admin@library.edu', 'Y');"
-
-# 6. 启动后端服务（终端 1）
-cd backend
+# 4. 启动前后端（一条命令同时启动）
 npm run dev
 
-# 7. 启动前端应用（终端 2，在项目根目录）
-cd ..
-npm run dev
-
-# 8. 访问系统
-# 打开浏览器访问 http://localhost:5173
-# 使用 admin/admin123 登录
+# 5. 访问系统
+# 前端: http://localhost:5173
+# 后端 API: http://localhost:3001
 ```
 
-### 方式二：使用演示数据（体验完整功能）
+### 重要说明
 
-```bash
-# 导入完整的演示数据（包含用户、自习室、座位、图书、借阅记录等）
-sqlite3 backend/data/library.db < backend/sql/seed.sql
-```
+- **数据库懒加载**：SQLite 数据库与 schema、seed 数据会在**首次访问需要数据库的 API 时**自动创建，无需手动执行 SQL。`/health` 端点不会触发数据库初始化。
+- **首次触发初始化**：启动后端后，可执行任意 API 请求（如登录）以触发数据库创建：
+  ```bash
+  curl http://localhost:3001/api/users/login -H 'Content-Type: application/json' -d '{"username":"admin","password":"TempPass123!"}'
+  ```
+- **登录失败**：若演示账号无法登录，可能是已提交的 `library.db` 中密码哈希与 seed 不一致。删除数据库文件后重启后端即可重新初始化：
+  ```bash
+  rm backend/data/library.db
+  ```
+- **密码策略**：创建用户时密码需满足：12+ 字符，含大小写、数字、特殊字符（如 `TempPass123!`）。
 
-### 方式三：Docker 部署（可选）
+### 常用命令
 
-```bash
-# 构建镜像
-docker build -t seat-genie .
-
-# 运行容器
-docker run -p 3001:3001 -p 5173:5173 seat-genie
-```
+| 任务 | 命令 |
+|------|------|
+| 安装依赖 | `npm install`（根目录，workspaces 自动处理） |
+| 启动开发 | `npm run dev`（同时启动前后端） |
+| 后端测试 | `npm run test:backend` |
+| 前端测试 | `cd frontend && npx vitest run` |
+| 前端构建 | `npm run build:frontend` |
+| 前端 Lint | `cd frontend && npx eslint .` |
 
 ---
 
@@ -114,11 +109,11 @@ docker run -p 3001:3001 -p 5173:5173 seat-genie
 
 | 角色 | 用户名 | 密码 | 权限说明 |
 |------|--------|------|----------|
-| **管理员** | `admin` | `admin123` | 全部功能：用户管理、系统配置、数据统计 |
-| **馆员** | `staff1` | `staff123` | 图书/座位管理、借还登记、通知发布 |
-| **学生** | `student1` | `student123` | 座位预约、图书借阅、个人中心 |
+| **管理员** | `admin` | `TempPass123!` | 全部功能：用户管理、系统配置、数据统计 |
+| **馆员** | `staff1` | `TempPass123!` | 图书/座位管理、借还登记、通知发布 |
+| **学生** | `student1` | `TempPass123!` | 座位预约、图书借阅、个人中心 |
 
-> 💡 **提示**: 导入演示数据后可使用上述账号直接登录体验。
+> 💡 **提示**: 数据库首次初始化时会自动导入 seed 数据，可直接使用上述账号登录。
 
 ---
 
@@ -140,6 +135,8 @@ docker run -p 3001:3001 -p 5173:5173 seat-genie
 |------|------|------|
 | [Express.js](https://expressjs.com/) | 4.19.2 | Web 框架，RESTful API 服务 |
 | [better-sqlite3](https://github.com/WiseLibs/better-sqlite3) | 9.4.3 | SQLite 驱动，同步高性能数据库操作 |
+| [jsonwebtoken](https://github.com/auth0/node-jsonwebtoken) | 9.0.x | JWT 认证 |
+| [bcryptjs](https://github.com/dcodeIO/bcrypt.js) | 3.0.x | 密码哈希 |
 | [Zod](https://zod.dev/) | 3.23.8 | 数据校验，运行时类型检查 |
 | [CORS](https://github.com/expressjs/cors) | 2.8.5 | 跨域资源共享支持 |
 | [Helmet](https://helmetjs.github.io/) | 7.1.0 | 安全中间件，HTTP 头保护 |
@@ -155,95 +152,40 @@ docker run -p 3001:3001 -p 5173:5173 seat-genie
 
 ## 📁 项目结构
 
+本项目为 **npm workspaces monorepo**，前后端均为 **TypeScript** 实现。
+
 ```
 seat-genie/
-├── src/                              # 前端源代码
-│   ├── components/                   # 公共组件
-│   │   ├── common/                   # 通用组件
-│   │   │   ├── Modal.jsx             # 模态框组件
-│   │   │   ├── Modal.css
-│   │   │   ├── Toast.jsx             # 消息提示组件
-│   │   │   └── Toast.css
-│   │   └── layout/                   # 布局组件
-│   │       ├── Header.jsx            # 顶部导航
-│   │       ├── Header.css
-│   │       ├── Sidebar.jsx           # 侧边栏菜单
-│   │       ├── Sidebar.css
-│   │       ├── MainLayout.jsx        # 主布局容器
-│   │       └── MainLayout.css
-│   ├── pages/                        # 业务页面（按模块组织）
-│   │   ├── Login/                    # 登录页
-│   │   ├── Dashboard/                # 统计看板首页
-│   │   ├── UserManagement/           # 用户管理
-│   │   │   ├── UserList.jsx          # 用户列表
-│   │   │   └── RoleManagement.jsx    # 角色管理
-│   │   ├── SeatManagement/           # 自习室/座位管理
-│   │   │   ├── RoomManagement.jsx    # 自习室管理
-│   │   │   └── SeatList.jsx          # 座位列表
-│   │   ├── BookManagement/           # 图书/借阅管理
-│   │   │   ├── BookList.jsx          # 图书列表
-│   │   │   ├── BorrowManagement.jsx  # 借还登记
-│   │   │   └── MyBorrowings.jsx      # 我的借阅
-│   │   ├── Reservation/              # 座位预约
-│   │   │   ├── SeatReservation.jsx   # 座位预约页
-│   │   │   └── MyReservations.jsx    # 我的预约
-│   │   ├── Notification/             # 通知公告
-│   │   ├── Statistics/               # 统计报表
-│   │   └── Settings/                 # 系统设置
-│   ├── services/                     # API 服务层
-│   │   ├── apiClient.js              # HTTP 请求基类
-│   │   ├── usersApi.js               # 用户 API
-│   │   ├── roomsApi.js               # 自习室 API
-│   │   ├── seatsApi.js               # 座位 API
-│   │   ├── reservationsApi.js        # 预约 API
-│   │   ├── booksApi.js               # 图书 API
-│   │   ├── loansApi.js               # 借阅 API
-│   │   ├── membersApi.js             # 会员 API
-│   │   └── notificationsApi.js       # 通知 API
-│   ├── stores/                       # 状态管理（Zustand）
-│   │   ├── authStore.js              # 认证状态
-│   │   └── dataStore.js              # 业务数据状态
-│   ├── App.jsx                       # 路由配置与权限控制
-│   ├── App.css
-│   ├── main.jsx                      # 应用入口
-│   └── index.css                     # 全局样式
-├── backend/                          # 后端服务
+├── frontend/                         # 前端应用（React 19 + Vite + TypeScript）
+│   ├── src/
+│   │   ├── components/               # 公共组件（common/, layout/）
+│   │   ├── pages/                    # 业务页面（Login, Dashboard, UserManagement 等）
+│   │   ├── services/                 # API 服务层
+│   │   ├── stores/                   # 状态管理（Zustand）
+│   │   ├── hooks/                    # 自定义 Hooks
+│   │   ├── utils/                    # 工具函数
+│   │   ├── App.tsx                   # 路由与权限
+│   │   └── main.tsx                  # 应用入口
+│   ├── index.html
+│   ├── vite.config.ts
+│   └── package.json
+├── backend/                          # 后端服务（Express + SQLite + TypeScript）
 │   ├── src/
 │   │   ├── config/                   # 环境配置
-│   │   │   └── env.js
-│   │   ├── db/                       # 数据库连接
-│   │   │   └── index.js
-│   │   ├── middleware/               # 中间件
-│   │   │   ├── errorHandler.js       # 错误处理
-│   │   │   └── validate.js           # 请求验证
+│   │   ├── db/                       # 数据库连接与懒加载初始化
+│   │   ├── middleware/               # 中间件（auth, authorize, validate, errorHandler）
 │   │   ├── routes/                   # API 路由（10 个模块）
-│   │   │   ├── health.js             # 健康检查
-│   │   │   ├── users.js              # 用户管理
-│   │   │   ├── rooms.js              # 自习室管理
-│   │   │   ├── seats.js              # 座位管理
-│   │   │   ├── reservations.js       # 预约管理
-│   │   │   ├── notifications.js      # 通知管理
-│   │   │   ├── books.js              # 图书管理
-│   │   │   ├── authors.js            # 作者管理
-│   │   │   ├── members.js            # 会员管理
-│   │   │   ├── loans.js              # 借阅管理
-│   │   │   └── reports.js            # 报表统计
 │   │   ├── services/                 # 业务逻辑层
 │   │   ├── utils/                    # 工具函数
-│   │   ├── app.js                    # Express 应用配置
-│   │   ├── index.js                  # 服务入口
-│   │   └── logger.js                 # 日志配置
-│   ├── sql/                          # SQL 脚本
+│   │   ├── app.ts                    # Express 应用配置
+│   │   └── index.ts                  # 服务入口
+│   ├── sql/
 │   │   ├── schema.sql                # 数据库表结构
-│   │   └── seed.sql                  # 种子数据
-│   ├── data/                         # 数据目录
-│   │   └── library.db                # SQLite 数据库文件
-│   └── tests/                        # 测试文件
-├── public/                           # 静态资源
-├── index.html                        # 前端入口 HTML
-├── vite.config.js                    # Vite 配置
-├── eslint.config.js                  # ESLint 配置
-└── package.json
+│   │   └── seed.sql                  # 种子数据（首次 DB 访问时自动导入）
+│   ├── data/                         # 数据目录（library.db 自动创建）
+│   └── package.json
+├── package.json                      # 根 package（workspaces 配置）
+└── AGENTS.md                         # 开发环境说明
 ```
 
 ---
@@ -255,6 +197,7 @@ seat-genie/
 - **基础 URL**: `http://localhost:3001`
 - **数据格式**: JSON
 - **字符编码**: UTF-8
+- **认证方式**: JWT Bearer Token（登录后获取，除 `/api/users/login` 外大部分接口需在请求头携带 `Authorization: Bearer <token>`）
 
 ### 核心端点
 
@@ -266,6 +209,7 @@ seat-genie/
 #### 用户管理
 | 方法 | 端点 | 说明 |
 |------|------|------|
+| POST | `/api/users/login` | 用户登录（返回 JWT） |
 | GET | `/api/users` | 获取用户列表（支持分页、搜索） |
 | POST | `/api/users` | 创建新用户 |
 | GET | `/api/users/:id` | 获取用户详情 |
@@ -431,14 +375,18 @@ SELECT * FROM users;       # 查询数据
 ### 后端单元测试
 
 ```bash
-cd backend
-npm test
+npm run test:backend
 ```
 
-测试覆盖：
-- CRUD 错误场景处理
-- 列表查询参数验证
-- 报表统计准确性
+测试覆盖：CRUD 错误场景、列表查询参数验证、报表统计准确性等（约 191 个用例）。
+
+### 前端单元测试
+
+```bash
+cd frontend && npx vitest run
+```
+
+约 49 个用例，覆盖组件、stores、工具函数等。
 
 ### API 接口测试示例
 
@@ -449,13 +397,18 @@ curl http://localhost:3001/health
 # 获取用户列表（带分页）
 curl "http://localhost:3001/api/users?limit=10&offset=0"
 
-# 创建用户
+# 登录获取 JWT
+curl -X POST http://localhost:3001/api/users/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"TempPass123!"}'
+
+# 创建用户（需满足密码策略：12+ 字符，含大小写、数字、特殊字符）
 curl -X POST http://localhost:3001/api/users \
   -H "Content-Type: application/json" \
   -d '{
     "username": "testuser",
-    "password": "password123",
-    "name": "测试用户",
+    "password": "TempPass123!",
+    "name": "Test User",
     "role": "student",
     "email": "test@example.edu"
   }'
@@ -471,19 +424,18 @@ curl "http://localhost:3001/api/books?q=JavaScript&limit=5"
 ### 开发环境
 
 ```bash
-# 前端开发服务器（热更新）
+# 同时启动前后端（concurrently）
 npm run dev
-
-# 后端开发服务器（带自动重启）
-cd backend && npm run dev
+# 前端: http://localhost:5173
+# 后端: http://localhost:3001
 ```
 
 ### 生产构建
 
 ```bash
 # 1. 构建前端静态文件
-npm run build
-# 输出目录: dist/
+npm run build:frontend
+# 输出目录: frontend/dist/
 
 # 2. 生产模式启动后端
 cd backend
@@ -492,13 +444,13 @@ NODE_ENV=production npm start
 
 ### 环境变量
 
-后端支持以下环境变量（配置在 `backend/.env`）：
+后端支持以下环境变量（复制 `backend/.env.example` 到 `backend/.env`）：
 
 ```env
 PORT=3001                           # 服务端口
-NODE_ENV=development                # 运行环境
-DB_PATH=./data/library.db           # 数据库路径
+DATABASE_FILE=data/library.db       # 数据库路径（相对于 backend 目录）
 LOG_LEVEL=info                      # 日志级别
+JWT_SECRET=change-this-in-production # 生产环境必填，开发环境可省略（使用默认值）
 ```
 
 ---
@@ -508,6 +460,7 @@ LOG_LEVEL=info                      # 日志级别
 ### 已实现 ✅
 
 - [x] 用户管理（三角色权限体系）
+- [x] JWT 认证与基于角色的访问控制
 - [x] 自习室/座位管理
 - [x] 座位预约系统（含冲突检测）
 - [x] 图书管理系统
@@ -516,11 +469,11 @@ LOG_LEVEL=info                      # 日志级别
 - [x] 统计看板与报表
 - [x] 通知公告系统
 - [x] RESTful API 完整实现
-- [x] 前后端联调测试
+- [x] 前后端 TypeScript 全栈
+- [x] 单元测试（后端 Jest、前端 Vitest）
 
 ### 规划中 📋
 
-- [ ] JWT 认证（当前为 Session 模拟）
 - [ ] 座位地图可视化（拖拽选座）
 - [ ] 消息推送（邮件/短信提醒）
 - [ ] 多校区/多馆支持
@@ -567,5 +520,5 @@ LOG_LEVEL=info                      # 日志级别
 ---
 
 <p align="center">
-  <b>项目状态</b>: ✅ 已完成并可用 &nbsp;|&nbsp; <b>最后更新</b>: 2026-02-24
+  <b>项目状态</b>: ✅ 已完成并可用 &nbsp;|&nbsp; <b>最后更新</b>: 2026-03-02
 </p>
