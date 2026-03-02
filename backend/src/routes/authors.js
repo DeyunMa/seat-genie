@@ -49,8 +49,8 @@ router.get("/", validateListQuery(listQuerySchema), (req, res, next) => {
         sortOrder: sortOrder ?? null,
       },
     });
-  } catch (error) {
-    next(error);
+  } catch (err) {
+    next(err);
   }
 });
 
@@ -65,8 +65,8 @@ router.get("/:id", (req, res, next) => {
       return sendNotFound(res, "Author");
     }
     return res.json({ data: author });
-  } catch (error) {
-    return next(error);
+  } catch (err) {
+    return next(err);
   }
 });
 
@@ -74,8 +74,8 @@ router.post("/", validateBody(authorSchema), (req, res, next) => {
   try {
     const author = authorsService.createAuthor(req.body);
     res.status(201).json({ data: author });
-  } catch (error) {
-    next(error);
+  } catch (err) {
+    next(err);
   }
 });
 
@@ -90,8 +90,8 @@ router.put("/:id", validateBody(authorSchema), (req, res, next) => {
       return sendNotFound(res, "Author");
     }
     return res.json({ data: author });
-  } catch (error) {
-    return next(error);
+  } catch (err) {
+    return next(err);
   }
 });
 
@@ -106,8 +106,8 @@ router.delete("/:id", (req, res, next) => {
       return sendNotFound(res, "Author");
     }
     return res.status(204).send();
-  } catch (error) {
-    return next(error);
+  } catch (err) {
+    return next(err);
   }
 });
 

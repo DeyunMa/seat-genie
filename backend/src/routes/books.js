@@ -97,8 +97,8 @@ router.get("/", validateListQuery(listQuerySchema), (req, res, next) => {
     const books = booksService.listBooks({ limit, offset, filters, sort });
     const total = booksService.countBooks(filters);
     res.json({ data: books, meta: { total, limit, offset } });
-  } catch (error) {
-    next(error);
+  } catch (err) {
+    next(err);
   }
 });
 
@@ -113,8 +113,8 @@ router.get("/:id", (req, res, next) => {
       return sendNotFound(res, "Book");
     }
     return res.json({ data: book });
-  } catch (error) {
-    return next(error);
+  } catch (err) {
+    return next(err);
   }
 });
 
@@ -122,8 +122,8 @@ router.post("/", validateBody(bookSchema), (req, res, next) => {
   try {
     const book = booksService.createBook(req.body);
     res.status(201).json({ data: book });
-  } catch (error) {
-    next(error);
+  } catch (err) {
+    next(err);
   }
 });
 
@@ -138,8 +138,8 @@ router.put("/:id", validateBody(bookSchema), (req, res, next) => {
       return sendNotFound(res, "Book");
     }
     return res.json({ data: book });
-  } catch (error) {
-    return next(error);
+  } catch (err) {
+    return next(err);
   }
 });
 
@@ -154,8 +154,8 @@ router.delete("/:id", (req, res, next) => {
       return sendNotFound(res, "Book");
     }
     return res.status(204).send();
-  } catch (error) {
-    return next(error);
+  } catch (err) {
+    return next(err);
   }
 });
 

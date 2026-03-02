@@ -3,7 +3,7 @@ const { z } = require("zod");
 const reservationsService = require("../services/reservationsService");
 const { buildListQuery } = require("../utils/params");
 const { validate } = require("../middleware/validate");
-const { NotFoundError, ConflictError } = require("../utils/errors");
+const { NotFoundError } = require("../utils/errors");
 
 const router = express.Router();
 
@@ -65,9 +65,6 @@ router.post("/", validate({ body: reservationSchema }), (req, res, next) => {
     const reservation = reservationsService.createReservation(req.body);
     res.status(201).json({ data: reservation });
   } catch (err) {
-    if (err.message === "Time slot conflict") {
-      return next(new ConflictError("Time slot is already reserved"));
-    }
     next(err);
   }
 });
@@ -81,9 +78,6 @@ router.put("/:id", validate({ params: idSchema, body: updateReservationSchema })
     const reservation = reservationsService.updateReservation(req.params.id, req.body);
     res.json({ data: reservation });
   } catch (err) {
-    if (err.message === "Time slot conflict") {
-      return next(new ConflictError("Time slot is already reserved"));
-    }
     next(err);
   }
 });

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { useAuthStore } from '../../stores/authStore'
 import { useDataStore } from '../../stores/dataStore'
 import { useToast } from '../../components/common/Toast'
@@ -71,9 +72,9 @@ function MyReservations() {
         <div className="page-container">
             <div className="page-header">
                 <h1 className="page-title">我的预约</h1>
-                <a href="/reserve-seat" className="btn btn-primary">
+                <Link to="/reserve-seat" className="btn btn-primary">
                     <span>➕</span> 新增预约
-                </a>
+                </Link>
             </div>
 
             <div className="tab-bar">
@@ -125,7 +126,7 @@ function MyReservations() {
                         <div className="empty-state">
                             <div className="empty-state-icon">📅</div>
                             <p>暂无预约</p>
-                            <a href="/reserve-seat" className="btn btn-primary">立即预约</a>
+                            <Link to="/reserve-seat" className="btn btn-primary">立即预约</Link>
                         </div>
                     )}
                 </div>

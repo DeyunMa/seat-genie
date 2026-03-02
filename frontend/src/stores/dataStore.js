@@ -256,57 +256,64 @@ export const useDataStore = create((set, get) => ({
 
     // BOOK BORROWING OPERATIONS (from API)
     createBorrowing: async (borrowingData) => {
-        // First ensure member exists
-        const members = await listMembers()
-        const email = borrowingData.memberEmail || borrowingData.userEmail
-        let member = members.find(m => m.email === email)
+        try {
+            const stateUsers = get().users
+            const borrower = stateUsers.find(u => String(u.id) === String(borrowingData.userId))
+            const email = borrowingData.memberEmail || borrowingData.userEmail || borrower?.email || ''
+            const name = borrowingData.memberName || borrowingData.userName || borrower?.name || ''
 
-        if (!member) {
-            // Create member if not exists
-            member = await createMember({
-                name: borrowingData.memberName || borrowingData.userName,
-                email: email,
-                phone: borrowingData.memberPhone || ''
+            const members = await listMembers()
+            let member = members.find(m => m.email === email)
+
+            if (!member) {
+                member = await createMember({
+                    name: name,
+                    email: email,
+                    phone: borrowingData.memberPhone || ''
+                })
+            }
+
+            const dueDate = new Date()
+            dueDate.setDate(dueDate.getDate() + 14)
+
+            await createLoan({
+                bookId: Number(borrowingData.bookId),
+                memberId: member.id,
+                dueAt: dueDate.toISOString()
             })
+
+            const loans = await listLoans({ limit: 100 })
+            const usersByEmail = stateUsers.reduce((acc, user) => {
+                if (user.email) acc[user.email] = user.id
+                return acc
+            }, {})
+            const borrowings = mapLoansToBorrowings(loans, usersByEmail)
+            set({ bookBorrowings: borrowings })
+
+            return { success: true }
+        } catch (error) {
+            return { success: false, error: error.message || 'Borrow failed' }
         }
-
-        // Create loan
-        const dueDate = new Date()
-        dueDate.setDate(dueDate.getDate() + 14)
-
-        const loan = await createLoan({
-            bookId: borrowingData.bookId,
-            memberId: member.id,
-            dueAt: dueDate.toISOString()
-        })
-
-        // Refresh borrowings
-        const loans = await listLoans({ limit: 100 })
-        const usersByEmail = get().users.reduce((acc, user) => {
-            if (user.email) acc[user.email] = user.id
-            return acc
-        }, {})
-        const borrowings = mapLoansToBorrowings(loans, usersByEmail)
-
-        set({ bookBorrowings: borrowings })
-        return loan
     },
 
     returnBook: async (borrowingId) => {
-        await updateLoan(borrowingId, {
-            returnedAt: new Date().toISOString()
-        })
+        try {
+            await updateLoan(borrowingId, {
+                returnedAt: new Date().toISOString()
+            })
 
-        // Refresh borrowings
-        const loans = await listLoans({ limit: 100 })
-        const usersByEmail = get().users.reduce((acc, user) => {
-            if (user.email) acc[user.email] = user.id
-            return acc
-        }, {})
-        const borrowings = mapLoansToBorrowings(loans, usersByEmail)
+            const loans = await listLoans({ limit: 100 })
+            const usersByEmail = get().users.reduce((acc, user) => {
+                if (user.email) acc[user.email] = user.id
+                return acc
+            }, {})
+            const borrowings = mapLoansToBorrowings(loans, usersByEmail)
+            set({ bookBorrowings: borrowings })
 
-        set({ bookBorrowings: borrowings })
-        return true
+            return { success: true }
+        } catch (error) {
+            return { success: false, error: error.message || 'Return failed' }
+        }
     },
 
     getUserBorrowings: (userId) => {
@@ -432,8 +439,8 @@ export const useDataStore = create((set, get) => ({
         }
 
         state.seatReservations.forEach(r => {
-            if (r.status === 'active' && r.start_time) {
-                const hour = r.start_time.split(':')[0] + ':00'
+            if (r.status === 'active' && r.startTime) {
+                const hour = r.startTime.split(':')[0] + ':00'
                 if (slots[hour] !== undefined) {
                     slots[hour]++
                 }
