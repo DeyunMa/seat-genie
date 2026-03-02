@@ -95,6 +95,12 @@ const menuConfig: Record<RoleKey, MenuGroup[]> = {
             ]
         },
         {
+            title: '校区管理',
+            items: [
+                { path: '/campuses', label: '校区列表', icon: '🏫' }
+            ]
+        },
+        {
             title: '资源管理',
             items: [
                 { path: '/rooms', label: '房间管理', icon: '🏠' },
