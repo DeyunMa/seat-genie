@@ -24,6 +24,18 @@ class UnauthorizedError extends AppError {
   }
 }
 
+class ForbiddenError extends AppError {
+  constructor(message = "Forbidden") {
+    super(message, 403, "FORBIDDEN");
+  }
+}
+
+class BadRequestError extends AppError {
+  constructor(message = "Bad request") {
+    super(message, 400, "BAD_REQUEST");
+  }
+}
+
 const buildErrorPayload = ({ message, code, details }) => {
   const payload = { error: message };
   if (code) payload.code = code;
@@ -63,6 +75,8 @@ module.exports = {
   NotFoundError,
   ConflictError,
   UnauthorizedError,
+  ForbiddenError,
+  BadRequestError,
   buildErrorPayload,
   sendInvalidId,
   sendNotFound,
