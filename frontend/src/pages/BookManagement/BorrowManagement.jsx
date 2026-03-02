@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useDataStore } from '../../stores/dataStore'
+import { useDataLoader } from '../../hooks/useDataLoader'
 import { useToast } from '../../components/common/Toast'
 import Modal from '../../components/common/Modal'
 import '../UserManagement/UserManagement.css'
@@ -8,14 +9,11 @@ import './BookManagement.css'
 function BorrowManagement() {
     const { books, users, bookBorrowings, loadAllData, createBorrowing, returnBook } = useDataStore()
     const { addToast } = useToast()
+    useDataLoader()
     const [activeTab, setActiveTab] = useState('borrow')
     const [isBorrowModalOpen, setIsBorrowModalOpen] = useState(false)
     const [selectedUserId, setSelectedUserId] = useState('')
     const [selectedBookId, setSelectedBookId] = useState('')
-
-    useEffect(() => {
-        loadAllData()
-    }, [loadAllData])
 
     const activeUsers = users.filter(u => u.activeStatus === 'Y' && u.role === 'student')
     const availableBooks = books.filter(b => b.activeStatus === 'Y' && b.status === 'available')

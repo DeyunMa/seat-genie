@@ -1,17 +1,15 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { useAuthStore } from '../../stores/authStore'
 import { useDataStore } from '../../stores/dataStore'
+import { useDataLoader } from '../../hooks/useDataLoader'
 import '../UserManagement/UserManagement.css'
 import './Notification.css'
 
 function NotificationCenter() {
     const { user } = useAuthStore()
-    const { users, books, seatReservations, bookBorrowings, loadAllData } = useDataStore()
+    const { users, books, seatReservations, bookBorrowings } = useDataStore()
+    useDataLoader()
     const [activeTab, setActiveTab] = useState('all')
-
-    useEffect(() => {
-        loadAllData()
-    }, [loadAllData])
 
     const isStaffOrAdmin = user?.role === 'staff' || user?.role === 'admin'
 

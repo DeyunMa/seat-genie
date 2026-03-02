@@ -1,5 +1,6 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { useDataStore } from '../../stores/dataStore'
+import { useDataLoader } from '../../hooks/useDataLoader'
 import { useToast } from '../../components/common/Toast'
 import Modal, { ConfirmModal } from '../../components/common/Modal'
 import '../UserManagement/UserManagement.css'
@@ -8,16 +9,13 @@ import './SeatManagement.css'
 function SeatList() {
     const { rooms, seats, loadAllData, addSeat, updateSeat, deleteSeat } = useDataStore()
     const { addToast } = useToast()
+    useDataLoader()
     const [selectedRoom, setSelectedRoom] = useState('all')
     const [statusFilter, setStatusFilter] = useState('all')
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
     const [editingSeat, setEditingSeat] = useState(null)
     const [selectedSeatId, setSelectedSeatId] = useState(null)
-
-    useEffect(() => {
-        loadAllData()
-    }, [loadAllData])
 
     const activeRooms = useMemo(() => rooms.filter(r => r.activeStatus === 'Y'), [rooms])
     const activeSeats = useMemo(() => seats.filter(s => s.activeStatus === 'Y'), [seats])

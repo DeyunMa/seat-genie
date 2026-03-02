@@ -1,6 +1,7 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { useAuthStore } from '../../stores/authStore'
 import { useDataStore } from '../../stores/dataStore'
+import { useDataLoader } from '../../hooks/useDataLoader'
 import { useToast } from '../../components/common/Toast'
 import './Reservation.css'
 
@@ -8,16 +9,13 @@ function SeatReservation() {
     const { user } = useAuthStore()
     const { rooms, seats, seatReservations, loadAllData, createReservation } = useDataStore()
     const { addToast } = useToast()
+    useDataLoader()
 
     const [selectedRoom, setSelectedRoom] = useState('')
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
     const [selectedSeat, setSelectedSeat] = useState(null)
     const [startTime, setStartTime] = useState('09:00')
     const [endTime, setEndTime] = useState('12:00')
-
-    useEffect(() => {
-        loadAllData()
-    }, [loadAllData])
 
     const activeRooms = rooms.filter(r => r.activeStatus === 'Y')
     const roomSeats = selectedRoom

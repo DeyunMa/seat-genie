@@ -1,16 +1,14 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useAuthStore } from '../../stores/authStore'
 import { useDataStore } from '../../stores/dataStore'
+import { useDataLoader } from '../../hooks/useDataLoader'
 import '../UserManagement/UserManagement.css'
 
 function MyBorrowings() {
     const { user } = useAuthStore()
-    const { books, bookBorrowings, loadAllData } = useDataStore()
+    const { books, bookBorrowings } = useDataStore()
+    useDataLoader()
     const [activeTab, setActiveTab] = useState('current')
-
-    useEffect(() => {
-        loadAllData()
-    }, [loadAllData])
 
     const myBorrowings = bookBorrowings.filter(b => b.userId === user?.id)
     const currentBorrowings = myBorrowings.filter(b => b.status === 'borrowed')

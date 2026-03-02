@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useDataStore } from '../../stores/dataStore'
+import { useDataLoader } from '../../hooks/useDataLoader'
 import { useToast } from '../../components/common/Toast'
 import Modal, { ConfirmModal } from '../../components/common/Modal'
 import '../UserManagement/UserManagement.css'
@@ -7,14 +8,11 @@ import '../UserManagement/UserManagement.css'
 function RoomManagement() {
     const { rooms, loadAllData, addRoom, updateRoom, deleteRoom } = useDataStore()
     const { addToast } = useToast()
+    useDataLoader()
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
     const [editingRoom, setEditingRoom] = useState(null)
     const [selectedRoomId, setSelectedRoomId] = useState(null)
-
-    useEffect(() => {
-        loadAllData()
-    }, [loadAllData])
 
     const activeRooms = rooms.filter(r => r.activeStatus === 'Y')
 

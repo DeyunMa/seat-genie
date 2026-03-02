@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuthStore } from '../../stores/authStore'
 import { useDataStore } from '../../stores/dataStore'
+import { useDataLoader } from '../../hooks/useDataLoader'
 import { useToast } from '../../components/common/Toast'
 import { ConfirmModal } from '../../components/common/Modal'
 import '../UserManagement/UserManagement.css'
@@ -11,13 +12,10 @@ function MyReservations() {
     const { user } = useAuthStore()
     const { rooms, seats, seatReservations, loadAllData, cancelReservation } = useDataStore()
     const { addToast } = useToast()
+    useDataLoader()
     const [activeTab, setActiveTab] = useState('active')
     const [isCancelModalOpen, setIsCancelModalOpen] = useState(false)
     const [selectedReservationId, setSelectedReservationId] = useState(null)
-
-    useEffect(() => {
-        loadAllData()
-    }, [loadAllData])
 
     const myReservations = seatReservations.filter(r => r.userId === user?.id)
     const today = new Date().toISOString().split('T')[0]
