@@ -1,17 +1,16 @@
-import { useEffect, useMemo } from 'react'
+import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../stores/authStore'
 import { useDataStore } from '../../stores/dataStore'
+import { useDataLoader } from '../../hooks/useDataLoader'
 import './Header.css'
 
 function Header() {
     const { user, logout } = useAuthStore()
-    const { getNotificationCount, loadAllData, unreadCount } = useDataStore()
+    const { getNotificationCount, unreadCount } = useDataStore()
     const navigate = useNavigate()
 
-    useEffect(() => {
-        loadAllData()
-    }, [])
+    useDataLoader()
 
     const notificationCount = useMemo(() => getNotificationCount(user), [user, getNotificationCount, unreadCount])
 

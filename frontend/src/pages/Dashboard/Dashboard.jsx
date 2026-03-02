@@ -1,7 +1,8 @@
-import { useEffect, useMemo } from 'react'
+import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuthStore } from '../../stores/authStore'
 import { useDataStore } from '../../stores/dataStore'
+import { useDataLoader } from '../../hooks/useDataLoader'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts'
 import './Dashboard.css'
 
@@ -15,14 +16,11 @@ function Dashboard() {
         books,
         seatReservations,
         bookBorrowings,
-        loadAllData,
         getStats,
         getWeeklyTrendData
     } = useDataStore()
 
-    useEffect(() => {
-        loadAllData()
-    }, [])
+    useDataLoader()
 
     const stats = useMemo(() => getStats(), [
         users,
