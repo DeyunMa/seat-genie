@@ -131,13 +131,17 @@ const roleLabels: Record<RoleKey, string> = {
     admin: '管理员'
 }
 
-function Sidebar(): React.ReactNode {
+interface SidebarProps {
+    isOpen?: boolean
+}
+
+function Sidebar({ isOpen }: SidebarProps): React.ReactNode {
     const { user } = useAuthStore()
 
     const menus = menuConfig[(user?.role as RoleKey)] || menuConfig.student
 
     return (
-        <aside className="sidebar">
+        <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
             <div className="sidebar-header">
                 <div className="sidebar-logo">
                     <span className="logo-icon">📚</span>

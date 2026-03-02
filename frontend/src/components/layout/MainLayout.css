@@ -19,8 +19,25 @@
     overflow-y: auto;
 }
 
+.sidebar-overlay {
+    display: none;
+}
+
 @media (max-width: 768px) {
     .main-content {
         margin-left: 0;
+    }
+
+    .page-content {
+        padding: var(--spacing-md);
+    }
+
+    .sidebar-overlay {
+        display: block;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 99;
+        backdrop-filter: blur(2px);
     }
 }

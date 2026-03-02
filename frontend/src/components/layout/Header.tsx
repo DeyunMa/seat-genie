@@ -5,7 +5,11 @@ import { useDataStore } from '../../stores/dataStore'
 import { useDataLoader } from '../../hooks/useDataLoader'
 import './Header.css'
 
-function Header(): React.ReactNode {
+interface HeaderProps {
+    onToggleSidebar?: () => void
+}
+
+function Header({ onToggleSidebar }: HeaderProps): React.ReactNode {
     const { user, logout } = useAuthStore()
     const { getNotificationCount, unreadCount } = useDataStore()
     const navigate = useNavigate()
@@ -34,6 +38,9 @@ function Header(): React.ReactNode {
     return (
         <header className="header">
             <div className="header-left">
+                <button className="mobile-menu-btn" onClick={onToggleSidebar} aria-label="Toggle menu">
+                    <span className="hamburger-icon">☰</span>
+                </button>
                 <div className="header-date">{getCurrentTime()}</div>
             </div>
 
