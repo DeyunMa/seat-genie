@@ -15,9 +15,11 @@ Seat Genie is a Library & Study Room Management System (图书馆/自习室综�
 ### Key caveats
 
 - **DB lazy initialization**: The database schema + seed data are only applied when the first DB-touching endpoint is called (not on server start). After starting the backend, issue any API call (e.g., `curl http://localhost:3001/api/users/login -H 'Content-Type: application/json' -d '{"username":"x","password":"x"}'`) to trigger initialization before doing direct DB operations.
+- **DB auto-migration**: On existing databases, missing columns (`seats.position_x/y`, `rooms.campus_id`, `users.email_notifications`) and the `campuses` table are auto-created on first `getDb()` call.
 - **Password policy**: User creation requires passwords with 12+ chars, uppercase, lowercase, number, and special character (e.g., `TempPass123!`).
-- **Backend `.env` setup**: Copy `backend/.env.example` to `backend/.env` before starting. The defaults work correctly out of the box.
+- **Backend `.env` setup**: Copy `backend/.env.example` to `backend/.env` before starting. The defaults work correctly out of the box. Optional SMTP vars (`SMTP_HOST`, `SMTP_USER`, `SMTP_PASS`) enable email notifications.
 - **Stale committed DB**: The `backend/data/library.db` checked into git may contain password hashes that do NOT match the seed passwords (`TempPass123!`). If login fails with demo accounts, delete the DB file (`rm backend/data/library.db`) and restart the backend — the DB will be re-created from `sql/schema.sql` + `sql/seed.sql` on the next DB-touching request.
+- **Route authorization**: `/api/rooms` and `/api/seats` are readable by all authenticated users (including students for seat reservation). Write operations (POST/PUT/DELETE) on these routes require admin/staff role.
 
 ### Standard commands
 
