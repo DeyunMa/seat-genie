@@ -4,11 +4,11 @@
 -- 密码均为 bcrypt 哈希（rounds=10），明文密码统一为：
 -- TempPass123! (符合强密码策略要求)
 INSERT INTO users (username, password, name, role, email, phone, student_id, active_status, created_at, updated_at) VALUES
-('admin', '$2b$10$k4GXq5VWuYe2s0hiVzP6r.fm3N3vSY..XHRSs6NDc5AZiA5qR43SG', '系统管理员', 'admin', 'admin@library.edu', '13800000001', NULL, 'Y', datetime('now'), datetime('now')),
-('staff1', '$2b$10$1QL28dY6lic2hbiC0rEw2OtvCbMnD5.RKjiPvnOL9LB1M1EYshFo.', '张图书管理员', 'staff', 'staff1@library.edu', '13800000002', NULL, 'Y', datetime('now'), datetime('now')),
-('student1', '$2b$10$sgnLsF3RRMfncSalHNuv5OqHdQ5jI.TrXVjo1NSvw5j08uQnyoo7G', '李明', 'student', 'liming@student.edu', '13800000003', '2024001001', 'Y', datetime('now'), datetime('now')),
-('student2', '$2b$10$sgnLsF3RRMfncSalHNuv5OqHdQ5jI.TrXVjo1NSvw5j08uQnyoo7G', '王芳', 'student', 'wangfang@student.edu', '13800000004', '2024001002', 'Y', datetime('now'), datetime('now')),
-('student3', '$2b$10$sgnLsF3RRMfncSalHNuv5OqHdQ5jI.TrXVjo1NSvw5j08uQnyoo7G', '张伟', 'student', 'zhangwei@student.edu', '13800000005', '2024001003', 'Y', datetime('now'), datetime('now'));
+('admin', '$2b$10$5OaaR0rWOCJ6kJ0rwtTqP.XFvSC0TJda8Fm4b.MmUWFpfWf4vS8PC', '系统管理员', 'admin', 'admin@library.edu', '13800000001', NULL, 'Y', datetime('now'), datetime('now')),
+('staff1', '$2b$10$3gUDLUeeSfONu/vgyFQzlOTqM9abC.1/kOD2LAE6txsO1l4Bo7CNe', '张图书管理员', 'staff', 'staff1@library.edu', '13800000002', NULL, 'Y', datetime('now'), datetime('now')),
+('student1', '$2b$10$tms.aDZWJ.5tQDTbGYKI0.Z8bKdBT9JkcK//703p1Atq5f4IakE3i', '李明', 'student', 'liming@student.edu', '13800000003', '2024001001', 'Y', datetime('now'), datetime('now')),
+('student2', '$2b$10$tms.aDZWJ.5tQDTbGYKI0.Z8bKdBT9JkcK//703p1Atq5f4IakE3i', '王芳', 'student', 'wangfang@student.edu', '13800000004', '2024001002', 'Y', datetime('now'), datetime('now')),
+('student3', '$2b$10$tms.aDZWJ.5tQDTbGYKI0.Z8bKdBT9JkcK//703p1Atq5f4IakE3i', '张伟', 'student', 'zhangwei@student.edu', '13800000005', '2024001003', 'Y', datetime('now'), datetime('now'));
 
 -- Study rooms
 INSERT INTO rooms (name, floor, capacity, open_time, close_time, active_status, created_at, updated_at) VALUES
