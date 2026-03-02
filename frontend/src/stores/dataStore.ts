@@ -148,11 +148,11 @@ export const useDataStore = create<DataState>((set, get) => ({
                 remoteLoans,
                 unread
             ] = await Promise.all([
-                listUsers(),
-                listRooms(),
-                listSeats(),
-                listReservations(),
-                listNotifications(),
+                listUsers().catch(() => [] as User[]),
+                listRooms().catch(() => [] as Room[]),
+                listSeats().catch(() => [] as Seat[]),
+                listReservations().catch(() => [] as Reservation[]),
+                listNotifications().catch(() => [] as Notification[]),
                 listBooks().catch(() => [] as Book[]),
                 listMembers().catch(() => []),
                 listLoans({ limit: 100 }).catch(() => []),
