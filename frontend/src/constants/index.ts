@@ -2,9 +2,9 @@ export const ROLES = {
     ADMIN: 'admin',
     STAFF: 'staff',
     STUDENT: 'student',
-}
+} as const
 
-export const ROLE_LABELS = {
+export const ROLE_LABELS: Record<string, string> = {
     [ROLES.ADMIN]: '管理员',
     [ROLES.STAFF]: '工作人员',
     [ROLES.STUDENT]: '学生',
@@ -25,13 +25,13 @@ export const ROUTES = {
     SEAT_STATISTICS: '/seat-statistics',
     BOOK_STATISTICS: '/book-statistics',
     CHANGE_PASSWORD: '/change-password',
-}
+} as const
 
 export const SEAT_STATUS = {
     AVAILABLE: 'available',
     OCCUPIED: 'occupied',
     MAINTENANCE: 'maintenance',
-}
+} as const
 
 export const BOOK_STATUS = {
     AVAILABLE: 'available',
@@ -39,10 +39,10 @@ export const BOOK_STATUS = {
     CHECKED_OUT: 'checked_out',
     MAINTENANCE: 'maintenance',
     LOST: 'lost',
-}
+} as const
 
 export const RESERVATION_STATUS = {
     ACTIVE: 'active',
     CANCELLED: 'cancelled',
     COMPLETED: 'completed',
-}
+} as const

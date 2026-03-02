@@ -1,4 +1,4 @@
-export const toDateOnly = (value) => {
+export const toDateOnly = (value: string | Date | null | undefined): string | null => {
     if (!value) return null
     const normalized = typeof value === 'string' ? value.replace(' ', 'T') : value
     const date = new Date(normalized)

@@ -1,9 +1,22 @@
+import React from 'react'
 import { NavLink } from 'react-router-dom'
 import { useAuthStore } from '../../stores/authStore'
 import './Sidebar.css'
 
-// Menu configuration based on roles
-const menuConfig = {
+interface MenuItem {
+    path: string
+    label: string
+    icon: string
+}
+
+interface MenuGroup {
+    title: string
+    items: MenuItem[]
+}
+
+type RoleKey = 'student' | 'staff' | 'admin'
+
+const menuConfig: Record<RoleKey, MenuGroup[]> = {
     student: [
         {
             title: '首页',
@@ -112,16 +125,16 @@ const menuConfig = {
     ]
 }
 
-const roleLabels = {
+const roleLabels: Record<RoleKey, string> = {
     student: '学生',
     staff: '工作人员',
     admin: '管理员'
 }
 
-function Sidebar() {
+function Sidebar(): React.ReactNode {
     const { user } = useAuthStore()
 
-    const menus = menuConfig[user?.role] || menuConfig.student
+    const menus = menuConfig[(user?.role as RoleKey)] || menuConfig.student
 
     return (
         <aside className="sidebar">
@@ -134,7 +147,7 @@ function Sidebar() {
                     <div className="user-avatar">{user?.name?.charAt(0) || 'U'}</div>
                     <div className="user-info">
                         <div className="user-name">{user?.name || '用户'}</div>
-                        <div className="user-role">{roleLabels[user?.role] || '未知'}</div>
+                        <div className="user-role">{roleLabels[(user?.role as RoleKey)] || '未知'}</div>
                     </div>
                 </div>
             </div>
@@ -148,7 +161,7 @@ function Sidebar() {
                                 <li key={item.path}>
                                     <NavLink
                                         to={item.path}
-                                        className={({ isActive }) =>
+                                        className={({ isActive }: { isActive: boolean }) =>
                                             `nav-link ${isActive ? 'active' : ''}`
                                         }
                                     >

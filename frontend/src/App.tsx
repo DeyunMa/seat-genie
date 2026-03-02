@@ -1,3 +1,4 @@
+import React from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuthStore } from './stores/authStore'
 import MainLayout from './components/layout/MainLayout'
@@ -17,22 +18,26 @@ import BookStatistics from './pages/Statistics/BookStatistics'
 import ChangePassword from './pages/Settings/ChangePassword'
 import { ToastProvider } from './components/common/Toast'
 
-// Protected Route Component
-function ProtectedRoute({ children, allowedRoles }) {
+interface ProtectedRouteProps {
+  children: React.ReactNode
+  allowedRoles?: string[]
+}
+
+function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps): React.ReactNode {
   const { user, isAuthenticated } = useAuthStore()
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />
   }
 
-  if (allowedRoles && !allowedRoles.includes(user?.role)) {
+  if (allowedRoles && user?.role && !allowedRoles.includes(user.role)) {
     return <Navigate to="/dashboard" replace />
   }
 
   return children
 }
 
-function App() {
+function App(): React.ReactNode {
   const { isAuthenticated } = useAuthStore()
 
   return (

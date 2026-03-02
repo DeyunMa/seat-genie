@@ -1,9 +1,19 @@
+import React from 'react'
 import './Modal.css'
 
-function Modal({ isOpen, onClose, title, children, size = 'md', showClose = true }) {
+interface ModalProps {
+    isOpen: boolean
+    onClose: () => void
+    title: string
+    children: React.ReactNode
+    size?: 'sm' | 'md' | 'lg'
+    showClose?: boolean
+}
+
+function Modal({ isOpen, onClose, title, children, size = 'md', showClose = true }: ModalProps): React.ReactNode {
     if (!isOpen) return null
 
-    const handleBackdropClick = (e) => {
+    const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>): void => {
         if (e.target === e.currentTarget) {
             onClose()
         }
@@ -26,7 +36,18 @@ function Modal({ isOpen, onClose, title, children, size = 'md', showClose = true
     )
 }
 
-export function ConfirmModal({ isOpen, onClose, onConfirm, title, message, confirmText = '确认', cancelText = '取消', danger = false }) {
+interface ConfirmModalProps {
+    isOpen: boolean
+    onClose: () => void
+    onConfirm: () => void
+    title: string
+    message: string
+    confirmText?: string
+    cancelText?: string
+    danger?: boolean
+}
+
+export function ConfirmModal({ isOpen, onClose, onConfirm, title, message, confirmText = '确认', cancelText = '取消', danger = false }: ConfirmModalProps): React.ReactNode {
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={title} size="sm">
             <p className="confirm-message">{message}</p>

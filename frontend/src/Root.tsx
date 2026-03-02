@@ -3,7 +3,7 @@ import { BrowserRouter } from 'react-router-dom'
 import App from './App'
 import ErrorBoundary from './components/common/ErrorBoundary'
 
-function LoadingScreen() {
+function LoadingScreen(): React.ReactNode {
   return (
     <div className="loading-screen">
       <div className="loading-content">
@@ -20,8 +20,8 @@ function LoadingScreen() {
   )
 }
 
-export default function Root() {
-  const [isReady, setIsReady] = useState(false)
+export default function Root(): React.ReactNode {
+  const [isReady, setIsReady] = useState<boolean>(false)
 
   useEffect(() => {
     const timer = setTimeout(() => setIsReady(true), 300)

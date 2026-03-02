@@ -8,8 +8,113 @@ import { listSeats, createSeat, updateSeat, deleteSeat as deleteSeatApi } from '
 import { listReservations, createReservation, cancelReservation as cancelReservationApi } from '../services/reservationsApi'
 import { listNotifications, createNotification, updateNotification, deleteNotification as deleteNotificationApi, markAsRead, getUnreadCount, getReadStatus } from '../services/notificationsApi'
 import { mapLoansToBorrowings } from '../utils/mappers'
+import type { User, Room, Seat, Book, Reservation, Notification, Borrowing } from '../types'
 
-export const useDataStore = create((set, get) => ({
+interface ReservationResult {
+    success: boolean
+    reservation?: Reservation
+    error?: string
+}
+
+interface BorrowingResult {
+    success: boolean
+    error?: string
+}
+
+interface Stats {
+    totalUsers: number
+    totalSeats: number
+    totalBooks: number
+    availableBooks: number
+    borrowedBooks: number
+    todayReservations: number
+    activeBorrowings: number
+    overdueBorrowings: number
+    availableSeats: number
+    seatUtilization: number
+    bookBorrowRate: number
+}
+
+interface WeeklyTrendItem {
+    name: string
+    reservations: number
+    borrowings: number
+}
+
+interface MonthlyTrendItem {
+    name: string
+    borrowings: number
+    returns: number
+}
+
+interface PopularBookItem {
+    name: string
+    borrowCount: number
+}
+
+interface TimeSlotItem {
+    time: string
+    count: number
+}
+
+interface CreateBorrowingData {
+    userId?: number | string
+    memberEmail?: string
+    userEmail?: string
+    memberName?: string
+    userName?: string
+    memberPhone?: string
+    bookId: number | string
+}
+
+interface DataState {
+    users: User[]
+    rooms: Room[]
+    seats: Seat[]
+    books: Book[]
+    seatReservations: Reservation[]
+    bookBorrowings: Borrowing[]
+    members: { id: number; email: string; name: string }[]
+    notifications: Notification[]
+    notificationReads: Record<number, boolean>
+    unreadCount: number
+    loading: boolean
+    error: string | null
+    getCurrentUser?: () => { id: number; email: string }
+    loadAllData: () => Promise<void>
+    getActiveUsers: () => User[]
+    addUser: (userData: Record<string, unknown>) => Promise<User>
+    updateUser: (id: number, updates: Record<string, unknown>) => Promise<User>
+    deleteUser: (id: number) => Promise<boolean>
+    resetUserPassword: (id: number, newPassword?: string) => Promise<User>
+    getActiveRooms: () => Room[]
+    addRoom: (roomData: Record<string, unknown>) => Promise<Room>
+    updateRoom: (id: number, updates: Record<string, unknown>) => Promise<Room>
+    deleteRoom: (id: number) => Promise<boolean>
+    getActiveSeats: () => Seat[]
+    getSeatsByRoom: (roomId: number) => Seat[]
+    addSeat: (seatData: Record<string, unknown>) => Promise<Seat>
+    updateSeat: (id: number, updates: Record<string, unknown>) => Promise<Seat>
+    deleteSeat: (id: number) => Promise<boolean>
+    createReservation: (reservationData: Record<string, unknown>) => Promise<ReservationResult>
+    cancelReservation: (id: number) => Promise<ReservationResult>
+    getUserReservations: (userId: number) => Reservation[]
+    getNotificationCount: (user: User | null) => number
+    addNotification: (notificationData: Record<string, unknown>) => Promise<Notification>
+    updateNotification: (id: number, updates: Record<string, unknown>) => Promise<Notification>
+    deleteNotification: (id: number) => Promise<boolean>
+    markNotificationAsRead: (notificationId: number, userId: number) => Promise<void>
+    createBorrowing: (borrowingData: CreateBorrowingData) => Promise<BorrowingResult>
+    returnBook: (borrowingId: number | string) => Promise<BorrowingResult>
+    getUserBorrowings: (userId: number) => Borrowing[]
+    getStats: () => Stats
+    getWeeklyTrendData: () => WeeklyTrendItem[]
+    getMonthlyBorrowingTrend: () => MonthlyTrendItem[]
+    getPopularBooks: () => PopularBookItem[]
+    getTimeSlotDistribution: () => TimeSlotItem[]
+}
+
+export const useDataStore = create<DataState>((set, get) => ({
     // Data states
     users: [],
     rooms: [],
@@ -48,21 +153,20 @@ export const useDataStore = create((set, get) => ({
                 listSeats(),
                 listReservations(),
                 listNotifications(),
-                listBooks().catch(() => []),
+                listBooks().catch(() => [] as Book[]),
                 listMembers().catch(() => []),
                 listLoans({ limit: 100 }).catch(() => []),
                 getUnreadCount(currentUser.id).catch(() => 0)
             ])
 
-            const usersByEmail = users.reduce((acc, user) => {
+            const usersByEmail: Record<string, number> = users.reduce<Record<string, number>>((acc, user) => {
                 if (user.email) acc[user.email] = user.id
                 return acc
             }, {})
             const borrowings = mapLoansToBorrowings(remoteLoans, usersByEmail)
 
-            // Load notification read status
             const notificationIds = notifications.map(n => n.id)
-            let readStatus = {}
+            let readStatus: Record<number, boolean> = {}
             if (notificationIds.length > 0) {
                 try {
                     readStatus = await getReadStatus(notificationIds, currentUser.id)
@@ -85,7 +189,7 @@ export const useDataStore = create((set, get) => ({
                 loading: false
             })
         } catch (error) {
-            set({ error: error.message, loading: false })
+            set({ error: (error as Error).message, loading: false })
             console.error('Failed to load data:', error)
         }
     },
@@ -97,13 +201,13 @@ export const useDataStore = create((set, get) => ({
         const newUser = await createUser({
             ...userData,
             activeStatus: 'Y'
-        })
+        } as Parameters<typeof createUser>[0])
         set(state => ({ users: [...state.users, newUser] }))
         return newUser
     },
 
     updateUser: async (id, updates) => {
-        const updatedUser = await updateUser(id, updates)
+        const updatedUser = await updateUser(id, updates as Parameters<typeof updateUser>[1])
         set(state => ({
             users: state.users.map(u => u.id === id ? updatedUser : u)
         }))
@@ -129,13 +233,13 @@ export const useDataStore = create((set, get) => ({
         const newRoom = await createRoom({
             ...roomData,
             activeStatus: 'Y'
-        })
+        } as Parameters<typeof createRoom>[0])
         set(state => ({ rooms: [...state.rooms, newRoom] }))
         return newRoom
     },
 
     updateRoom: async (id, updates) => {
-        const updatedRoom = await updateRoom(id, updates)
+        const updatedRoom = await updateRoom(id, updates as Parameters<typeof updateRoom>[1])
         set(state => ({
             rooms: state.rooms.map(r => r.id === id ? updatedRoom : r)
         }))
@@ -163,13 +267,13 @@ export const useDataStore = create((set, get) => ({
             ...seatData,
             status: 'available',
             activeStatus: 'Y'
-        })
+        } as Parameters<typeof createSeat>[0])
         set(state => ({ seats: [...state.seats, newSeat] }))
         return newSeat
     },
 
     updateSeat: async (id, updates) => {
-        const updatedSeat = await updateSeat(id, updates)
+        const updatedSeat = await updateSeat(id, updates as Parameters<typeof updateSeat>[1])
         set(state => ({
             seats: state.seats.map(s => s.id === id ? updatedSeat : s)
         }))
@@ -190,13 +294,13 @@ export const useDataStore = create((set, get) => ({
             const reservation = await createReservation({
                 ...reservationData,
                 status: 'active'
-            })
+            } as Parameters<typeof createReservation>[0])
             set(state => ({
                 seatReservations: [...state.seatReservations, reservation]
             }))
             return { success: true, reservation }
         } catch (error) {
-            return { success: false, error: error.message || '该时间段已被预约' }
+            return { success: false, error: (error as Error).message || '该时间段已被预约' }
         }
     },
 
@@ -204,7 +308,7 @@ export const useDataStore = create((set, get) => ({
         const updated = await cancelReservationApi(id)
         set(state => ({
             seatReservations: state.seatReservations.map(r =>
-                r.id === id ? { ...r, status: 'cancelled' } : r
+                r.id === id ? { ...r, status: 'cancelled' as const } : r
             )
         }))
         return { success: true, reservation: updated }
@@ -225,13 +329,13 @@ export const useDataStore = create((set, get) => ({
         const newNotification = await createNotification({
             ...notificationData,
             activeStatus: 'Y'
-        })
+        } as Parameters<typeof createNotification>[0])
         set(state => ({ notifications: [newNotification, ...state.notifications] }))
         return newNotification
     },
 
     updateNotification: async (id, updates) => {
-        const updated = await updateNotification(id, updates)
+        const updated = await updateNotification(id, updates as Parameters<typeof updateNotification>[1])
         set(state => ({
             notifications: state.notifications.map(n => n.id === id ? updated : n)
         }))
@@ -283,7 +387,7 @@ export const useDataStore = create((set, get) => ({
             })
 
             const loans = await listLoans({ limit: 100 })
-            const usersByEmail = stateUsers.reduce((acc, user) => {
+            const usersByEmail: Record<string, number> = stateUsers.reduce<Record<string, number>>((acc, user) => {
                 if (user.email) acc[user.email] = user.id
                 return acc
             }, {})
@@ -292,7 +396,7 @@ export const useDataStore = create((set, get) => ({
 
             return { success: true }
         } catch (error) {
-            return { success: false, error: error.message || 'Borrow failed' }
+            return { success: false, error: (error as Error).message || 'Borrow failed' }
         }
     },
 
@@ -303,7 +407,7 @@ export const useDataStore = create((set, get) => ({
             })
 
             const loans = await listLoans({ limit: 100 })
-            const usersByEmail = get().users.reduce((acc, user) => {
+            const usersByEmail: Record<string, number> = get().users.reduce<Record<string, number>>((acc, user) => {
                 if (user.email) acc[user.email] = user.id
                 return acc
             }, {})
@@ -312,7 +416,7 @@ export const useDataStore = create((set, get) => ({
 
             return { success: true }
         } catch (error) {
-            return { success: false, error: error.message || 'Return failed' }
+            return { success: false, error: (error as Error).message || 'Return failed' }
         }
     },
 
@@ -321,7 +425,7 @@ export const useDataStore = create((set, get) => ({
     },
 
     // STATISTICS
-    getStats: () => {
+    getStats: (): Stats => {
         const state = get()
         const today = new Date().toISOString().split('T')[0]
 
@@ -337,7 +441,7 @@ export const useDataStore = create((set, get) => ({
 
         const activeBorrowings = state.bookBorrowings.filter(b => b.status === 'borrowed').length
         const overdueBorrowings = state.bookBorrowings.filter(b =>
-            b.status === 'borrowed' && b.dueDate < today
+            b.status === 'borrowed' && b.dueDate !== null && b.dueDate < today
         ).length
 
         const availableSeats = state.seats.filter(s =>
@@ -367,9 +471,9 @@ export const useDataStore = create((set, get) => ({
         }
     },
 
-    getWeeklyTrendData: () => {
+    getWeeklyTrendData: (): WeeklyTrendItem[] => {
         const state = get()
-        const data = []
+        const data: WeeklyTrendItem[] = []
 
         for (let i = 6; i >= 0; i--) {
             const date = new Date()
@@ -395,9 +499,9 @@ export const useDataStore = create((set, get) => ({
         return data
     },
 
-    getMonthlyBorrowingTrend: () => {
+    getMonthlyBorrowingTrend: (): MonthlyTrendItem[] => {
         const state = get()
-        const data = []
+        const data: MonthlyTrendItem[] = []
 
         for (let i = 29; i >= 0; i--) {
             const date = new Date()
@@ -416,9 +520,9 @@ export const useDataStore = create((set, get) => ({
         return data
     },
 
-    getPopularBooks: () => {
+    getPopularBooks: (): PopularBookItem[] => {
         const state = get()
-        const bookCounts = {}
+        const bookCounts: Record<string, number> = {}
         state.bookBorrowings.forEach(b => {
             if (b.bookTitle) {
                 bookCounts[b.bookTitle] = (bookCounts[b.bookTitle] || 0) + 1
@@ -431,9 +535,9 @@ export const useDataStore = create((set, get) => ({
             .slice(0, 10)
     },
 
-    getTimeSlotDistribution: () => {
+    getTimeSlotDistribution: (): TimeSlotItem[] => {
         const state = get()
-        const slots = {}
+        const slots: Record<string, number> = {}
         for (let i = 8; i <= 22; i++) {
             slots[`${String(i).padStart(2, '0')}:00`] = 0
         }

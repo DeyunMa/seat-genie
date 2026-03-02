@@ -1,6 +1,7 @@
 import { toDateOnly } from './dateUtils'
+import type { Loan, Borrowing } from '../types'
 
-export const mapLoansToBorrowings = (loans, usersByEmail) => {
+export const mapLoansToBorrowings = (loans: Loan[], usersByEmail: Record<string, number>): Borrowing[] => {
     if (!Array.isArray(loans)) return []
     return loans.map(loan => ({
         id: String(loan.id),
@@ -13,7 +14,7 @@ export const mapLoansToBorrowings = (loans, usersByEmail) => {
         borrowDate: toDateOnly(loan.loaned_at),
         dueDate: toDateOnly(loan.due_at),
         returnDate: loan.returned_at ? toDateOnly(loan.returned_at) : null,
-        status: loan.returned_at ? 'returned' : 'borrowed',
+        status: loan.returned_at ? 'returned' as const : 'borrowed' as const,
         createdAt: loan.loaned_at,
         updatedAt: loan.returned_at ?? loan.loaned_at
     }))

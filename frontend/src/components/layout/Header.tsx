@@ -5,7 +5,7 @@ import { useDataStore } from '../../stores/dataStore'
 import { useDataLoader } from '../../hooks/useDataLoader'
 import './Header.css'
 
-function Header() {
+function Header(): React.ReactNode {
     const { user, logout } = useAuthStore()
     const { getNotificationCount, unreadCount } = useDataStore()
     const navigate = useNavigate()
@@ -15,14 +15,14 @@ function Header() {
     const notificationCount = useMemo(() => getNotificationCount(user), [user, getNotificationCount, unreadCount])
 
 
-    const handleLogout = () => {
+    const handleLogout = (): void => {
         logout()
         navigate('/login')
     }
 
-    const getCurrentTime = () => {
+    const getCurrentTime = (): string => {
         const now = new Date()
-        const options = {
+        const options: Intl.DateTimeFormatOptions = {
             year: 'numeric',
             month: 'long',
             day: 'numeric',
