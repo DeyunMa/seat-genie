@@ -17,6 +17,8 @@ import authorRoutes from "./routes/authors";
 import memberRoutes from "./routes/members";
 import loanRoutes from "./routes/loans";
 import reportRoutes from "./routes/reports";
+import exportRoutes from "./routes/export";
+import schedulerRoutes from "./routes/scheduler";
 import { errorHandler } from "./middleware/errorHandler";
 
 const createApp = () => {
@@ -47,6 +49,8 @@ const createApp = () => {
   app.use("/api/members", authorize("admin", "staff"), memberRoutes);
   app.use("/api/loans", authorize("admin", "staff"), loanRoutes);
   app.use("/api/reports", authorize("admin", "staff"), reportRoutes);
+  app.use("/api/export", authorize("admin", "staff"), exportRoutes);
+  app.use("/api/scheduler", authorize("admin"), schedulerRoutes);
 
   // Protected routes — all authenticated users
   app.use("/api/reservations", reservationRoutes);
