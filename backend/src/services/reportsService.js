@@ -1,4 +1,5 @@
 const { getDb } = require("../db");
+const { NotFoundError } = require("../utils/errors");
 
 const listOverdueLoans = (asOf) => {
   const db = getDb();
@@ -126,7 +127,7 @@ const getMemberLoanHistory = ({
     .prepare("SELECT id, name, email, created_at FROM members WHERE id = ?")
     .get(memberId);
   if (!member) {
-    return { error: "member_not_found" };
+    throw new NotFoundError("Member not found");
   }
 
   const conditions = ["l.member_id = ?"];
@@ -186,7 +187,7 @@ const getBookLoanHistory = ({
     )
     .get(bookId);
   if (!book) {
-    return { error: "book_not_found" };
+    throw new NotFoundError("Book not found");
   }
 
   const conditions = ["l.book_id = ?"];

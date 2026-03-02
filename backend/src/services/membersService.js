@@ -1,4 +1,5 @@
 const { getDb } = require("../db");
+const { NotFoundError, ConflictError } = require("../utils/errors");
 
 const SORT_COLUMNS = {
   id: "id",
@@ -86,6 +87,10 @@ const updateMember = (id, { name, email, phone }) => {
 
 const deleteMember = (id) => {
   const db = getDb();
+  const existing = getMember(id);
+  if (!existing) {
+    throw new NotFoundError("Member not found");
+  }
   const activeLoans = db
     .prepare(
       `SELECT COUNT(1) AS total
@@ -94,10 +99,9 @@ const deleteMember = (id) => {
     )
     .get(id);
   if (activeLoans && activeLoans.total > 0) {
-    return { deleted: false, reason: "active_loans" };
+    throw new ConflictError("Member has active loans");
   }
-  const result = db.prepare("DELETE FROM members WHERE id = ?").run(id);
-  return { deleted: result.changes > 0, reason: null };
+  db.prepare("DELETE FROM members WHERE id = ?").run(id);
 };
 
 module.exports = {

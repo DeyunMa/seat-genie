@@ -1,4 +1,5 @@
 const { getDb } = require("../db");
+const { NotFoundError, ConflictError } = require("../utils/errors");
 
 const listLoans = ({ limit, offset, status }) => {
   const db = getDb();
@@ -66,16 +67,16 @@ const createLoan = ({ bookId, memberId, dueAt }) => {
       .prepare(`SELECT id, status FROM books WHERE id = ?`)
       .get(bookId);
     if (!book) {
-      return { error: "book_not_found" };
+      throw new NotFoundError("Book not found");
     }
     if (book.status !== "available") {
-      return { error: "book_unavailable" };
+      throw new ConflictError("Book not available");
     }
     const member = db
       .prepare(`SELECT id FROM members WHERE id = ?`)
       .get(memberId);
     if (!member) {
-      return { error: "member_not_found" };
+      throw new NotFoundError("Member not found");
     }
     const result = db
       .prepare(
@@ -86,14 +87,11 @@ const createLoan = ({ bookId, memberId, dueAt }) => {
     db.prepare(`UPDATE books SET status = 'checked_out' WHERE id = ?`).run(
       bookId
     );
-    return { loanId: result.lastInsertRowid };
+    return result.lastInsertRowid;
   });
 
-  const outcome = insertLoan();
-  if (outcome.error) {
-    return outcome;
-  }
-  return { data: getLoan(outcome.loanId) };
+  const loanId = insertLoan();
+  return getLoan(loanId);
 };
 
 const updateLoan = (id, { dueAt, returnedAt }) => {
@@ -103,7 +101,7 @@ const updateLoan = (id, { dueAt, returnedAt }) => {
       .prepare(`SELECT id, book_id, returned_at FROM loans WHERE id = ?`)
       .get(id);
     if (!existing) {
-      return { error: "loan_not_found" };
+      throw new NotFoundError("Loan not found");
     }
     const nextDueAt = dueAt ?? null;
     const nextReturnedAt = returnedAt ?? existing.returned_at;
@@ -120,7 +118,7 @@ const updateLoan = (id, { dueAt, returnedAt }) => {
       );
     }
 
-    return { data: getLoan(id) };
+    return getLoan(id);
   });
 
   return updateTxn();
@@ -133,18 +131,17 @@ const deleteLoan = (id) => {
       .prepare(`SELECT id, book_id, returned_at FROM loans WHERE id = ?`)
       .get(id);
     if (!existing) {
-      return { deleted: false };
+      throw new NotFoundError("Loan not found");
     }
     if (!existing.returned_at) {
       db.prepare(`UPDATE books SET status = 'available' WHERE id = ?`).run(
         existing.book_id
       );
     }
-    const result = db.prepare(`DELETE FROM loans WHERE id = ?`).run(id);
-    return { deleted: result.changes > 0 };
+    db.prepare(`DELETE FROM loans WHERE id = ?`).run(id);
   });
 
-  return deleteTxn();
+  deleteTxn();
 };
 
 module.exports = {
