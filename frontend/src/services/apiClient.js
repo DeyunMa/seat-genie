@@ -44,7 +44,21 @@ export const apiRequest = async (path, options = {}) => {
 
     if (!response.ok) {
         const payload = await parseJson(response)
+
+        if (response.status === 401) {
+            try {
+                const authStore = useAuthStore.getState()
+                if (authStore.isAuthenticated) {
+                    authStore.logout()
+                    window.location.href = '/login'
+                }
+            } catch {
+                // ignore store errors during logout
+            }
+        }
+
         const error = new Error(payload?.error || '请求失败')
+        error.status = response.status
         error.code = payload?.code
         error.details = payload?.details
         throw error

@@ -1,11 +1,14 @@
 const express = require("express");
 const { z } = require("zod");
 const booksService = require("../services/booksService");
-const { parseId } = require("../utils/params");
-const { validateBody, validateListQuery } = require("../middleware/validate");
-const { sendInvalidId, sendNotFound } = require("../utils/errors");
+const { validate } = require("../middleware/validate");
+const { NotFoundError } = require("../utils/errors");
 
 const router = express.Router();
+
+const idSchema = z.object({
+  id: z.coerce.number().int().positive(),
+});
 
 const bookSchema = z
   .object({
@@ -59,9 +62,11 @@ const listQuerySchema = z.object({
   sortOrder: z.enum(["asc", "desc"]).optional(),
   category: z.string().min(1).optional(),
   activeStatus: z.enum(["Y", "N"]).optional(),
+  limit: z.coerce.number().int().min(1).max(100).optional().default(25),
+  offset: z.coerce.number().int().min(0).optional().default(0),
 });
 
-router.get("/", validateListQuery(listQuerySchema), (req, res, next) => {
+router.get("/", validate({ query: listQuerySchema }), (req, res, next) => {
   try {
     const {
       limit,
@@ -76,7 +81,7 @@ router.get("/", validateListQuery(listQuerySchema), (req, res, next) => {
       sortOrder,
       category,
       activeStatus,
-    } = req.listQuery;
+    } = req.query;
 
     const filters = {
       status,
@@ -102,23 +107,19 @@ router.get("/", validateListQuery(listQuerySchema), (req, res, next) => {
   }
 });
 
-router.get("/:id", (req, res, next) => {
+router.get("/:id", validate({ params: idSchema }), (req, res, next) => {
   try {
-    const id = parseId(req.params.id);
-    if (!id) {
-      return sendInvalidId(res, "book");
-    }
-    const book = booksService.getBook(id);
+    const book = booksService.getBook(req.params.id);
     if (!book) {
-      return sendNotFound(res, "Book");
+      throw new NotFoundError("Book not found");
     }
-    return res.json({ data: book });
+    res.json({ data: book });
   } catch (err) {
-    return next(err);
+    next(err);
   }
 });
 
-router.post("/", validateBody(bookSchema), (req, res, next) => {
+router.post("/", validate({ body: bookSchema }), (req, res, next) => {
   try {
     const book = booksService.createBook(req.body);
     res.status(201).json({ data: book });
@@ -127,35 +128,27 @@ router.post("/", validateBody(bookSchema), (req, res, next) => {
   }
 });
 
-router.put("/:id", validateBody(bookSchema), (req, res, next) => {
+router.put("/:id", validate({ params: idSchema, body: bookSchema }), (req, res, next) => {
   try {
-    const id = parseId(req.params.id);
-    if (!id) {
-      return sendInvalidId(res, "book");
-    }
-    const book = booksService.updateBook(id, req.body);
+    const book = booksService.updateBook(req.params.id, req.body);
     if (!book) {
-      return sendNotFound(res, "Book");
+      throw new NotFoundError("Book not found");
     }
-    return res.json({ data: book });
+    res.json({ data: book });
   } catch (err) {
-    return next(err);
+    next(err);
   }
 });
 
-router.delete("/:id", (req, res, next) => {
+router.delete("/:id", validate({ params: idSchema }), (req, res, next) => {
   try {
-    const id = parseId(req.params.id);
-    if (!id) {
-      return sendInvalidId(res, "book");
-    }
-    const deleted = booksService.deleteBook(id);
+    const deleted = booksService.deleteBook(req.params.id);
     if (!deleted) {
-      return sendNotFound(res, "Book");
+      throw new NotFoundError("Book not found");
     }
-    return res.status(204).send();
+    res.status(204).send();
   } catch (err) {
-    return next(err);
+    next(err);
   }
 });
 

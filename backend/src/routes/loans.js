@@ -1,15 +1,14 @@
 const express = require("express");
 const { z } = require("zod");
 const loansService = require("../services/loansService");
-const { parseId } = require("../utils/params");
-const { validateBody, validateListQuery } = require("../middleware/validate");
-const {
-  sendConflict,
-  sendInvalidId,
-  sendNotFound,
-} = require("../utils/errors");
+const { validate } = require("../middleware/validate");
+const { NotFoundError } = require("../utils/errors");
 
 const router = express.Router();
+
+const idSchema = z.object({
+  id: z.coerce.number().int().positive(),
+});
 
 const loanCreateSchema = z
   .object({
@@ -29,13 +28,15 @@ const loanUpdateSchema = z
     message: "Provide dueAt or returnedAt",
   });
 
-const loanListQuerySchema = z.object({
+const listQuerySchema = z.object({
   status: z.enum(["open", "returned"]).optional(),
+  limit: z.coerce.number().int().min(1).max(100).optional().default(25),
+  offset: z.coerce.number().int().min(0).optional().default(0),
 });
 
-router.get("/", validateListQuery(loanListQuerySchema), (req, res, next) => {
+router.get("/", validate({ query: listQuerySchema }), (req, res, next) => {
   try {
-    const { limit, offset, status } = req.listQuery;
+    const { limit, offset, status } = req.query;
     const loans = loansService.listLoans({ limit, offset, status });
     const total = loansService.countLoans(status);
     res.json({
@@ -47,69 +48,42 @@ router.get("/", validateListQuery(loanListQuerySchema), (req, res, next) => {
   }
 });
 
-router.get("/:id", (req, res, next) => {
+router.get("/:id", validate({ params: idSchema }), (req, res, next) => {
   try {
-    const id = parseId(req.params.id);
-    if (!id) {
-      return sendInvalidId(res, "loan");
-    }
-    const loan = loansService.getLoan(id);
+    const loan = loansService.getLoan(req.params.id);
     if (!loan) {
-      return sendNotFound(res, "Loan");
+      throw new NotFoundError("Loan not found");
     }
-    return res.json({ data: loan });
+    res.json({ data: loan });
   } catch (err) {
-    return next(err);
+    next(err);
   }
 });
 
-router.post("/", validateBody(loanCreateSchema), (req, res, next) => {
+router.post("/", validate({ body: loanCreateSchema }), (req, res, next) => {
   try {
-    const outcome = loansService.createLoan(req.body);
-    if (outcome.error === "book_not_found") {
-      return sendNotFound(res, "Book");
-    }
-    if (outcome.error === "member_not_found") {
-      return sendNotFound(res, "Member");
-    }
-    if (outcome.error === "book_unavailable") {
-      return sendConflict(res, "Book not available");
-    }
-    return res.status(201).json({ data: outcome.data });
+    const loan = loansService.createLoan(req.body);
+    res.status(201).json({ data: loan });
   } catch (err) {
-    return next(err);
+    next(err);
   }
 });
 
-router.put("/:id", validateBody(loanUpdateSchema), (req, res, next) => {
+router.put("/:id", validate({ params: idSchema, body: loanUpdateSchema }), (req, res, next) => {
   try {
-    const id = parseId(req.params.id);
-    if (!id) {
-      return sendInvalidId(res, "loan");
-    }
-    const outcome = loansService.updateLoan(id, req.body);
-    if (outcome.error === "loan_not_found") {
-      return sendNotFound(res, "Loan");
-    }
-    return res.json({ data: outcome.data });
+    const loan = loansService.updateLoan(req.params.id, req.body);
+    res.json({ data: loan });
   } catch (err) {
-    return next(err);
+    next(err);
   }
 });
 
-router.delete("/:id", (req, res, next) => {
+router.delete("/:id", validate({ params: idSchema }), (req, res, next) => {
   try {
-    const id = parseId(req.params.id);
-    if (!id) {
-      return sendInvalidId(res, "loan");
-    }
-    const outcome = loansService.deleteLoan(id);
-    if (!outcome.deleted) {
-      return sendNotFound(res, "Loan");
-    }
-    return res.status(204).send();
+    loansService.deleteLoan(req.params.id);
+    res.status(204).send();
   } catch (err) {
-    return next(err);
+    next(err);
   }
 });
 

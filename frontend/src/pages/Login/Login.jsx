@@ -98,15 +98,15 @@ function Login() {
                             <div className="account-list">
                                 <div className="account-item">
                                     <span className="account-role">管理员</span>
-                                    <span className="account-cred">admin / admin123</span>
+                                    <span className="account-cred">admin / TempPass123!</span>
                                 </div>
                                 <div className="account-item">
                                     <span className="account-role">工作人员</span>
-                                    <span className="account-cred">staff1 / staff123</span>
+                                    <span className="account-cred">staff1 / TempPass123!</span>
                                 </div>
                                 <div className="account-item">
                                     <span className="account-role">学生</span>
-                                    <span className="account-cred">student1 / student123</span>
+                                    <span className="account-cred">student1 / TempPass123!</span>
                                 </div>
                             </div>
                         </div>

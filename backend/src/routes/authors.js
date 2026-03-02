@@ -1,11 +1,14 @@
 const express = require("express");
 const { z } = require("zod");
 const authorsService = require("../services/authorsService");
-const { parseId } = require("../utils/params");
-const { validateBody, validateListQuery } = require("../middleware/validate");
-const { sendInvalidId, sendNotFound } = require("../utils/errors");
+const { validate } = require("../middleware/validate");
+const { NotFoundError } = require("../utils/errors");
 
 const router = express.Router();
+
+const idSchema = z.object({
+  id: z.coerce.number().int().positive(),
+});
 
 const authorSchema = z
   .object({
@@ -26,11 +29,13 @@ const listQuerySchema = z.object({
   q: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
   sortBy: z.enum(["id", "name", "created_at"]).optional(),
   sortOrder: z.enum(["asc", "desc"]).optional(),
+  limit: z.coerce.number().int().min(1).max(100).optional().default(25),
+  offset: z.coerce.number().int().min(0).optional().default(0),
 });
 
-router.get("/", validateListQuery(listQuerySchema), (req, res, next) => {
+router.get("/", validate({ query: listQuerySchema }), (req, res, next) => {
   try {
-    const { limit, offset, q, sortBy, sortOrder } = req.listQuery;
+    const { limit, offset, q, sortBy, sortOrder } = req.query;
     const authors = authorsService.listAuthors({
       limit,
       offset,
@@ -54,23 +59,19 @@ router.get("/", validateListQuery(listQuerySchema), (req, res, next) => {
   }
 });
 
-router.get("/:id", (req, res, next) => {
+router.get("/:id", validate({ params: idSchema }), (req, res, next) => {
   try {
-    const id = parseId(req.params.id);
-    if (!id) {
-      return sendInvalidId(res, "author");
-    }
-    const author = authorsService.getAuthor(id);
+    const author = authorsService.getAuthor(req.params.id);
     if (!author) {
-      return sendNotFound(res, "Author");
+      throw new NotFoundError("Author not found");
     }
-    return res.json({ data: author });
+    res.json({ data: author });
   } catch (err) {
-    return next(err);
+    next(err);
   }
 });
 
-router.post("/", validateBody(authorSchema), (req, res, next) => {
+router.post("/", validate({ body: authorSchema }), (req, res, next) => {
   try {
     const author = authorsService.createAuthor(req.body);
     res.status(201).json({ data: author });
@@ -79,35 +80,27 @@ router.post("/", validateBody(authorSchema), (req, res, next) => {
   }
 });
 
-router.put("/:id", validateBody(authorSchema), (req, res, next) => {
+router.put("/:id", validate({ params: idSchema, body: authorSchema }), (req, res, next) => {
   try {
-    const id = parseId(req.params.id);
-    if (!id) {
-      return sendInvalidId(res, "author");
-    }
-    const author = authorsService.updateAuthor(id, req.body);
+    const author = authorsService.updateAuthor(req.params.id, req.body);
     if (!author) {
-      return sendNotFound(res, "Author");
+      throw new NotFoundError("Author not found");
     }
-    return res.json({ data: author });
+    res.json({ data: author });
   } catch (err) {
-    return next(err);
+    next(err);
   }
 });
 
-router.delete("/:id", (req, res, next) => {
+router.delete("/:id", validate({ params: idSchema }), (req, res, next) => {
   try {
-    const id = parseId(req.params.id);
-    if (!id) {
-      return sendInvalidId(res, "author");
-    }
-    const deleted = authorsService.deleteAuthor(id);
+    const deleted = authorsService.deleteAuthor(req.params.id);
     if (!deleted) {
-      return sendNotFound(res, "Author");
+      throw new NotFoundError("Author not found");
     }
-    return res.status(204).send();
+    res.status(204).send();
   } catch (err) {
-    return next(err);
+    next(err);
   }
 });
 

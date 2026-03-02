@@ -1,5 +1,6 @@
-import { useState, useEffect, useMemo, useDeferredValue } from 'react'
+import { useState, useMemo, useDeferredValue } from 'react'
 import { useDataStore } from '../../stores/dataStore'
+import { useDataLoader } from '../../hooks/useDataLoader'
 import { useToast } from '../../components/common/Toast'
 import Modal, { ConfirmModal } from '../../components/common/Modal'
 import './UserManagement.css'
@@ -7,6 +8,7 @@ import './UserManagement.css'
 function UserList() {
     const { users, loadAllData, addUser, updateUser, deleteUser, resetUserPassword } = useDataStore()
     const { addToast } = useToast()
+    useDataLoader()
     const [search, setSearch] = useState('')
     const deferredSearch = useDeferredValue(search)
     const [roleFilter, setRoleFilter] = useState('all')
@@ -15,10 +17,6 @@ function UserList() {
     const [isResetModalOpen, setIsResetModalOpen] = useState(false)
     const [editingUser, setEditingUser] = useState(null)
     const [selectedUserId, setSelectedUserId] = useState(null)
-
-    useEffect(() => {
-        loadAllData()
-    }, [loadAllData])
 
     const activeUsers = useMemo(() => users.filter(u => u.activeStatus === 'Y'), [users])
 

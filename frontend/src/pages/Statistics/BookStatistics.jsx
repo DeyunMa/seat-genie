@@ -1,5 +1,6 @@
-import { useEffect, useState, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { useDataStore } from '../../stores/dataStore'
+import { useDataLoader } from '../../hooks/useDataLoader'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts'
 import '../Dashboard/Dashboard.css'
 import './Statistics.css'
@@ -7,12 +8,10 @@ import './Statistics.css'
 const COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#10b981', '#f59e0b', '#3b82f6']
 
 function BookStatistics() {
-    const { books, bookBorrowings, loadAllData, getMonthlyBorrowingTrend, getPopularBooks } = useDataStore()
+    const { books, bookBorrowings, getMonthlyBorrowingTrend, getPopularBooks } = useDataStore()
     const [dateRange, setDateRange] = useState('month')
 
-    useEffect(() => {
-        loadAllData()
-    }, [])
+    useDataLoader()
 
     const monthlyTrend = useMemo(() => getMonthlyBorrowingTrend(), [bookBorrowings, getMonthlyBorrowingTrend])
     const popularBooks = useMemo(() => getPopularBooks(), [bookBorrowings, getPopularBooks])

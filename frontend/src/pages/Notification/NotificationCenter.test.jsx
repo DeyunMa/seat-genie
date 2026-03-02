@@ -11,6 +11,21 @@ vi.mock('../../stores/authStore', () => ({
     useAuthStore: vi.fn()
 }))
 
+const createDataStoreMock = (overrides = {}) => {
+    const state = {
+        users: [],
+        books: [],
+        seatReservations: [],
+        bookBorrowings: [],
+        loadAllData: vi.fn(),
+        loading: false,
+        error: null,
+        ...overrides,
+    }
+    return (selectorOrVoid) =>
+        typeof selectorOrVoid === 'function' ? selectorOrVoid(state) : state
+}
+
 vi.mock('../../stores/dataStore', () => ({
     useDataStore: vi.fn()
 }))
@@ -23,7 +38,7 @@ describe('NotificationCenter', () => {
     beforeEach(() => {
         vi.clearAllMocks()
 
-        useDataStore.mockReturnValue({
+        useDataStore.mockImplementation(createDataStoreMock({
             users: [
                 { id: 1, name: 'Student 1', role: 'student' },
                 { id: 2, name: 'Student 2', role: 'student' }
@@ -34,8 +49,8 @@ describe('NotificationCenter', () => {
             ],
             seatReservations: [],
             bookBorrowings: [],
-            loadAllData: mockLoadAllData
-        })
+            loadAllData: mockLoadAllData,
+        }))
     })
 
     it('renders correctly for Staff/Admin', () => {
@@ -71,15 +86,15 @@ describe('NotificationCenter', () => {
         yesterday.setDate(yesterday.getDate() - 1)
         const yesterdayStr = yesterday.toISOString().split('T')[0]
 
-        useDataStore.mockReturnValue({
+        useDataStore.mockImplementation(createDataStoreMock({
             users: [{ id: 1, name: 'Student 1' }],
             books: [{ id: 101, title: 'Book A' }],
             seatReservations: [],
             bookBorrowings: [
                 { id: 1, userId: 1, bookId: 101, status: 'borrowed', dueDate: yesterdayStr }
             ],
-            loadAllData: mockLoadAllData
-        })
+            loadAllData: mockLoadAllData,
+        }))
 
         render(<NotificationCenter />)
 
@@ -92,15 +107,15 @@ describe('NotificationCenter', () => {
             user: { id: 99, role: 'staff', name: 'Staff Member' }
         })
 
-        useDataStore.mockReturnValue({
+        useDataStore.mockImplementation(createDataStoreMock({
             users: [{ id: 1, name: 'Student 1' }],
             books: [],
             seatReservations: [
                 { id: 1, userId: 1, status: 'violated', date: today }
             ],
             bookBorrowings: [],
-            loadAllData: mockLoadAllData
-        })
+            loadAllData: mockLoadAllData,
+        }))
 
         render(<NotificationCenter />)
 
@@ -118,15 +133,15 @@ describe('NotificationCenter', () => {
         tomorrow.setDate(tomorrow.getDate() + 1)
         const tomorrowStr = tomorrow.toISOString().split('T')[0]
 
-        useDataStore.mockReturnValue({
+        useDataStore.mockImplementation(createDataStoreMock({
             users: [],
             books: [{ id: 101, title: 'Book A' }],
             seatReservations: [],
             bookBorrowings: [
                 { id: 1, userId: 1, bookId: 101, status: 'borrowed', dueDate: tomorrowStr }
             ],
-            loadAllData: mockLoadAllData
-        })
+            loadAllData: mockLoadAllData,
+        }))
 
         render(<NotificationCenter />)
 
@@ -144,15 +159,15 @@ describe('NotificationCenter', () => {
         yesterday.setDate(yesterday.getDate() - 1)
         const yesterdayStr = yesterday.toISOString().split('T')[0]
 
-        useDataStore.mockReturnValue({
+        useDataStore.mockImplementation(createDataStoreMock({
             users: [],
             books: [{ id: 101, title: 'Book A' }],
             seatReservations: [],
             bookBorrowings: [
                 { id: 1, userId: 1, bookId: 101, status: 'borrowed', dueDate: yesterdayStr }
             ],
-            loadAllData: mockLoadAllData
-        })
+            loadAllData: mockLoadAllData,
+        }))
 
         render(<NotificationCenter />)
 
