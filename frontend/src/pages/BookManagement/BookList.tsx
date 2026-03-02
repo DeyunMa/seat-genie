@@ -1,7 +1,8 @@
-import { useState, useEffect, useMemo, useCallback, useDeferredValue, FormEvent } from 'react'
+import { useState, useEffect, useMemo, useCallback, useDeferredValue, useRef, FormEvent } from 'react'
 import { useToast } from '../../components/common/Toast'
 import Modal, { ConfirmModal } from '../../components/common/Modal'
 import { listBooks, createBook, updateBook, deleteBook } from '../../services/booksApi'
+import { exportBooks, importBooks } from '../../services/exportApi'
 import type { Book } from '../../types'
 import '../UserManagement/UserManagement.css'
 
@@ -29,6 +30,42 @@ function BookList() {
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false)
     const [editingBook, setEditingBook] = useState<Book | null>(null)
     const [selectedBookId, setSelectedBookId] = useState<number | null>(null)
+    const [exporting, setExporting] = useState(false)
+    const [isImportModalOpen, setIsImportModalOpen] = useState(false)
+    const fileInputRef = useRef<HTMLInputElement>(null)
+
+    const handleExport = async () => {
+        setExporting(true)
+        try {
+            await exportBooks()
+            addToast('Books exported successfully', 'success')
+        } catch (error) {
+            addToast((error as Error).message || 'Export failed', 'error')
+        } finally {
+            setExporting(false)
+        }
+    }
+
+    const handleImport = async (e: FormEvent<HTMLFormElement>) => {
+        e.preventDefault()
+        const file = fileInputRef.current?.files?.[0]
+        if (!file) {
+            addToast('Please select an Excel file', 'warning')
+            return
+        }
+        try {
+            const result = await importBooks(file)
+            addToast(`Import complete: ${result.success} succeeded, ${result.failed} failed`, result.failed > 0 ? 'warning' : 'success')
+            if (result.errors.length > 0) {
+                result.errors.slice(0, 3).forEach(err => addToast(err, 'error'))
+            }
+            await loadBooks()
+            setIsImportModalOpen(false)
+            if (fileInputRef.current) fileInputRef.current.value = ''
+        } catch (error) {
+            addToast((error as Error).message || 'Import failed', 'error')
+        }
+    }
 
     const loadBooks = useCallback(async () => {
         setLoading(true)
@@ -132,9 +169,17 @@ function BookList() {
         <div className="page-container">
             <div className="page-header">
                 <h1 className="page-title">图书管理</h1>
-                <button className="btn btn-primary" onClick={() => handleOpenModal()}>
-                    <span>➕</span> 新增图书
-                </button>
+                <div className="header-actions">
+                    <button className="btn btn-secondary" onClick={() => setIsImportModalOpen(true)}>
+                        <span>📥</span> Import Excel
+                    </button>
+                    <button className="btn btn-secondary" onClick={handleExport} disabled={exporting}>
+                        <span>📤</span> {exporting ? 'Exporting...' : 'Export Excel'}
+                    </button>
+                    <button className="btn btn-primary" onClick={() => handleOpenModal()}>
+                        <span>➕</span> 新增图书
+                    </button>
+                </div>
             </div>
 
             <div className="filter-bar">
@@ -289,6 +334,29 @@ function BookList() {
                 confirmText="删除"
                 danger
             />
+
+            <Modal isOpen={isImportModalOpen} onClose={() => setIsImportModalOpen(false)} title="Import Books from Excel">
+                <form onSubmit={handleImport} className="modal-form">
+                    <div className="form-group">
+                        <label>Select Excel File (.xlsx) *</label>
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                            required
+                        />
+                    </div>
+                    <div className="form-group">
+                        <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--font-size-sm)' }}>
+                            Required columns: ISBN, Title, Author. Optional: Publisher, Category, Location, Published Year.
+                        </p>
+                    </div>
+                    <div className="modal-actions">
+                        <button type="button" className="btn btn-secondary" onClick={() => setIsImportModalOpen(false)}>Cancel</button>
+                        <button type="submit" className="btn btn-primary">Import</button>
+                    </div>
+                </form>
+            </Modal>
         </div>
     )
 }
