@@ -12,6 +12,16 @@ export interface User {
   updatedAt: string | null;
 }
 
+export interface Campus {
+  id: number;
+  name: string;
+  address: string | null;
+  description: string | null;
+  activeStatus: string;
+  createdAt: string;
+  updatedAt: string | null;
+}
+
 export interface Room {
   id: number;
   name: string;
@@ -19,6 +29,7 @@ export interface Room {
   capacity: number;
   openTime: string | null;
   closeTime: string | null;
+  campusId: number | null;
   activeStatus: string;
   createdAt: string;
   updatedAt: string | null;
@@ -28,6 +39,8 @@ export interface Seat {
   id: number;
   roomId: number;
   seatNumber: string;
+  positionX: number;
+  positionY: number;
   status: 'available' | 'occupied' | 'maintenance';
   activeStatus: string;
   createdAt: string;

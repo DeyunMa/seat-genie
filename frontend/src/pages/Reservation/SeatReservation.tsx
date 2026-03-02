@@ -12,7 +12,7 @@ function SeatReservation() {
     const { addToast } = useToast()
     useDataLoader()
 
-    const [selectedRoom, setSelectedRoom] = useState<string>('')
+    const [selectedRoom, setSelectedRoom] = useState<number | null>(null)
     const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0])
     const [selectedSeat, setSelectedSeat] = useState<Seat | null>(null)
     const [startTime, setStartTime] = useState<string>('09:00')
@@ -119,8 +119,8 @@ function SeatReservation() {
                         <div className="filter-group">
                             <label>选择房间</label>
                             <select
-                                value={selectedRoom}
-                                onChange={(e: ChangeEvent<HTMLSelectElement>) => { setSelectedRoom(e.target.value); setSelectedSeat(null); }}
+                                value={selectedRoom ?? ''}
+                                onChange={(e: ChangeEvent<HTMLSelectElement>) => { setSelectedRoom(e.target.value ? Number(e.target.value) : null); setSelectedSeat(null); }}
                             >
                                 <option value="">请选择房间</option>
                                 {activeRooms.map((room: Room) => (
@@ -184,26 +184,45 @@ function SeatReservation() {
                                 <span className="legend-item"><span className="dot available"></span> 可预约</span>
                                 <span className="legend-item"><span className="dot reserved"></span> 已预约</span>
                                 <span className="legend-item"><span className="dot selected"></span> 已选择</span>
+                                <span className="legend-item"><span className="dot maintenance"></span> 维护中</span>
                             </div>
 
-                            <div className="seat-map">
-                                {roomSeats.map((seat: Seat) => {
-                                    const status = getSeatStatus(seat.id)
-                                    const isSelected = selectedSeat?.id === seat.id
-                                    const reservations = getSeatReservations(seat.id)
+                            <div className="seat-map-container">
+                                <div className="room-front-indicator">
+                                    <span>讲台 / 前方</span>
+                                </div>
+                                <div
+                                    className="seat-map-grid"
+                                    style={{
+                                        gridTemplateColumns: `repeat(${Math.max(...roomSeats.map((s: Seat) => (s.positionX ?? 0) + 1), 3)}, 1fr)`,
+                                    }}
+                                >
+                                    {roomSeats.map((seat: Seat) => {
+                                        const status = getSeatStatus(seat.id)
+                                        const isSelected = selectedSeat?.id === seat.id
+                                        const reservations = getSeatReservations(seat.id)
+                                        const isClickable = status === 'available' || isSelected
 
-                                    return (
-                                        <div
-                                            key={seat.id}
-                                            className={`seat-item ${status} ${isSelected ? 'selected' : ''}`}
-                                            onClick={() => status === 'available' || isSelected ? setSelectedSeat(isSelected ? null : seat) : null}
-                                            title={reservations.length > 0 ? `已预约：${reservations.map(r => `${String(r.startTime).replace(/[<>&"']/g, '')}-${String(r.endTime).replace(/[<>&"']/g, '')}`).join(', ')}` : '可预约'}
-                                        >
-                                            <span className="seat-icon">🪑</span>
-                                            <span className="seat-label">{seat.seatNumber}</span>
-                                        </div>
-                                    )
-                                })}
+                                        return (
+                                            <div
+                                                key={seat.id}
+                                                className={`seat-map-item ${status} ${isSelected ? 'selected' : ''}`}
+                                                style={{
+                                                    gridColumn: (seat.positionX ?? 0) + 1,
+                                                    gridRow: (seat.positionY ?? 0) + 1,
+                                                }}
+                                                onClick={() => isClickable ? setSelectedSeat(isSelected ? null : seat) : undefined}
+                                                title={reservations.length > 0 ? `已预约：${reservations.map(r => `${String(r.startTime).replace(/[<>&"']/g, '')}-${String(r.endTime).replace(/[<>&"']/g, '')}`).join(', ')}` : '可预约'}
+                                            >
+                                                <div className="seat-visual">
+                                                    <div className="seat-desk" />
+                                                    <div className="seat-chair" />
+                                                </div>
+                                                <span className="seat-label">{seat.seatNumber}</span>
+                                            </div>
+                                        )
+                                    })}
+                                </div>
                             </div>
 
                             {roomSeats.length === 0 && (

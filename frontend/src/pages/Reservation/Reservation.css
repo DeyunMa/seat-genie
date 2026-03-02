@@ -129,6 +129,124 @@
     background: var(--primary-500);
 }
 
+.legend-item .dot.maintenance {
+    background: var(--warning);
+}
+
+/* Seat Map Visualization */
+.seat-map-container {
+    position: relative;
+}
+
+.room-front-indicator {
+    text-align: center;
+    padding: var(--spacing-sm) var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+    background: var(--bg-tertiary);
+    border: 1px dashed var(--border-color);
+    border-radius: var(--radius-md);
+    color: var(--text-muted);
+    font-size: var(--font-size-sm);
+    letter-spacing: 2px;
+}
+
+.seat-map-grid {
+    display: grid;
+    gap: var(--spacing-md);
+    padding: var(--spacing-lg);
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    min-height: 200px;
+}
+
+.seat-map-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-md) var(--spacing-sm);
+    background: var(--bg-tertiary);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    min-height: 80px;
+}
+
+.seat-map-item:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.seat-map-item.available {
+    border-color: var(--success);
+    background: rgba(16, 185, 129, 0.1);
+}
+
+.seat-map-item.available:hover {
+    background: rgba(16, 185, 129, 0.2);
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.3);
+}
+
+.seat-map-item.reserved {
+    border-color: var(--text-muted);
+    background: rgba(107, 107, 128, 0.1);
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.seat-map-item.reserved:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+.seat-map-item.selected {
+    border-color: var(--primary-500);
+    background: rgba(99, 102, 241, 0.2);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
+    transform: scale(1.05);
+}
+
+/* Seat visual (desk + chair icon) */
+.seat-visual {
+    position: relative;
+    width: 36px;
+    height: 36px;
+    margin-bottom: var(--spacing-xs);
+}
+
+.seat-desk {
+    width: 36px;
+    height: 20px;
+    background: var(--bg-secondary);
+    border: 2px solid currentColor;
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+    opacity: 0.6;
+}
+
+.seat-chair {
+    width: 24px;
+    height: 12px;
+    margin: 2px auto 0;
+    background: currentColor;
+    border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+    opacity: 0.4;
+}
+
+.seat-map-item.available .seat-desk { border-color: var(--success); }
+.seat-map-item.available .seat-chair { background: var(--success); }
+.seat-map-item.reserved .seat-desk { border-color: var(--text-muted); }
+.seat-map-item.reserved .seat-chair { background: var(--text-muted); }
+.seat-map-item.selected .seat-desk { border-color: var(--primary-500); }
+.seat-map-item.selected .seat-chair { background: var(--primary-500); }
+
+.seat-label {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+}
+
+/* Legacy flat grid (kept for backwards compat) */
 .seat-map {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
@@ -148,46 +266,9 @@
     transition: all var(--transition-fast);
 }
 
-.seat-item:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-}
-
-.seat-item.available {
-    border-color: var(--success);
-    background: rgba(16, 185, 129, 0.1);
-}
-
-.seat-item.available:hover {
-    background: rgba(16, 185, 129, 0.2);
-}
-
-.seat-item.reserved {
-    border-color: var(--text-muted);
-    background: rgba(107, 107, 128, 0.1);
-    cursor: not-allowed;
-    opacity: 0.6;
-}
-
-.seat-item.reserved:hover {
-    transform: none;
-    box-shadow: none;
-}
-
-.seat-item.selected {
-    border-color: var(--primary-500);
-    background: rgba(99, 102, 241, 0.2);
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
-}
-
 .seat-icon {
     font-size: 28px;
     margin-bottom: var(--spacing-xs);
-}
-
-.seat-label {
-    font-size: var(--font-size-sm);
-    font-weight: 600;
 }
 
 /* Reservation List */
