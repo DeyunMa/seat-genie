@@ -1,17 +1,15 @@
 import { describe, it, expect, vi } from 'vitest'
 import { mapLoansToBorrowings } from './mappers'
 
-// Mock toDateOnly since it's used in mapLoansToBorrowings
 vi.mock('./dateUtils', () => ({
-    toDateOnly: vi.fn((val) => {
+    toDateOnly: vi.fn((val: string | null | undefined) => {
         if (!val) return null;
-        // Simple mock implementation for testing
         return val.split('T')[0]
     })
 }))
 
 describe('mapLoansToBorrowings', () => {
-    const mockUsersByEmail = {
+    const mockUsersByEmail: Record<string, number> = {
         'test@example.com': 123
     }
 
@@ -41,8 +39,8 @@ describe('mapLoansToBorrowings', () => {
     ]
 
     it('should return empty array if loans is not an array', () => {
-        expect(mapLoansToBorrowings(null, {})).toEqual([])
-        expect(mapLoansToBorrowings(undefined, {})).toEqual([])
+        expect(mapLoansToBorrowings(null as any, {})).toEqual([])
+        expect(mapLoansToBorrowings(undefined as any, {})).toEqual([])
     })
 
     it('should map loans to borrowings correctly', () => {
@@ -50,7 +48,6 @@ describe('mapLoansToBorrowings', () => {
 
         expect(result).toHaveLength(2)
 
-        // Check first borrowing (active)
         expect(result[0]).toEqual({
             id: '1',
             userId: 123,
@@ -67,10 +64,9 @@ describe('mapLoansToBorrowings', () => {
             updatedAt: '2023-10-01T10:00:00Z'
         })
 
-        // Check second borrowing (returned)
         expect(result[1]).toEqual({
             id: '2',
-            userId: null, // Email not in usersByEmail
+            userId: null,
             memberId: 457,
             memberName: 'Other Member',
             memberEmail: 'other@example.com',
@@ -86,7 +82,7 @@ describe('mapLoansToBorrowings', () => {
     })
 
     it('should handle missing usersByEmail gracefully', () => {
-        const result = mapLoansToBorrowings([mockLoans[0]], null)
+        const result = mapLoansToBorrowings([mockLoans[0]], null as any)
         expect(result[0].userId).toBeNull()
     })
 })

@@ -1,28 +1,24 @@
-import React from 'react'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, type Mock } from 'vitest'
 import '@testing-library/jest-dom'
 import App from './App'
 import { useAuthStore } from './stores/authStore'
 
-// Mock the auth store
 vi.mock('./stores/authStore', () => ({
   useAuthStore: vi.fn()
 }))
 
-// Mock the ToastProvider
 vi.mock('./components/common/Toast', () => ({
-  ToastProvider: ({ children }) => <div>{children}</div>
+  ToastProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>
 }))
 
-// Mock pages
 vi.mock('./pages/Login/Login', () => ({ default: () => <div>Login Page</div> }))
 vi.mock('./components/layout/MainLayout', () => ({ default: () => <div>Main Layout</div> }))
 
 describe('App', () => {
   it('redirects to login when not authenticated', () => {
-    useAuthStore.mockReturnValue({
+    (useAuthStore as unknown as Mock).mockReturnValue({
       isAuthenticated: false,
       user: null
     })
@@ -37,7 +33,7 @@ describe('App', () => {
   })
 
   it('renders main layout when authenticated', () => {
-    useAuthStore.mockReturnValue({
+    (useAuthStore as unknown as Mock).mockReturnValue({
       isAuthenticated: true,
       user: { role: 'student' }
     })

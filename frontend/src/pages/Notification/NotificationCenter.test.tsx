@@ -1,17 +1,15 @@
-import React from 'react'
 import { render, screen } from '@testing-library/react'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest'
 import '@testing-library/jest-dom'
 import NotificationCenter from './NotificationCenter'
 import { useAuthStore } from '../../stores/authStore'
 import { useDataStore } from '../../stores/dataStore'
 
-// Mock the stores
 vi.mock('../../stores/authStore', () => ({
     useAuthStore: vi.fn()
 }))
 
-const createDataStoreMock = (overrides = {}) => {
+const createDataStoreMock = (overrides: Record<string, any> = {}) => {
     const state = {
         users: [],
         books: [],
@@ -22,8 +20,8 @@ const createDataStoreMock = (overrides = {}) => {
         error: null,
         ...overrides,
     }
-    return (selectorOrVoid) =>
-        typeof selectorOrVoid === 'function' ? selectorOrVoid(state) : state
+    return (selectorOrVoid: unknown) =>
+        typeof selectorOrVoid === 'function' ? (selectorOrVoid as (s: typeof state) => unknown)(state) : state
 }
 
 vi.mock('../../stores/dataStore', () => ({
@@ -34,11 +32,10 @@ describe('NotificationCenter', () => {
     const mockLoadAllData = vi.fn()
     const today = new Date().toISOString().split('T')[0]
 
-    // Setup default store mocks
     beforeEach(() => {
-        vi.clearAllMocks()
+        vi.clearAllMocks();
 
-        useDataStore.mockImplementation(createDataStoreMock({
+        (useDataStore as unknown as Mock).mockImplementation(createDataStoreMock({
             users: [
                 { id: 1, name: 'Student 1', role: 'student' },
                 { id: 2, name: 'Student 2', role: 'student' }
@@ -54,7 +51,7 @@ describe('NotificationCenter', () => {
     })
 
     it('renders correctly for Staff/Admin', () => {
-        useAuthStore.mockReturnValue({
+        (useAuthStore as unknown as Mock).mockReturnValue({
             user: { id: 99, role: 'staff', name: 'Staff Member' }
         })
 
@@ -66,7 +63,7 @@ describe('NotificationCenter', () => {
     })
 
     it('renders correctly for Student', () => {
-        useAuthStore.mockReturnValue({
+        (useAuthStore as unknown as Mock).mockReturnValue({
             user: { id: 1, role: 'student', name: 'Student 1' }
         })
 
@@ -77,16 +74,15 @@ describe('NotificationCenter', () => {
     })
 
     it('displays overdue notifications for Staff', () => {
-        useAuthStore.mockReturnValue({
+        (useAuthStore as unknown as Mock).mockReturnValue({
             user: { id: 99, role: 'staff', name: 'Staff Member' }
         })
 
-        // Mock overdue borrowing
         const yesterday = new Date()
         yesterday.setDate(yesterday.getDate() - 1)
-        const yesterdayStr = yesterday.toISOString().split('T')[0]
+        const yesterdayStr = yesterday.toISOString().split('T')[0];
 
-        useDataStore.mockImplementation(createDataStoreMock({
+        (useDataStore as unknown as Mock).mockImplementation(createDataStoreMock({
             users: [{ id: 1, name: 'Student 1' }],
             books: [{ id: 101, title: 'Book A' }],
             seatReservations: [],
@@ -103,11 +99,11 @@ describe('NotificationCenter', () => {
     })
 
     it('displays violated reservations for Staff', () => {
-        useAuthStore.mockReturnValue({
+        (useAuthStore as unknown as Mock).mockReturnValue({
             user: { id: 99, role: 'staff', name: 'Staff Member' }
-        })
+        });
 
-        useDataStore.mockImplementation(createDataStoreMock({
+        (useDataStore as unknown as Mock).mockImplementation(createDataStoreMock({
             users: [{ id: 1, name: 'Student 1' }],
             books: [],
             seatReservations: [
@@ -124,16 +120,15 @@ describe('NotificationCenter', () => {
     })
 
     it('displays due soon notifications for Student', () => {
-        useAuthStore.mockReturnValue({
+        (useAuthStore as unknown as Mock).mockReturnValue({
             user: { id: 1, role: 'student', name: 'Student 1' }
         })
 
-        // Mock due soon borrowing (e.g., due tomorrow)
         const tomorrow = new Date()
         tomorrow.setDate(tomorrow.getDate() + 1)
-        const tomorrowStr = tomorrow.toISOString().split('T')[0]
+        const tomorrowStr = tomorrow.toISOString().split('T')[0];
 
-        useDataStore.mockImplementation(createDataStoreMock({
+        (useDataStore as unknown as Mock).mockImplementation(createDataStoreMock({
             users: [],
             books: [{ id: 101, title: 'Book A' }],
             seatReservations: [],
@@ -150,16 +145,15 @@ describe('NotificationCenter', () => {
     })
 
      it('displays overdue notifications for Student', () => {
-        useAuthStore.mockReturnValue({
+        (useAuthStore as unknown as Mock).mockReturnValue({
             user: { id: 1, role: 'student', name: 'Student 1' }
         })
 
-        // Mock overdue borrowing
         const yesterday = new Date()
         yesterday.setDate(yesterday.getDate() - 1)
-        const yesterdayStr = yesterday.toISOString().split('T')[0]
+        const yesterdayStr = yesterday.toISOString().split('T')[0];
 
-        useDataStore.mockImplementation(createDataStoreMock({
+        (useDataStore as unknown as Mock).mockImplementation(createDataStoreMock({
             users: [],
             books: [{ id: 101, title: 'Book A' }],
             seatReservations: [],
@@ -176,7 +170,7 @@ describe('NotificationCenter', () => {
     })
 
     it('displays system notifications for everyone', () => {
-         useAuthStore.mockReturnValue({
+         (useAuthStore as unknown as Mock).mockReturnValue({
             user: { id: 1, role: 'student', name: 'Student 1' }
         })
 

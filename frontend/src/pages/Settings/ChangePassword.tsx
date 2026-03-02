@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, FormEvent } from 'react'
 import { useAuthStore } from '../../stores/authStore'
 import { useToast } from '../../components/common/Toast'
 import './ChangePassword.css'
@@ -11,7 +11,7 @@ function ChangePassword() {
     const { changePassword } = useAuthStore()
     const { addToast } = useToast()
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e: FormEvent) => {
         e.preventDefault()
 
         if (!oldPassword || !newPassword || !confirmPassword) {
@@ -31,7 +31,6 @@ function ChangePassword() {
 
         setLoading(true)
 
-        // Simulate network delay
         await new Promise(resolve => setTimeout(resolve, 500))
 
         const result = await changePassword(oldPassword, newPassword)
@@ -42,7 +41,7 @@ function ChangePassword() {
             setNewPassword('')
             setConfirmPassword('')
         } else {
-            addToast(result.error, 'error')
+            addToast(result.error || 'Unknown error', 'error')
         }
 
         setLoading(false)

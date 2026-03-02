@@ -1,9 +1,8 @@
 import { render, waitFor, act } from '@testing-library/react'
-import { describe, it, vi, expect, beforeEach } from 'vitest'
+import { describe, it, vi, expect, beforeEach, type Mock } from 'vitest'
 import BookList from './BookList'
 import { listBooks } from '../../services/booksApi'
 
-// Mock services
 vi.mock('../../services/booksApi', () => ({
     listBooks: vi.fn(),
     createBook: vi.fn(),
@@ -11,16 +10,14 @@ vi.mock('../../services/booksApi', () => ({
     deleteBook: vi.fn()
 }))
 
-// Mock toast with stable reference
 const mockAddToast = vi.fn()
 vi.mock('../../components/common/Toast', () => ({
     useToast: () => ({ addToast: mockAddToast })
 }))
 
-// Mock Modal
 vi.mock('../../components/common/Modal', () => ({
     __esModule: true,
-    default: ({ children }) => <div>{children}</div>,
+    default: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
     ConfirmModal: () => <div></div>
 }))
 
@@ -30,20 +27,17 @@ describe('BookList Performance', () => {
     })
 
     it('should not call listBooks infinitely', async () => {
-        // Return new array reference every time to simulate real API
-        listBooks.mockImplementation(() => Promise.resolve([]))
+        (listBooks as Mock).mockImplementation(() => Promise.resolve([]))
 
         render(<BookList />)
 
-        // Allow some time for effects
         await waitFor(() => expect(listBooks).toHaveBeenCalled())
 
-        // Wait a bit more
         await act(async () => {
              await new Promise(r => setTimeout(r, 200))
         })
 
-        console.log('Call count:', listBooks.mock.calls.length)
-        expect(listBooks.mock.calls.length).toBeLessThan(10)
+        console.log('Call count:', (listBooks as Mock).mock.calls.length)
+        expect((listBooks as Mock).mock.calls.length).toBeLessThan(10)
     })
 })

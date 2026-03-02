@@ -1,7 +1,8 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, ChangeEvent } from 'react'
 import { useDataStore } from '../../stores/dataStore'
 import { useDataLoader } from '../../hooks/useDataLoader'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area } from 'recharts'
+import type { Room, Seat, SeatReservation, WeeklyTrendData, TimeSlotData, RoomUtilization } from '../../types'
 import '../Dashboard/Dashboard.css'
 import './Statistics.css'
 
@@ -9,21 +10,20 @@ const COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#10b981', '#f59e0b', '#3b82f6'
 
 function SeatStatistics() {
     const { rooms, seats, seatReservations, bookBorrowings, getWeeklyTrendData, getTimeSlotDistribution } = useDataStore()
-    const [dateRange, setDateRange] = useState('week')
+    const [dateRange, setDateRange] = useState<string>('week')
 
     useDataLoader()
 
-    const weeklyTrend = useMemo(() => getWeeklyTrendData(), [seatReservations, bookBorrowings, getWeeklyTrendData])
-    const timeSlotData = useMemo(() => getTimeSlotDistribution(), [seatReservations, getTimeSlotDistribution])
+    const weeklyTrend = useMemo<WeeklyTrendData[]>(() => getWeeklyTrendData(), [seatReservations, bookBorrowings, getWeeklyTrendData])
+    const timeSlotData = useMemo<TimeSlotData[]>(() => getTimeSlotDistribution(), [seatReservations, getTimeSlotDistribution])
 
-    const activeRooms = rooms.filter(r => r.activeStatus === 'Y')
-    const activeSeats = seats.filter(s => s.activeStatus === 'Y')
+    const activeRooms = rooms.filter((r: Room) => r.activeStatus === 'Y')
+    const activeSeats = seats.filter((s: Seat) => s.activeStatus === 'Y')
 
-    // Room utilization data
-    const roomUtilization = activeRooms.map(room => {
-        const roomSeats = activeSeats.filter(s => s.roomId === room.id)
-        const roomReservations = seatReservations.filter(r =>
-            roomSeats.some(s => s.id === r.seatId) && r.status === 'active'
+    const roomUtilization: RoomUtilization[] = activeRooms.map((room: Room) => {
+        const roomSeats = activeSeats.filter((s: Seat) => s.roomId === room.id)
+        const roomReservations = seatReservations.filter((r: SeatReservation) =>
+            roomSeats.some((s: Seat) => s.id === r.seatId) && r.status === 'active'
         )
         const utilization = roomSeats.length > 0
             ? Math.round((roomReservations.length / roomSeats.length) * 100)
@@ -37,15 +37,14 @@ function SeatStatistics() {
         }
     })
 
-    // Seat status distribution
     const seatStatusData = [
-        { name: '可用', value: activeSeats.filter(s => s.status === 'available').length },
-        { name: '使用中', value: activeSeats.filter(s => s.status === 'occupied').length },
-        { name: '维护中', value: activeSeats.filter(s => s.status === 'maintenance').length }
+        { name: '可用', value: activeSeats.filter((s: Seat) => s.status === 'available').length },
+        { name: '使用中', value: activeSeats.filter((s: Seat) => s.status === 'occupied').length },
+        { name: '维护中', value: activeSeats.filter((s: Seat) => s.status === 'maintenance').length }
     ]
 
     const totalSeats = activeSeats.length
-    const activeReservations = seatReservations.filter(r => r.status === 'active').length
+    const activeReservations = seatReservations.filter((r: SeatReservation) => r.status === 'active').length
     const avgUtilization = roomUtilization.length > 0
         ? Math.round(roomUtilization.reduce((sum, r) => sum + r.utilization, 0) / roomUtilization.length)
         : 0
@@ -55,7 +54,7 @@ function SeatStatistics() {
             <div className="page-header">
                 <h1 className="page-title">座位统计</h1>
                 <div className="header-actions">
-                    <select value={dateRange} onChange={(e) => setDateRange(e.target.value)}>
+                    <select value={dateRange} onChange={(e: ChangeEvent<HTMLSelectElement>) => setDateRange(e.target.value)}>
                         <option value="today">今日</option>
                         <option value="week">本周</option>
                         <option value="month">本月</option>
@@ -107,7 +106,7 @@ function SeatStatistics() {
                                 <YAxis type="category" dataKey="name" stroke="#6b6b80" width={100} />
                                 <Tooltip
                                     contentStyle={{ background: '#1a1a2e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
-                                    formatter={(value) => [`${value}%`, '利用率']}
+                                    formatter={(value: number) => [`${value}%`, '利用率']}
                                 />
                                 <Bar dataKey="utilization" fill="#6366f1" radius={[0, 4, 4, 0]} />
                             </BarChart>
@@ -130,9 +129,9 @@ function SeatStatistics() {
                                     outerRadius={100}
                                     paddingAngle={5}
                                     dataKey="value"
-                                    label={({ name, value }) => `${name}: ${value}`}
+                                    label={({ name, value }: { name: string; value: number }) => `${name}: ${value}`}
                                 >
-                                    {seatStatusData.map((entry, index) => (
+                                    {seatStatusData.map((_entry, index) => (
                                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                     ))}
                                 </Pie>

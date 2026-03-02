@@ -4,11 +4,11 @@
 
 ### Project overview
 
-Seat Genie is a Library & Study Room Management System (图书馆/自习室综合管理系统). It is an npm workspaces monorepo with two packages: `frontend/` (React 19 + Vite) and `backend/` (Express + SQLite via better-sqlite3). See `README.md` for full feature list and API docs.
+Seat Genie is a Library & Study Room Management System (图书馆/自习室综合管理系统). It is an npm workspaces monorepo with two packages: `frontend/` (React 19 + Vite + TypeScript) and `backend/` (Express + SQLite via better-sqlite3 + TypeScript). Both packages are fully TypeScript — no `.js`/`.jsx` source files remain under `src/`. See `README.md` for full feature list and API docs.
 
 ### Running services
 
-- **Backend**: `cd backend && npm run dev` — starts Express on port 3001 with nodemon auto-restart. SQLite DB at `backend/data/library.db` is auto-created and seeded on first API request that touches the DB (lazy init — `/health` alone does NOT trigger DB creation).
+- **Backend**: `cd backend && npm run dev` — starts Express on port 3001 via `nodemon --exec tsx src/index.ts` (auto-restart on changes). SQLite DB at `backend/data/library.db` is auto-created and seeded on first API request that touches the DB (lazy init — `/health` alone does NOT trigger DB creation).
 - **Frontend**: `cd frontend && npx vite --host 0.0.0.0` — starts Vite dev server on port 5173.
 - **Both at once**: `npm run dev` from root (uses `concurrently`).
 

@@ -19,21 +19,18 @@ function BookStatistics() {
     const activeBooks = books.filter(b => b.activeStatus === 'Y')
     const today = new Date().toISOString().split('T')[0]
 
-    // Book status distribution
     const bookStatusData = [
         { name: '可借阅', value: activeBooks.filter(b => b.status === 'available').length },
         { name: '已借出', value: activeBooks.filter(b => b.status === 'borrowed').length },
         { name: '维护中', value: activeBooks.filter(b => b.status === 'maintenance').length }
     ]
 
-    // Category distribution
     const categories = [...new Set(activeBooks.map(b => b.category))]
     const categoryData = categories.map(cat => ({
         name: cat,
         count: activeBooks.filter(b => b.category === cat).length
     })).sort((a, b) => b.count - a.count)
 
-    // Borrowing stats
     const activeBorrowings = bookBorrowings.filter(b => b.status === 'borrowed')
     const overdueBorrowings = activeBorrowings.filter(b => b.dueDate < today)
 
@@ -102,9 +99,9 @@ function BookStatistics() {
                                     outerRadius={100}
                                     paddingAngle={5}
                                     dataKey="value"
-                                    label={({ name, value }) => `${name}: ${value}`}
+                                    label={({ name, value }: { name: string; value: number }) => `${name}: ${value}`}
                                 >
-                                    {bookStatusData.map((entry, index) => (
+                                    {bookStatusData.map((_entry, index) => (
                                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                     ))}
                                 </Pie>

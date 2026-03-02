@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, vi, type Mock } from 'vitest'
 
 vi.mock('../services/apiClient', () => ({
     apiRequest: vi.fn(),
@@ -19,8 +19,8 @@ beforeEach(() => {
 describe('authStore', () => {
     describe('login', () => {
         it('sets user and token on success', async () => {
-            const mockUser = { id: 1, username: 'admin', name: 'Admin', role: 'admin' }
-            apiRequest.mockResolvedValue({ token: 'jwt-token', user: mockUser })
+            const mockUser = { id: 1, username: 'admin', name: 'Admin', role: 'admin' };
+            (apiRequest as Mock).mockResolvedValue({ token: 'jwt-token', user: mockUser })
 
             const result = await useAuthStore.getState().login('admin', 'pass')
 
@@ -34,7 +34,7 @@ describe('authStore', () => {
         })
 
         it('returns error on failure', async () => {
-            apiRequest.mockRejectedValue(new Error('Invalid credentials'))
+            (apiRequest as Mock).mockRejectedValue(new Error('Invalid credentials'))
 
             const result = await useAuthStore.getState().login('bad', 'bad')
 
@@ -47,7 +47,7 @@ describe('authStore', () => {
     describe('logout', () => {
         it('clears auth state', () => {
             useAuthStore.setState({
-                user: { id: 1, name: 'Admin' },
+                user: { id: 1, name: 'Admin' } as any,
                 token: 'token',
                 isAuthenticated: true,
             })
@@ -64,13 +64,13 @@ describe('authStore', () => {
     describe('updateUserInfo', () => {
         it('merges updates into user', () => {
             useAuthStore.setState({
-                user: { id: 1, name: 'Old', email: 'old@test.com' },
+                user: { id: 1, name: 'Old', email: 'old@test.com' } as any,
             })
 
             useAuthStore.getState().updateUserInfo({ name: 'New' })
 
-            expect(useAuthStore.getState().user.name).toBe('New')
-            expect(useAuthStore.getState().user.email).toBe('old@test.com')
+            expect(useAuthStore.getState().user!.name).toBe('New')
+            expect((useAuthStore.getState().user as any).email).toBe('old@test.com')
         })
 
         it('does nothing when no user', () => {
@@ -82,12 +82,12 @@ describe('authStore', () => {
 
     describe('hasPermission', () => {
         it('returns true when user role matches', () => {
-            useAuthStore.setState({ user: { role: 'admin' } })
+            useAuthStore.setState({ user: { role: 'admin' } as any })
             expect(useAuthStore.getState().hasPermission(['admin', 'staff'])).toBe(true)
         })
 
         it('returns false when user role does not match', () => {
-            useAuthStore.setState({ user: { role: 'student' } })
+            useAuthStore.setState({ user: { role: 'student' } as any })
             expect(useAuthStore.getState().hasPermission(['admin'])).toBe(false)
         })
 
@@ -97,9 +97,9 @@ describe('authStore', () => {
         })
 
         it('returns true when no roles required', () => {
-            useAuthStore.setState({ user: { role: 'student' } })
+            useAuthStore.setState({ user: { role: 'student' } as any })
             expect(useAuthStore.getState().hasPermission([])).toBe(true)
-            expect(useAuthStore.getState().hasPermission(null)).toBe(true)
+            expect(useAuthStore.getState().hasPermission(null as any)).toBe(true)
         })
     })
 
@@ -112,8 +112,8 @@ describe('authStore', () => {
         })
 
         it('returns error when old password is wrong', async () => {
-            useAuthStore.setState({ user: { id: 1, username: 'admin' } })
-            apiRequest.mockRejectedValueOnce(new Error('Invalid'))
+            useAuthStore.setState({ user: { id: 1, username: 'admin' } as any });
+            (apiRequest as Mock).mockRejectedValueOnce(new Error('Invalid'))
 
             const result = await useAuthStore.getState().changePassword('wrong', 'New12345678!')
             expect(result.success).toBe(false)
@@ -121,8 +121,8 @@ describe('authStore', () => {
         })
 
         it('succeeds with correct old password', async () => {
-            useAuthStore.setState({ user: { id: 1, username: 'admin' } })
-            apiRequest
+            useAuthStore.setState({ user: { id: 1, username: 'admin' } as any });
+            (apiRequest as Mock)
                 .mockResolvedValueOnce({ token: 't', user: {} })
                 .mockResolvedValueOnce({})
 
