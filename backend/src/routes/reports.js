@@ -6,10 +6,17 @@ const {
   parseReportLimitQuery,
   parseReportPaginationQuery,
 } = require("../utils/queryValidation");
-const { parseId } = require("../utils/params");
-const { sendInvalidId, sendNotFound } = require("../utils/errors");
+const { validate } = require("../middleware/validate");
 
 const router = express.Router();
+
+const memberIdSchema = z.object({
+  memberId: z.coerce.number().int().positive(),
+});
+
+const bookIdSchema = z.object({
+  bookId: z.coerce.number().int().positive(),
+});
 
 const overdueQuerySchema = z.object({
   asOf: dateTimeQuery.optional(),
@@ -47,9 +54,6 @@ const loanHistoryQuerySchema = z
       path: ["since"],
     }
   );
-
-const memberLoanHistoryQuerySchema = loanHistoryQuerySchema;
-const bookLoanHistoryQuerySchema = loanHistoryQuerySchema;
 
 router.get("/overdue-loans", (req, res, next) => {
   try {
@@ -118,27 +122,20 @@ router.get("/inventory-health", (req, res, next) => {
   }
 });
 
-router.get("/member-loan-history/:memberId", (req, res, next) => {
+router.get("/member-loan-history/:memberId", validate({ params: memberIdSchema }), (req, res, next) => {
   try {
-    const memberId = parseId(req.params.memberId);
-    if (!memberId) {
-      return sendInvalidId(res, "member");
-    }
     const { limit, offset, since, until, status } = parseReportPaginationQuery(
       req.query,
-      memberLoanHistoryQuerySchema
+      loanHistoryQuerySchema
     );
     const history = reportsService.getMemberLoanHistory({
-      memberId,
+      memberId: req.params.memberId,
       since,
       until,
       status,
       limit,
       offset,
     });
-    if (history.error === "member_not_found") {
-      return sendNotFound(res, "Member");
-    }
     return res.json({
       data: {
         member: history.member,
@@ -158,27 +155,20 @@ router.get("/member-loan-history/:memberId", (req, res, next) => {
   }
 });
 
-router.get("/book-loan-history/:bookId", (req, res, next) => {
+router.get("/book-loan-history/:bookId", validate({ params: bookIdSchema }), (req, res, next) => {
   try {
-    const bookId = parseId(req.params.bookId);
-    if (!bookId) {
-      return sendInvalidId(res, "book");
-    }
     const { limit, offset, since, until, status } = parseReportPaginationQuery(
       req.query,
-      bookLoanHistoryQuerySchema
+      loanHistoryQuerySchema
     );
     const history = reportsService.getBookLoanHistory({
-      bookId,
+      bookId: req.params.bookId,
       since,
       until,
       status,
       limit,
       offset,
     });
-    if (history.error === "book_not_found") {
-      return sendNotFound(res, "Book");
-    }
     return res.json({
       data: {
         book: history.book,

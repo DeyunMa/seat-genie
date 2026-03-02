@@ -96,8 +96,8 @@ describe("CRUD error scenarios", () => {
       .expect(400);
     expect(bookResponse.body).toEqual(
       expect.objectContaining({
-        code: "INVALID_ID",
-        error: "Invalid book id",
+        code: "VALIDATION_ERROR",
+        error: "Validation failed",
       })
     );
 
@@ -106,8 +106,8 @@ describe("CRUD error scenarios", () => {
       .expect(400);
     expect(authorResponse.body).toEqual(
       expect.objectContaining({
-        code: "INVALID_ID",
-        error: "Invalid author id",
+        code: "VALIDATION_ERROR",
+        error: "Validation failed",
       })
     );
 
@@ -116,8 +116,8 @@ describe("CRUD error scenarios", () => {
       .expect(400);
     expect(memberResponse.body).toEqual(
       expect.objectContaining({
-        code: "INVALID_ID",
-        error: "Invalid member id",
+        code: "VALIDATION_ERROR",
+        error: "Validation failed",
       })
     );
 
@@ -126,8 +126,8 @@ describe("CRUD error scenarios", () => {
       .expect(400);
     expect(loanResponse.body).toEqual(
       expect.objectContaining({
-        code: "INVALID_ID",
-        error: "Invalid loan id",
+        code: "VALIDATION_ERROR",
+        error: "Validation failed",
       })
     );
   });

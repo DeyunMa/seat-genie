@@ -1,11 +1,14 @@
 const express = require("express");
 const { z } = require("zod");
 const membersService = require("../services/membersService");
-const { parseId } = require("../utils/params");
-const { validateBody, validateListQuery } = require("../middleware/validate");
-const { sendConflict, sendInvalidId, sendNotFound } = require("../utils/errors");
+const { validate } = require("../middleware/validate");
+const { NotFoundError } = require("../utils/errors");
 
 const router = express.Router();
+
+const idSchema = z.object({
+  id: z.coerce.number().int().positive(),
+});
 
 const memberSchema = z
   .object({
@@ -27,11 +30,13 @@ const listQuerySchema = z.object({
   q: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
   sortBy: z.enum(["id", "name", "email", "created_at"]).optional(),
   sortOrder: z.enum(["asc", "desc"]).optional(),
+  limit: z.coerce.number().int().min(1).max(100).optional().default(25),
+  offset: z.coerce.number().int().min(0).optional().default(0),
 });
 
-router.get("/", validateListQuery(listQuerySchema), (req, res, next) => {
+router.get("/", validate({ query: listQuerySchema }), (req, res, next) => {
   try {
-    const { limit, offset, q, sortBy, sortOrder } = req.listQuery;
+    const { limit, offset, q, sortBy, sortOrder } = req.query;
     const members = membersService.listMembers({
       limit,
       offset,
@@ -55,23 +60,19 @@ router.get("/", validateListQuery(listQuerySchema), (req, res, next) => {
   }
 });
 
-router.get("/:id", (req, res, next) => {
+router.get("/:id", validate({ params: idSchema }), (req, res, next) => {
   try {
-    const id = parseId(req.params.id);
-    if (!id) {
-      return sendInvalidId(res, "member");
-    }
-    const member = membersService.getMember(id);
+    const member = membersService.getMember(req.params.id);
     if (!member) {
-      return sendNotFound(res, "Member");
+      throw new NotFoundError("Member not found");
     }
-    return res.json({ data: member });
+    res.json({ data: member });
   } catch (err) {
-    return next(err);
+    next(err);
   }
 });
 
-router.post("/", validateBody(memberSchema), (req, res, next) => {
+router.post("/", validate({ body: memberSchema }), (req, res, next) => {
   try {
     const member = membersService.createMember(req.body);
     res.status(201).json({ data: member });
@@ -80,38 +81,24 @@ router.post("/", validateBody(memberSchema), (req, res, next) => {
   }
 });
 
-router.put("/:id", validateBody(memberSchema), (req, res, next) => {
+router.put("/:id", validate({ params: idSchema, body: memberSchema }), (req, res, next) => {
   try {
-    const id = parseId(req.params.id);
-    if (!id) {
-      return sendInvalidId(res, "member");
-    }
-    const member = membersService.updateMember(id, req.body);
+    const member = membersService.updateMember(req.params.id, req.body);
     if (!member) {
-      return sendNotFound(res, "Member");
+      throw new NotFoundError("Member not found");
     }
-    return res.json({ data: member });
+    res.json({ data: member });
   } catch (err) {
-    return next(err);
+    next(err);
   }
 });
 
-router.delete("/:id", (req, res, next) => {
+router.delete("/:id", validate({ params: idSchema }), (req, res, next) => {
   try {
-    const id = parseId(req.params.id);
-    if (!id) {
-      return sendInvalidId(res, "member");
-    }
-    const outcome = membersService.deleteMember(id);
-    if (!outcome.deleted) {
-      if (outcome.reason === "active_loans") {
-        return sendConflict(res, "Member has active loans");
-      }
-      return sendNotFound(res, "Member");
-    }
-    return res.status(204).send();
+    membersService.deleteMember(req.params.id);
+    res.status(204).send();
   } catch (err) {
-    return next(err);
+    next(err);
   }
 });
 
