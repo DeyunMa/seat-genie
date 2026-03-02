@@ -7,6 +7,8 @@ const mapSeat = (row: SeatRow | undefined): Seat | null =>
         id: row.id,
         roomId: row.room_id,
         seatNumber: row.seat_number,
+        positionX: row.position_x ?? 0,
+        positionY: row.position_y ?? 0,
         status: row.status,
         activeStatus: row.active_status,
         createdAt: row.created_at,
@@ -71,12 +73,14 @@ const createSeat = (payload: CreateSeat): Seat | null => {
 
   const result = db
     .prepare(
-      `INSERT INTO seats (room_id, seat_number, status, active_status, created_at, updated_at)
-       VALUES (?, ?, ?, 'Y', ?, ?)`
+      `INSERT INTO seats (room_id, seat_number, position_x, position_y, status, active_status, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, 'Y', ?, ?)`
     )
     .run(
       payload.roomId,
       payload.seatNumber,
+      payload.positionX ?? 0,
+      payload.positionY ?? 0,
       payload.status || "available",
       now,
       now
@@ -99,6 +103,14 @@ const updateSeat = (id: number, payload: UpdateSeat): Seat | null => {
   if (payload.seatNumber !== undefined) {
     fields.push("seat_number = ?");
     params.push(payload.seatNumber);
+  }
+  if (payload.positionX !== undefined) {
+    fields.push("position_x = ?");
+    params.push(payload.positionX);
+  }
+  if (payload.positionY !== undefined) {
+    fields.push("position_y = ?");
+    params.push(payload.positionY);
   }
   if (payload.status !== undefined) {
     fields.push("status = ?");

@@ -19,6 +19,7 @@ import loanRoutes from "./routes/loans";
 import reportRoutes from "./routes/reports";
 import exportRoutes from "./routes/export";
 import schedulerRoutes from "./routes/scheduler";
+import campusRoutes from "./routes/campuses";
 import { errorHandler } from "./middleware/errorHandler";
 
 const createApp = () => {
@@ -41,18 +42,21 @@ const createApp = () => {
   // Protected routes — admin only
   app.use("/api/users", authorize("admin"), protectedUserRouter);
 
+  // Protected routes — admin only
+  app.use("/api/campuses", authorize("admin"), campusRoutes);
+  app.use("/api/scheduler", authorize("admin"), schedulerRoutes);
+
   // Protected routes — staff & admin
-  app.use("/api/rooms", authorize("admin", "staff"), roomRoutes);
-  app.use("/api/seats", authorize("admin", "staff"), seatRoutes);
   app.use("/api/books", authorize("admin", "staff"), bookRoutes);
   app.use("/api/authors", authorize("admin", "staff"), authorRoutes);
   app.use("/api/members", authorize("admin", "staff"), memberRoutes);
   app.use("/api/loans", authorize("admin", "staff"), loanRoutes);
   app.use("/api/reports", authorize("admin", "staff"), reportRoutes);
   app.use("/api/export", authorize("admin", "staff"), exportRoutes);
-  app.use("/api/scheduler", authorize("admin"), schedulerRoutes);
 
-  // Protected routes — all authenticated users
+  // Protected routes — all authenticated users (rooms/seats readable by students for reservations)
+  app.use("/api/rooms", roomRoutes);
+  app.use("/api/seats", seatRoutes);
   app.use("/api/reservations", reservationRoutes);
   app.use("/api/notifications", notificationRoutes);
 

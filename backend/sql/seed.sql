@@ -10,30 +10,34 @@ INSERT INTO users (username, password, name, role, email, phone, student_id, act
 ('student2', '$2b$10$tms.aDZWJ.5tQDTbGYKI0.Z8bKdBT9JkcK//703p1Atq5f4IakE3i', '王芳', 'student', 'wangfang@student.edu', '13800000004', '2024001002', 'Y', datetime('now'), datetime('now')),
 ('student3', '$2b$10$tms.aDZWJ.5tQDTbGYKI0.Z8bKdBT9JkcK//703p1Atq5f4IakE3i', '张伟', 'student', 'zhangwei@student.edu', '13800000005', '2024001003', 'Y', datetime('now'), datetime('now'));
 
--- Study rooms
-INSERT INTO rooms (name, floor, capacity, open_time, close_time, active_status, created_at, updated_at) VALUES
-('一楼自习室A', 1, 50, '08:00', '22:00', 'Y', datetime('now'), datetime('now')),
-('一楼自习室B', 1, 40, '08:00', '22:00', 'Y', datetime('now'), datetime('now')),
-('二楼阅览室', 2, 60, '08:00', '21:00', 'Y', datetime('now'), datetime('now')),
-('三楼研讨室', 3, 20, '09:00', '20:00', 'Y', datetime('now'), datetime('now'));
+-- Campuses
+INSERT INTO campuses (name, address, description, active_status, created_at, updated_at) VALUES
+('Main Campus', '100 University Ave', 'Main campus library with 3 floors', 'Y', datetime('now'), datetime('now')),
+('South Campus', '200 College Rd', 'South campus study center', 'Y', datetime('now'), datetime('now'));
 
--- Seats (will be generated programmatically in init script)
--- Initial sample seats for each room
-INSERT INTO seats (room_id, seat_number, status, active_status, created_at, updated_at) VALUES
-(1, 'A01', 'available', 'Y', datetime('now'), datetime('now')),
-(1, 'A02', 'available', 'Y', datetime('now'), datetime('now')),
-(1, 'A03', 'available', 'Y', datetime('now'), datetime('now')),
-(1, 'A04', 'occupied', 'Y', datetime('now'), datetime('now')),
-(1, 'A05', 'available', 'Y', datetime('now'), datetime('now')),
-(2, 'B01', 'available', 'Y', datetime('now'), datetime('now')),
-(2, 'B02', 'available', 'Y', datetime('now'), datetime('now')),
-(2, 'B03', 'maintenance', 'Y', datetime('now'), datetime('now')),
-(2, 'B04', 'available', 'Y', datetime('now'), datetime('now')),
-(3, 'C01', 'available', 'Y', datetime('now'), datetime('now')),
-(3, 'C02', 'occupied', 'Y', datetime('now'), datetime('now')),
-(3, 'C03', 'available', 'Y', datetime('now'), datetime('now')),
-(4, 'D01', 'available', 'Y', datetime('now'), datetime('now')),
-(4, 'D02', 'available', 'Y', datetime('now'), datetime('now'));
+-- Study rooms (with campus_id)
+INSERT INTO rooms (name, floor, capacity, open_time, close_time, campus_id, active_status, created_at, updated_at) VALUES
+('一楼自习室A', 1, 50, '08:00', '22:00', 1, 'Y', datetime('now'), datetime('now')),
+('一楼自习室B', 1, 40, '08:00', '22:00', 1, 'Y', datetime('now'), datetime('now')),
+('二楼阅览室', 2, 60, '08:00', '21:00', 1, 'Y', datetime('now'), datetime('now')),
+('三楼研讨室', 3, 20, '09:00', '20:00', 2, 'Y', datetime('now'), datetime('now'));
+
+-- Seats with grid positions (position_x = column, position_y = row)
+INSERT INTO seats (room_id, seat_number, position_x, position_y, status, active_status, created_at, updated_at) VALUES
+(1, 'A01', 0, 0, 'available', 'Y', datetime('now'), datetime('now')),
+(1, 'A02', 1, 0, 'available', 'Y', datetime('now'), datetime('now')),
+(1, 'A03', 2, 0, 'available', 'Y', datetime('now'), datetime('now')),
+(1, 'A04', 0, 1, 'occupied', 'Y', datetime('now'), datetime('now')),
+(1, 'A05', 1, 1, 'available', 'Y', datetime('now'), datetime('now')),
+(2, 'B01', 0, 0, 'available', 'Y', datetime('now'), datetime('now')),
+(2, 'B02', 1, 0, 'available', 'Y', datetime('now'), datetime('now')),
+(2, 'B03', 0, 1, 'maintenance', 'Y', datetime('now'), datetime('now')),
+(2, 'B04', 1, 1, 'available', 'Y', datetime('now'), datetime('now')),
+(3, 'C01', 0, 0, 'available', 'Y', datetime('now'), datetime('now')),
+(3, 'C02', 1, 0, 'occupied', 'Y', datetime('now'), datetime('now')),
+(3, 'C03', 2, 0, 'available', 'Y', datetime('now'), datetime('now')),
+(4, 'D01', 0, 0, 'available', 'Y', datetime('now'), datetime('now')),
+(4, 'D02', 1, 0, 'available', 'Y', datetime('now'), datetime('now'));
 
 -- Books
 INSERT INTO books (title, isbn, author, publisher, category, location, status, active_status, created_at, updated_at) VALUES
