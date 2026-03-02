@@ -1,0 +1,18 @@
+{
+  "name": "Seat Genie",
+  "short_name": "SeatGenie",
+  "description": "Library & Study Room Management System",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f0f1a",
+  "theme_color": "#6366f1",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/vite.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
