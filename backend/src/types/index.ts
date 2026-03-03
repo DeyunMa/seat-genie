@@ -16,6 +16,16 @@ export interface UserRow {
   updated_at: string | null;
 }
 
+export interface CampusRow {
+  id: number;
+  name: string;
+  address: string | null;
+  description: string | null;
+  active_status: string;
+  created_at: string;
+  updated_at: string | null;
+}
+
 export interface RoomRow {
   id: number;
   name: string;
@@ -23,6 +33,7 @@ export interface RoomRow {
   capacity: number;
   open_time: string | null;
   close_time: string | null;
+  campus_id: number | null;
   active_status: string;
   created_at: string;
   updated_at: string | null;
@@ -32,6 +43,8 @@ export interface SeatRow {
   id: number;
   room_id: number;
   seat_number: string;
+  position_x: number;
+  position_y: number;
   status: string;
   active_status: string;
   created_at: string;
@@ -125,6 +138,16 @@ export interface User {
   updatedAt: string | null;
 }
 
+export interface Campus {
+  id: number;
+  name: string;
+  address: string | null;
+  description: string | null;
+  activeStatus: string;
+  createdAt: string;
+  updatedAt: string | null;
+}
+
 export interface Room {
   id: number;
   name: string;
@@ -132,6 +155,7 @@ export interface Room {
   capacity: number;
   openTime: string | null;
   closeTime: string | null;
+  campusId: number | null;
   activeStatus: string;
   createdAt: string;
   updatedAt: string | null;
@@ -141,6 +165,8 @@ export interface Seat {
   id: number;
   roomId: number;
   seatNumber: string;
+  positionX: number;
+  positionY: number;
   status: string;
   activeStatus: string;
   createdAt: string;
@@ -237,10 +263,24 @@ export interface UpdateUser {
   activeStatus?: string;
 }
 
+export interface CreateCampus {
+  name: string;
+  address?: string | null;
+  description?: string | null;
+}
+
+export interface UpdateCampus {
+  name?: string;
+  address?: string | null;
+  description?: string | null;
+  activeStatus?: string;
+}
+
 export interface CreateRoom {
   name: string;
   floor?: number | null;
   capacity?: number;
+  campusId?: number | null;
   openTime?: string | null;
   closeTime?: string | null;
 }
@@ -249,6 +289,7 @@ export interface UpdateRoom {
   name?: string;
   floor?: number;
   capacity?: number;
+  campusId?: number | null;
   openTime?: string;
   closeTime?: string;
   activeStatus?: string;
@@ -257,12 +298,16 @@ export interface UpdateRoom {
 export interface CreateSeat {
   roomId: number;
   seatNumber: string;
+  positionX?: number;
+  positionY?: number;
   status?: string;
 }
 
 export interface UpdateSeat {
   roomId?: number;
   seatNumber?: string;
+  positionX?: number;
+  positionY?: number;
   status?: string;
   activeStatus?: string;
 }

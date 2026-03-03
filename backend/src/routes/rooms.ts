@@ -3,6 +3,7 @@ import { z } from "zod";
 import * as roomsService from "../services/roomsService";
 import { buildListQuery } from "../utils/params";
 import { validate } from "../middleware/validate";
+import { authorize } from "../middleware/authorize";
 import { NotFoundError } from "../utils/errors";
 
 const router = Router();
@@ -19,6 +20,7 @@ const roomSchema = z.object({
   name: z.string().min(1),
   floor: z.coerce.number().int().optional().nullable(),
   capacity: z.coerce.number().int().min(0).optional().default(0),
+  campusId: z.coerce.number().int().positive().optional().nullable(),
   openTime: z.string().optional().nullable(),
   closeTime: z.string().optional().nullable(),
 });
@@ -27,6 +29,7 @@ const updateRoomSchema = z.object({
   name: z.string().min(1).optional(),
   floor: z.coerce.number().int().optional().nullable(),
   capacity: z.coerce.number().int().min(0).optional(),
+  campusId: z.coerce.number().int().positive().optional().nullable(),
   openTime: z.string().optional().nullable(),
   closeTime: z.string().optional().nullable(),
 });
@@ -56,7 +59,7 @@ router.get("/:id", validate({ params: idSchema }), (req: Request, res: Response,
   }
 });
 
-router.post("/", validate({ body: roomSchema }), (req: Request, res: Response, next: NextFunction) => {
+router.post("/", authorize("admin", "staff"), validate({ body: roomSchema }), (req: Request, res: Response, next: NextFunction) => {
   try {
     const room = roomsService.createRoom(req.body);
     res.status(201).json({ data: room });
@@ -65,7 +68,7 @@ router.post("/", validate({ body: roomSchema }), (req: Request, res: Response, n
   }
 });
 
-router.put("/:id", validate({ params: idSchema, body: updateRoomSchema }), (req: Request, res: Response, next: NextFunction) => {
+router.put("/:id", authorize("admin", "staff"), validate({ params: idSchema, body: updateRoomSchema }), (req: Request, res: Response, next: NextFunction) => {
   try {
     const existing = roomsService.getRoomById((req.params as any).id);
     if (!existing || existing.activeStatus !== "Y") {
@@ -78,7 +81,7 @@ router.put("/:id", validate({ params: idSchema, body: updateRoomSchema }), (req:
   }
 });
 
-router.delete("/:id", validate({ params: idSchema }), (req: Request, res: Response, next: NextFunction) => {
+router.delete("/:id", authorize("admin", "staff"), validate({ params: idSchema }), (req: Request, res: Response, next: NextFunction) => {
   try {
     const existing = roomsService.getRoomById((req.params as any).id);
     if (!existing || existing.activeStatus !== "Y") {

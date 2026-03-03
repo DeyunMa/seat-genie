@@ -10,6 +10,7 @@ const mapRoom = (row: RoomRow | undefined): Room | null =>
         capacity: row.capacity,
         openTime: row.open_time,
         closeTime: row.close_time,
+        campusId: row.campus_id ?? null,
         activeStatus: row.active_status,
         createdAt: row.created_at,
         updatedAt: row.updated_at,
@@ -61,8 +62,8 @@ const createRoom = (payload: CreateRoom): Room | null => {
 
   const result = db
     .prepare(
-      `INSERT INTO rooms (name, floor, capacity, open_time, close_time, active_status, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, 'Y', ?, ?)`
+      `INSERT INTO rooms (name, floor, capacity, open_time, close_time, campus_id, active_status, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, 'Y', ?, ?)`
     )
     .run(
       payload.name,
@@ -70,6 +71,7 @@ const createRoom = (payload: CreateRoom): Room | null => {
       payload.capacity || 0,
       payload.openTime || null,
       payload.closeTime || null,
+      payload.campusId || null,
       now,
       now
     );
@@ -103,6 +105,10 @@ const updateRoom = (id: number, payload: UpdateRoom): Room | null => {
   if (payload.closeTime !== undefined) {
     fields.push("close_time = ?");
     params.push(payload.closeTime);
+  }
+  if (payload.campusId !== undefined) {
+    fields.push("campus_id = ?");
+    params.push(payload.campusId);
   }
   if (payload.activeStatus !== undefined) {
     fields.push("active_status = ?");

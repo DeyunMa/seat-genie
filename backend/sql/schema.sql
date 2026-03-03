@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS users (
   email TEXT UNIQUE,
   phone TEXT,
   student_id TEXT,
+  email_notifications TEXT NOT NULL DEFAULT 'N',
   active_status TEXT NOT NULL DEFAULT 'Y',
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT
@@ -20,6 +21,20 @@ CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
 CREATE INDEX IF NOT EXISTS idx_users_active_status ON users(active_status);
 
+-- Campuses (multi-campus support)
+CREATE TABLE IF NOT EXISTS campuses (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL UNIQUE,
+  address TEXT,
+  description TEXT,
+  active_status TEXT NOT NULL DEFAULT 'Y',
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_campuses_name ON campuses(name);
+CREATE INDEX IF NOT EXISTS idx_campuses_active_status ON campuses(active_status);
+
 -- Study rooms
 CREATE TABLE IF NOT EXISTS rooms (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -28,19 +43,24 @@ CREATE TABLE IF NOT EXISTS rooms (
   capacity INTEGER NOT NULL DEFAULT 0,
   open_time TEXT,
   close_time TEXT,
+  campus_id INTEGER,
   active_status TEXT NOT NULL DEFAULT 'Y',
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at TEXT
+  updated_at TEXT,
+  FOREIGN KEY (campus_id) REFERENCES campuses(id) ON DELETE SET NULL
 );
 
 CREATE INDEX IF NOT EXISTS idx_rooms_name ON rooms(name);
 CREATE INDEX IF NOT EXISTS idx_rooms_active_status ON rooms(active_status);
+CREATE INDEX IF NOT EXISTS idx_rooms_campus_id ON rooms(campus_id);
 
--- Seats in study rooms
+-- Seats in study rooms (with grid position for seat map visualization)
 CREATE TABLE IF NOT EXISTS seats (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   room_id INTEGER NOT NULL,
   seat_number TEXT NOT NULL,
+  position_x INTEGER NOT NULL DEFAULT 0,
+  position_y INTEGER NOT NULL DEFAULT 0,
   status TEXT NOT NULL DEFAULT 'available' CHECK (status IN ('available', 'occupied', 'maintenance')),
   active_status TEXT NOT NULL DEFAULT 'Y',
   created_at TEXT NOT NULL DEFAULT (datetime('now')),

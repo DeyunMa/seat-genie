@@ -3,6 +3,7 @@ import { useDataStore } from '../../stores/dataStore'
 import { useDataLoader } from '../../hooks/useDataLoader'
 import { useToast } from '../../components/common/Toast'
 import Modal, { ConfirmModal } from '../../components/common/Modal'
+import { exportUsers } from '../../services/exportApi'
 import type { User } from '../../types'
 import './UserManagement.css'
 
@@ -18,6 +19,19 @@ function UserList() {
     const [isResetModalOpen, setIsResetModalOpen] = useState<boolean>(false)
     const [editingUser, setEditingUser] = useState<User | null>(null)
     const [selectedUserId, setSelectedUserId] = useState<number | null>(null)
+    const [exporting, setExporting] = useState(false)
+
+    const handleExport = async () => {
+        setExporting(true)
+        try {
+            await exportUsers()
+            addToast('Users exported successfully', 'success')
+        } catch (error) {
+            addToast((error as Error).message || 'Export failed', 'error')
+        } finally {
+            setExporting(false)
+        }
+    }
 
     const activeUsers = useMemo(() => users.filter((u: User) => u.activeStatus === 'Y'), [users])
 
@@ -108,9 +122,14 @@ function UserList() {
         <div className="page-container">
             <div className="page-header">
                 <h1 className="page-title">用户管理</h1>
-                <button className="btn btn-primary" onClick={() => handleOpenModal()}>
-                    <span>➕</span> 新增用户
-                </button>
+                <div className="header-actions">
+                    <button className="btn btn-secondary" onClick={handleExport} disabled={exporting}>
+                        <span>📤</span> {exporting ? 'Exporting...' : 'Export Excel'}
+                    </button>
+                    <button className="btn btn-primary" onClick={() => handleOpenModal()}>
+                        <span>➕</span> 新增用户
+                    </button>
+                </div>
             </div>
 
             <div className="filter-bar">

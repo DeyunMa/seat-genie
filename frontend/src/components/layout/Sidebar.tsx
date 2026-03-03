@@ -95,6 +95,12 @@ const menuConfig: Record<RoleKey, MenuGroup[]> = {
             ]
         },
         {
+            title: '校区管理',
+            items: [
+                { path: '/campuses', label: '校区列表', icon: '🏫' }
+            ]
+        },
+        {
             title: '资源管理',
             items: [
                 { path: '/rooms', label: '房间管理', icon: '🏠' },
@@ -131,13 +137,17 @@ const roleLabels: Record<RoleKey, string> = {
     admin: '管理员'
 }
 
-function Sidebar(): React.ReactNode {
+interface SidebarProps {
+    isOpen?: boolean
+}
+
+function Sidebar({ isOpen }: SidebarProps): React.ReactNode {
     const { user } = useAuthStore()
 
     const menus = menuConfig[(user?.role as RoleKey)] || menuConfig.student
 
     return (
-        <aside className="sidebar">
+        <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
             <div className="sidebar-header">
                 <div className="sidebar-logo">
                     <span className="logo-icon">📚</span>

@@ -16,6 +16,7 @@ import NotificationCenter from './pages/Notification/NotificationCenter'
 import SeatStatistics from './pages/Statistics/SeatStatistics'
 import BookStatistics from './pages/Statistics/BookStatistics'
 import ChangePassword from './pages/Settings/ChangePassword'
+import CampusManagement from './pages/CampusManagement/CampusManagement'
 import { ToastProvider } from './components/common/Toast'
 
 interface ProtectedRouteProps {
@@ -55,10 +56,15 @@ function App(): React.ReactNode {
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<Dashboard />} />
 
-          {/* User Management - Admin Only */}
+          {/* Admin Only */}
           <Route path="users" element={
             <ProtectedRoute allowedRoles={['admin']}>
               <UserList />
+            </ProtectedRoute>
+          } />
+          <Route path="campuses" element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <CampusManagement />
             </ProtectedRoute>
           } />
 

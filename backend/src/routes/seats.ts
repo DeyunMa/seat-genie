@@ -3,6 +3,7 @@ import { z } from "zod";
 import * as seatsService from "../services/seatsService";
 import { buildListQuery } from "../utils/params";
 import { validate } from "../middleware/validate";
+import { authorize } from "../middleware/authorize";
 import { NotFoundError } from "../utils/errors";
 
 const router = Router();
@@ -20,12 +21,16 @@ const listSchema = z.object({
 const seatSchema = z.object({
   roomId: z.coerce.number().int().positive(),
   seatNumber: z.string().min(1),
+  positionX: z.coerce.number().int().min(0).optional().default(0),
+  positionY: z.coerce.number().int().min(0).optional().default(0),
   status: z.enum(["available", "occupied", "maintenance"]).optional().default("available"),
 });
 
 const updateSeatSchema = z.object({
   roomId: z.coerce.number().int().positive().optional(),
   seatNumber: z.string().min(1).optional(),
+  positionX: z.coerce.number().int().min(0).optional(),
+  positionY: z.coerce.number().int().min(0).optional(),
   status: z.enum(["available", "occupied", "maintenance"]).optional(),
 });
 
@@ -54,7 +59,7 @@ router.get("/:id", validate({ params: idSchema }), (req: Request, res: Response,
   }
 });
 
-router.post("/", validate({ body: seatSchema }), (req: Request, res: Response, next: NextFunction) => {
+router.post("/", authorize("admin", "staff"), validate({ body: seatSchema }), (req: Request, res: Response, next: NextFunction) => {
   try {
     const seat = seatsService.createSeat(req.body);
     res.status(201).json({ data: seat });
@@ -63,7 +68,7 @@ router.post("/", validate({ body: seatSchema }), (req: Request, res: Response, n
   }
 });
 
-router.put("/:id", validate({ params: idSchema, body: updateSeatSchema }), (req: Request, res: Response, next: NextFunction) => {
+router.put("/:id", authorize("admin", "staff"), validate({ params: idSchema, body: updateSeatSchema }), (req: Request, res: Response, next: NextFunction) => {
   try {
     const existing = seatsService.getSeatById((req.params as any).id);
     if (!existing || existing.activeStatus !== "Y") {
@@ -76,7 +81,7 @@ router.put("/:id", validate({ params: idSchema, body: updateSeatSchema }), (req:
   }
 });
 
-router.delete("/:id", validate({ params: idSchema }), (req: Request, res: Response, next: NextFunction) => {
+router.delete("/:id", authorize("admin", "staff"), validate({ params: idSchema }), (req: Request, res: Response, next: NextFunction) => {
   try {
     const existing = seatsService.getSeatById((req.params as any).id);
     if (!existing || existing.activeStatus !== "Y") {
